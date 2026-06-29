@@ -577,7 +577,24 @@ function renderMarcas() {
     }).join('') || '<tr><td colspan="7" class="empty">Sin resultados</td></tr>';
 }
 
-function renderDashboard() {
+async function fetchExactOrderCount(tienda, marca, anio, mes) {
+    let url = `${SUPA_URL}/rest/v1/ventas?select=num_venta&ingresos_productos_ars=gt.0`;
+    if (tienda) url += `&tienda=eq.${encodeURIComponent(tienda)}`;
+    if (marca)  url += `&tienda_oficial=eq.${encodeURIComponent(marca)}`;
+    if (anio && mes) {
+        const lastDay = new Date(parseInt(anio), parseInt(mes), 0).getDate();
+        url += `&fecha=gte.${anio}-${mes}-01&fecha=lte.${anio}-${mes}-${String(lastDay).padStart(2,'0')}`;
+    } else if (anio) {
+        url += `&fecha=gte.${anio}-01-01&fecha=lte.${anio}-12-31`;
+    }
+    url += `&limit=10000`;
+    const res = await fetch(url, { headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` } });
+    if (!res.ok) return null;
+    const rows = await res.json();
+    return new Set(rows.map(r => r.num_venta).filter(Boolean)).size;
+}
+
+async function renderDashboard() {
     const tienda = document.getElementById('filterTiendaDash')?.value || '';
     const marca  = document.getElementById('filterMarcaDash')?.value  || '';
     const anio   = document.getElementById('filterAnioDash')?.value   || '';
@@ -601,9 +618,19 @@ function renderDashboard() {
     const lines   = subset.length;
 
     const hasFilter = tienda || marca || anio || mes;
-    const orders        = hasFilter ? ordenes.length : SERVER_COUNTS.ordenes;
+    let orders = hasFilter ? ordenes.length : SERVER_COUNTS.ordenes;
     const uniqueClients = hasFilter ? new Set(subset.map(d => d.dni).filter(x => x && x !== 'S/D')).size : SERVER_COUNTS.clientes;
     const avgTick = orders ? revenue / orders : 0;
+
+    // Fetch exact server-side count when filters applied (more accurate than client-side)
+    if (hasFilter) {
+        fetchExactOrderCount(tienda, marca, anio, mes).then(exactCount => {
+            if (exactCount !== null) {
+                const el = document.getElementById('kpiOrdenesUnicas');
+                if (el) el.textContent = exactCount.toLocaleString('es-AR');
+            }
+        });
+    }
 
     document.getElementById('kpiGrid').innerHTML = `
         <div class="kpi">
@@ -612,7 +639,7 @@ function renderDashboard() {
         </div>
         <div class="kpi">
             <div class="kpi-header"><span class="kpi-label">Órdenes Únicas</span><div class="kpi-icon blue"><i class="fas fa-receipt"></i></div></div>
-            <div class="kpi-value">${orders.toLocaleString('es-AR')}</div>
+            <div class="kpi-value" id="kpiOrdenesUnicas">${orders.toLocaleString('es-AR')}</div>
         </div>
         <div class="kpi">
             <div class="kpi-header"><span class="kpi-label">Ticket Promedio</span><div class="kpi-icon orange"><i class="fas fa-tag"></i></div></div>
