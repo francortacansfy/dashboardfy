@@ -391,11 +391,11 @@
         <div id="mtab-skus" style="display:none;">
             <div class="chart-row">
                 <div class="chart-card">
-                    <h3>Top 10 Productos — Unidades (histórico)</h3>
+                    <h3>Top 10 Productos — Unidades</h3>
                     <div class="chart-wrap"><canvas id="chartMayorTopProd"></canvas></div>
                 </div>
                 <div class="chart-card">
-                    <h3>Top 10 Productos — Unidades (2026)</h3>
+                    <h3>Top 10 Productos — Pedidos</h3>
                     <div class="chart-wrap"><canvas id="chartMayorProd2026"></canvas></div>
                 </div>
             </div>
@@ -1169,7 +1169,7 @@ async function loadMayorista() {
         for (let i = 0; i < linesS.length; i++) {
             const row = parseCSVRow(linesS[i]);
             const c0  = row[0]?.trim()||'';
-            if (yearRe.test(c0)) {
+            if (yearRe.test(c0) && !MAYOR_YEARS.find(y=>y.year===c0)) {
                 MAYOR_YEARS.push({ year:c0, total:parseARS(row[1]), prom:parseARS(row[2]), clientes:parseInt(row[4])||0 });
             }
             if (c0 === 'Mes') { inMonthly = true; continue; }
@@ -1283,30 +1283,33 @@ function renderMayorista() {
 }
 
 function renderMayoristaSkus() {
-    // Chart histórico de Stats
-    if (CHARTS.mayorTopProd) CHARTS.mayorTopProd.destroy();
-    if (MAYOR_TOP_HIST.length) {
-        CHARTS.mayorTopProd = new Chart(document.getElementById('chartMayorTopProd'), {
-            type:'bar',
-            data:{ labels:MAYOR_TOP_HIST.map(x=>x.nombre.length>28?x.nombre.substring(0,28)+'…':x.nombre), datasets:[{ data:MAYOR_TOP_HIST.map(x=>x.qty), backgroundColor:'#f59e0b', borderRadius:6, borderWidth:0 }] },
-            options:{ responsive:true, maintainAspectRatio:false, indexAxis:'y', plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>` ${ctx.raw.toLocaleString('es-AR')} uds`}}}, scales:{ x:{ticks:{font:{family:'DM Sans',size:10}},grid:{display:false}}, y:{ticks:{font:{family:'DM Sans',size:10}},grid:{display:false}}}}
-        });
-    }
-
-    // Agregado de productos 2026
     const prodMap = {};
     MAYOR_DATA.forEach(d=>Object.entries(d.productos).forEach(([n,q])=>{ prodMap[n]=(prodMap[n]||0)+q; }));
     const sorted2026 = Object.entries(prodMap).sort((a,b)=>b[1]-a[1]);
     const totalUds2026 = sorted2026.reduce((s,[,q])=>s+q,0);
-    const top10_2026 = sorted2026.slice(0,10);
+    const top10 = sorted2026.slice(0,10);
+
+    const truncate = s => s.length>28 ? s.substring(0,28)+'…' : s;
+    const chartOpts = (suffix) => ({ responsive:true, maintainAspectRatio:false, indexAxis:'y', plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>` ${ctx.raw.toLocaleString('es-AR')} ${suffix}`}}}, scales:{ x:{ticks:{font:{family:'DM Sans',size:10}},grid:{display:false}}, y:{ticks:{font:{family:'DM Sans',size:10}},grid:{display:false}}}});
+
+    // Chart 1: Top 10 por unidades
+    if (CHARTS.mayorTopProd) CHARTS.mayorTopProd.destroy();
+    CHARTS.mayorTopProd = new Chart(document.getElementById('chartMayorTopProd'), {
+        type:'bar',
+        data:{ labels:top10.map(x=>truncate(x[0])), datasets:[{ data:top10.map(x=>x[1]), backgroundColor:'#f59e0b', borderRadius:6, borderWidth:0 }] },
+        options: chartOpts('uds')
+    });
+
+    // Chart 2: Top 10 por pedidos (cuántas órdenes incluyen ese producto)
+    const orderMap = {};
+    MAYOR_DATA.forEach(d=>Object.keys(d.productos).forEach(n=>{ orderMap[n]=(orderMap[n]||0)+1; }));
+    const top10orders = Object.entries(orderMap).sort((a,b)=>b[1]-a[1]).slice(0,10);
     if (CHARTS.mayorProd2026) CHARTS.mayorProd2026.destroy();
-    if (top10_2026.length) {
-        CHARTS.mayorProd2026 = new Chart(document.getElementById('chartMayorProd2026'), {
-            type:'bar',
-            data:{ labels:top10_2026.map(x=>x[0].length>28?x[0].substring(0,28)+'…':x[0]), datasets:[{ data:top10_2026.map(x=>x[1]), backgroundColor:'#8b5cf6', borderRadius:6, borderWidth:0 }] },
-            options:{ responsive:true, maintainAspectRatio:false, indexAxis:'y', plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>` ${ctx.raw.toLocaleString('es-AR')} uds`}}}, scales:{ x:{ticks:{font:{family:'DM Sans',size:10}},grid:{display:false}}, y:{ticks:{font:{family:'DM Sans',size:10}},grid:{display:false}}}}
-        });
-    }
+    CHARTS.mayorProd2026 = new Chart(document.getElementById('chartMayorProd2026'), {
+        type:'bar',
+        data:{ labels:top10orders.map(x=>truncate(x[0])), datasets:[{ data:top10orders.map(x=>x[1]), backgroundColor:'#8b5cf6', borderRadius:6, borderWidth:0 }] },
+        options: chartOpts('pedidos')
+    });
 
     const q = (document.getElementById('mayorSkuSearch')?.value||'').toLowerCase();
     const filtered = sorted2026.filter(([n])=>!q||n.toLowerCase().includes(q));
