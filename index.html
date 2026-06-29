@@ -108,6 +108,10 @@
         body.dark .badge { color:#34d399; }
         .empty { padding:40px; text-align:center; color:var(--text-4); font-size:13px; }
 
+        .mayor-tab { padding:9px 18px; border:none; background:none; border-bottom:3px solid transparent; color:var(--text-3); font-size:13.5px; font-weight:600; font-family:'DM Sans',sans-serif; cursor:pointer; margin-bottom:-1px; transition:color .15s,border-color .15s; }
+        .mayor-tab:hover { color:var(--text-1); }
+        .mayor-tab.active { color:var(--green); border-bottom-color:var(--green); }
+
         .loading-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:999; place-items:center; }
         .loading-overlay.show { display:grid; }
         .loading-box { background:var(--surface); border-radius:14px; padding:28px 36px; display:flex; align-items:center; gap:14px; font-size:14px; font-weight:600; color:var(--text-1); }
@@ -353,33 +357,86 @@
 
     <!-- MAYORISTA -->
     <div class="page" id="mayorista">
-        <div class="kpi-grid" id="mayorKpiGrid"></div>
-        <div class="chart-row">
-            <div class="chart-card">
-                <h3>Facturado por Mes</h3>
-                <div class="chart-wrap"><canvas id="chartMayorMes"></canvas></div>
+        <div style="display:flex;gap:8px;margin-bottom:20px;border-bottom:1px solid var(--border);padding-bottom:0;">
+            <button class="mayor-tab active" data-mtab="resumen" onclick="switchMayorTab('resumen')">Resumen</button>
+            <button class="mayor-tab" data-mtab="skus" onclick="switchMayorTab('skus')">SKUs</button>
+            <button class="mayor-tab" data-mtab="clientes" onclick="switchMayorTab('clientes')">Clientes</button>
+        </div>
+
+        <!-- RESUMEN -->
+        <div id="mtab-resumen">
+            <div class="kpi-grid" id="mayorKpiGrid"></div>
+            <div class="chart-row">
+                <div class="chart-card">
+                    <h3>Facturado por Año</h3>
+                    <div class="chart-wrap"><canvas id="chartMayorAnio"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <h3>Facturado por Mes — <span id="labelMayorMesAnio">2026</span></h3>
+                    <div class="chart-wrap"><canvas id="chartMayorMes"></canvas></div>
+                </div>
             </div>
-            <div class="chart-card">
-                <h3>Top 10 Productos — Unidades</h3>
-                <div class="chart-wrap"><canvas id="chartMayorProd"></canvas></div>
+            <div class="table-card">
+                <div class="table-head"><h3>Últimos pedidos</h3></div>
+                <div class="table-scroll">
+                    <table>
+                        <thead><tr><th>Fecha</th><th>Cliente</th><th>Tipo</th><th>Unidades</th><th>Total</th><th>Provincia</th></tr></thead>
+                        <tbody id="tableMayorPedidosBody"><tr><td colspan="6" class="empty">Sin datos</td></tr></tbody>
+                    </table>
+                </div>
             </div>
         </div>
-        <div class="table-card" style="margin-bottom:24px;">
-            <div class="table-head"><h3>Top Clientes</h3></div>
-            <div class="table-scroll">
-                <table>
-                    <thead><tr><th>#</th><th>Cliente</th><th>Pedidos</th><th>Unidades</th><th>Total</th><th>Ticket Prom.</th></tr></thead>
-                    <tbody id="tableMayorClientesBody"><tr><td colspan="6" class="empty">Sin datos</td></tr></tbody>
-                </table>
+
+        <!-- SKUs -->
+        <div id="mtab-skus" style="display:none;">
+            <div class="chart-row">
+                <div class="chart-card">
+                    <h3>Top 10 Productos — Unidades (histórico)</h3>
+                    <div class="chart-wrap"><canvas id="chartMayorTopProd"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <h3>Top 10 Productos — Unidades (2026)</h3>
+                    <div class="chart-wrap"><canvas id="chartMayorProd2026"></canvas></div>
+                </div>
+            </div>
+            <div class="table-card">
+                <div class="table-head">
+                    <h3>Todos los productos — 2026</h3>
+                    <input type="text" id="mayorSkuSearch" class="search-input" placeholder="Buscar producto…" oninput="renderMayoristaSkus()" style="width:200px;">
+                </div>
+                <div class="table-scroll">
+                    <table>
+                        <thead><tr><th>#</th><th>Producto</th><th>Unidades</th><th>% del total</th></tr></thead>
+                        <tbody id="tableMayorSkusBody"><tr><td colspan="4" class="empty">Sin datos</td></tr></tbody>
+                    </table>
+                </div>
             </div>
         </div>
-        <div class="table-card">
-            <div class="table-head"><h3>Últimos pedidos</h3></div>
-            <div class="table-scroll">
-                <table>
-                    <thead><tr><th>Fecha</th><th>Cliente</th><th>Tipo</th><th>Unidades</th><th>Total</th><th>Provincia</th></tr></thead>
-                    <tbody id="tableMayorPedidosBody"><tr><td colspan="6" class="empty">Sin datos</td></tr></tbody>
-                </table>
+
+        <!-- CLIENTES -->
+        <div id="mtab-clientes" style="display:none;">
+            <div class="kpi-grid" id="mayorCliKpiGrid"></div>
+            <div class="table-card">
+                <div class="table-head">
+                    <h3>Base de clientes</h3>
+                    <div class="filters">
+                        <input type="text" id="mayorCliSearch" class="search-input" placeholder="Buscar cliente…" oninput="renderMayoristaClientes()" style="width:180px;">
+                        <select class="filter-select" id="filterMayorCliTipo" onchange="renderMayoristaClientes()">
+                            <option value="">Todos los tipos</option>
+                        </select>
+                        <select class="filter-select" id="filterMayorCliEstado" onchange="renderMayoristaClientes()">
+                            <option value="">Todos</option>
+                            <option value="Cliente">Clientes activos</option>
+                            <option value="Ex-Cliente">Ex-Clientes</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="table-scroll">
+                    <table>
+                        <thead><tr><th>#</th><th>Nombre</th><th>Tipo</th><th>Prov.</th><th>2023</th><th>2024</th><th>2025</th><th>2026</th><th>Total</th><th>Estado</th></tr></thead>
+                        <tbody id="tableMayorCliBody"><tr><td colspan="10" class="empty">Sin datos</td></tr></tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -1007,102 +1064,153 @@ function toggleTheme() {
 }
 
 // ── MAYORISTA ──────────────────────────────────────────────────────────────
-const SHEETS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRlsKUXzsrDty9KNCrwUd9phclmXpQX5EtEIpZP8grD_CQeS-2Pn10yc8aq3MNNpXpLHpDe9Bq9McAF/pub?output=csv';
-let MAYOR_DATA = [];
+const SHEETS_BASE = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRlsKUXzsrDty9KNCrwUd9phclmXpQX5EtEIpZP8grD_CQeS-2Pn10yc8aq3MNNpXpLHpDe9Bq9McAF/pub?output=csv';
+const GID_VENTAS    = '415511227';
+const GID_CLIENTES  = '1818261758';
+const GID_STATS     = '505238617';
+
+let MAYOR_DATA     = [];   // pedidos 2026
+let MAYOR_CLIENTES = [];   // base de clientes
+let MAYOR_YEARS    = [];   // [{year, total, prom, clientes}]
+let MAYOR_MONTHLY  = {};   // { year: { '01': amt, ... } }
+let MAYOR_TOP_HIST = [];   // [{nombre, qty}] histórico total
 
 function parseCSVRow(line) {
-    const result = [];
-    let field = '', inQ = false;
+    const result = []; let field = '', inQ = false;
     for (let i = 0; i < line.length; i++) {
         const ch = line[i];
         if (ch === '"') { inQ = !inQ; }
         else if (ch === ',' && !inQ) { result.push(field); field = ''; }
         else { field += ch; }
     }
-    result.push(field);
-    return result;
+    result.push(field); return result;
 }
-
 function parseARS(s) {
     if (!s) return 0;
     return parseFloat(String(s).replace(/[$\s]/g,'').replace(/\./g,'').replace(',','.')) || 0;
 }
-
 function parseFechaMay(s) {
-    const p = (s || '').trim().split('/');
+    const p = (s||'').trim().split('/');
     if (p.length !== 3) return null;
-    const year = 2000 + parseInt(p[2]);
-    const month = String(parseInt(p[1])).padStart(2,'0');
-    const day   = String(parseInt(p[0])).padStart(2,'0');
-    return `${year}-${month}-${day}`;
+    return `${2000+parseInt(p[2])}-${String(parseInt(p[1])).padStart(2,'0')}-${String(parseInt(p[0])).padStart(2,'0')}`;
+}
+
+async function fetchCSV(gid) {
+    const res = await fetch(`${SHEETS_BASE}&gid=${gid}`);
+    if (!res.ok) throw new Error(`CSV fetch failed gid=${gid}`);
+    return (await res.text()).split('\n');
 }
 
 async function loadMayorista() {
     try {
-        const res = await fetch(SHEETS_URL);
-        if (!res.ok) throw new Error('No se pudo cargar la planilla mayorista');
-        const text = await res.text();
-        const lines = text.split('\n');
-        if (lines.length < 7) return;
+        const [linesV, linesC, linesS] = await Promise.all([
+            fetchCSV(GID_VENTAS), fetchCSV(GID_CLIENTES), fetchCSV(GID_STATS)
+        ]);
 
-        const header = parseCSVRow(lines[0]);
-        // Product names: columns 13 to 65
-        const PROD_NAMES = header.slice(13, 66).map(h => h.trim());
-        // Find province column index
-        const provIdx  = header.findIndex(h => h.trim() === 'Provincia');
-        const udsIdx   = header.findIndex(h => h.trim() === 'Unidades Totales por Pedido');
-
+        // ── Ventas 2026 ──
+        const hdr      = parseCSVRow(linesV[0]);
+        const PROD_NAMES = hdr.slice(13, 66).map(h => h.trim());
+        const provIdx  = hdr.findIndex(h => h.trim() === 'Provincia');
+        const udsIdx   = hdr.findIndex(h => h.trim() === 'Unidades Totales por Pedido');
         MAYOR_DATA = [];
-        for (let i = 6; i < lines.length; i++) {
-            const row = parseCSVRow(lines[i]);
+        for (let i = 6; i < linesV.length; i++) {
+            const row = parseCSVRow(linesV[i]);
             if (!row || row.length < 12) continue;
             const fechaRaw = row[0]?.trim();
             if (!fechaRaw || !/^\d+\/\d+\/\d+$/.test(fechaRaw)) continue;
             const fecha = parseFechaMay(fechaRaw);
             if (!fecha) continue;
-
             const productos = {};
-            PROD_NAMES.forEach((nombre, pi) => {
-                const qty = parseInt(row[13 + pi]) || 0;
-                if (qty > 0 && nombre) productos[nombre] = qty;
-            });
-
+            PROD_NAMES.forEach((n, pi) => { const q = parseInt(row[13+pi])||0; if (q>0&&n) productos[n]=q; });
             MAYOR_DATA.push({
-                fecha,
-                tipo:     row[1]?.trim() || '',
-                cliente:  row[6]?.trim() || '',
-                total:    parseARS(row[11]),
-                sinEnvio: parseARS(row[9]),
-                envio:    parseARS(row[10]),
-                unidades: udsIdx >= 0 ? (parseInt(row[udsIdx]) || 0) : Object.values(productos).reduce((s,v)=>s+v,0),
-                provincia: provIdx >= 0 ? row[provIdx]?.trim() || '' : '',
-                productos,
+                fecha, tipo: row[1]?.trim()||'', cliente: row[6]?.trim()||'',
+                total: parseARS(row[11]), sinEnvio: parseARS(row[9]), envio: parseARS(row[10]),
+                unidades: udsIdx>=0 ? (parseInt(row[udsIdx])||0) : Object.values(productos).reduce((s,v)=>s+v,0),
+                provincia: provIdx>=0 ? row[provIdx]?.trim()||'' : '', productos,
             });
         }
 
+        // ── Clientes ──
+        const cHdr = parseCSVRow(linesC[0]);
+        const ci = {
+            nombre: 0, prov: cHdr.findIndex(h=>h.trim()==='Provincia del Cliente'),
+            tipo: cHdr.findIndex(h=>h.trim()==='Qué es'),
+            estado: cHdr.findIndex(h=>h.trim()==='Re-Contacto'),
+            c23: cHdr.findIndex(h=>h.trim()==='Compras en 2023'),
+            c24: cHdr.findIndex(h=>h.trim()==='Compras en 2024'),
+            c25: cHdr.findIndex(h=>h.trim()==='Compras en 2025'),
+            c26: cHdr.findIndex(h=>h.trim()==='Compras en 2026'),
+            total: cHdr.findIndex(h=>h.trim()==='$ Total'),
+            nTotal: cHdr.findIndex(h=>h.trim()==='Compras en Total'),
+        };
+        MAYOR_CLIENTES = [];
+        for (let i = 1; i < linesC.length; i++) {
+            const row = parseCSVRow(linesC[i]);
+            if (!row || !row[0]?.trim()) continue;
+            const totalARS = parseARS(row[ci.total]);
+            MAYOR_CLIENTES.push({
+                nombre:  row[0]?.trim()||'',
+                prov:    ci.prov>=0   ? row[ci.prov]?.trim()||''  : '',
+                tipo:    ci.tipo>=0   ? row[ci.tipo]?.trim()||''  : '',
+                estado:  ci.estado>=0 ? row[ci.estado]?.trim()||'': '',
+                c23:     parseARS(row[ci.c23]), c24: parseARS(row[ci.c24]),
+                c25:     parseARS(row[ci.c25]), c26: parseARS(row[ci.c26]),
+                total:   totalARS,
+                nTotal:  ci.nTotal>=0 ? (parseInt(row[ci.nTotal])||0) : 0,
+            });
+        }
+
+        // ── Stats: yearly + monthly ──
+        MAYOR_YEARS = []; MAYOR_MONTHLY = {}; MAYOR_TOP_HIST = [];
+        let inMonthly = false, inTopProd = false;
+        const yearRe = /^(20\d\d)$/;
+        const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+        const monthPad   = monthNames.reduce((o,n,i)=>{o[n]=String(i+1).padStart(2,'0');return o;},{});
+        for (let i = 0; i < linesS.length; i++) {
+            const row = parseCSVRow(linesS[i]);
+            const c0  = row[0]?.trim()||'';
+            if (yearRe.test(c0)) {
+                MAYOR_YEARS.push({ year:c0, total:parseARS(row[1]), prom:parseARS(row[2]), clientes:parseInt(row[4])||0 });
+            }
+            if (c0 === 'Mes') { inMonthly = true; continue; }
+            if (inMonthly && monthPad[c0]) {
+                const m = monthPad[c0];
+                ['2023','2024','2025','2026'].forEach((y,j)=>{
+                    if (!MAYOR_MONTHLY[y]) MAYOR_MONTHLY[y]={};
+                    MAYOR_MONTHLY[y][m] = parseARS(row[j+1]);
+                });
+            }
+            if (c0.includes('TOP 10 PRODUCTOS MÁS')) { inTopProd = true; continue; }
+            if (inTopProd && row[6]?.trim() && row[7]?.trim() && !row[6].includes('Producto')) {
+                const nombre = row[6].trim(); const qty = parseInt(row[7])||0;
+                if (nombre && qty) MAYOR_TOP_HIST.push({nombre, qty});
+                if (MAYOR_TOP_HIST.length >= 10) inTopProd = false;
+            }
+        }
+
         populateMayoristaFilters();
-        console.log('Mayorista cargado:', MAYOR_DATA.length, 'pedidos');
-    } catch(e) {
-        console.error('Error cargando mayorista:', e);
-    }
+        console.log('Mayorista cargado:', MAYOR_DATA.length, 'pedidos |', MAYOR_CLIENTES.length, 'clientes |', MAYOR_YEARS.length, 'años');
+    } catch(e) { console.error('Error cargando mayorista:', e); }
 }
 
 function populateMayoristaFilters() {
-    const anios    = [...new Set(MAYOR_DATA.map(d => d.fecha?.substring(0,4)).filter(Boolean))].sort();
-    const clientes = [...new Set(MAYOR_DATA.map(d => d.cliente).filter(Boolean))].sort();
+    const anios    = [...new Set(MAYOR_DATA.map(d=>d.fecha?.substring(0,4)).filter(Boolean))].sort();
+    const clientes = [...new Set(MAYOR_DATA.map(d=>d.cliente).filter(Boolean))].sort();
+    const tipos    = [...new Set(MAYOR_CLIENTES.map(c=>c.tipo).filter(Boolean))].sort();
 
     const selAnio = document.getElementById('filterAnioMay');
-    if (selAnio) {
-        const val = selAnio.value;
-        selAnio.innerHTML = '<option value="">Todos</option>' +
-            anios.map(a => `<option value="${a}"${val===a?' selected':''}>${a}</option>`).join('');
-    }
-    const selCliente = document.getElementById('filterClienteMay');
-    if (selCliente) {
-        const val = selCliente.value;
-        selCliente.innerHTML = '<option value="">Todos</option>' +
-            clientes.map(c => `<option value="${c}"${val===c?' selected':''}>${c.length>35?c.substring(0,35)+'…':c}</option>`).join('');
-    }
+    if (selAnio) { const v=selAnio.value; selAnio.innerHTML='<option value="">Todos</option>'+anios.map(a=>`<option value="${a}"${v===a?' selected':''}>${a}</option>`).join(''); }
+    const selCli = document.getElementById('filterClienteMay');
+    if (selCli) { const v=selCli.value; selCli.innerHTML='<option value="">Todos</option>'+clientes.map(c=>`<option value="${c}"${v===c?' selected':''}>${c.length>35?c.substring(0,35)+'…':c}</option>`).join(''); }
+    const selTipo = document.getElementById('filterMayorCliTipo');
+    if (selTipo) { const v=selTipo.value; selTipo.innerHTML='<option value="">Todos los tipos</option>'+tipos.map(t=>`<option value="${t}"${v===t?' selected':''}>${t}</option>`).join(''); }
+}
+
+function switchMayorTab(tab) {
+    document.querySelectorAll('.mayor-tab').forEach(b=>b.classList.toggle('active', b.dataset.mtab===tab));
+    ['resumen','skus','clientes'].forEach(t=>{ const el=document.getElementById('mtab-'+t); if(el) el.style.display=t===tab?'block':'none'; });
+    if (tab==='skus')      renderMayoristaSkus();
+    if (tab==='clientes')  renderMayoristaClientes();
 }
 
 function renderMayorista() {
@@ -1110,84 +1218,152 @@ function renderMayorista() {
     const mes     = document.getElementById('filterMesMay')?.value     || '';
     const tipo    = document.getElementById('filterTipoMay')?.value    || '';
     const cliente = document.getElementById('filterClienteMay')?.value || '';
-
-    const subset = MAYOR_DATA.filter(d =>
-        (!anio    || d.fecha?.substring(0,4) === anio)  &&
-        (!mes     || d.fecha?.substring(5,7)  === mes)  &&
-        (!tipo    || d.tipo    === tipo)                 &&
-        (!cliente || d.cliente === cliente)
+    const subset  = MAYOR_DATA.filter(d=>
+        (!anio    || d.fecha?.substring(0,4)===anio) &&
+        (!mes     || d.fecha?.substring(5,7)===mes)  &&
+        (!tipo    || d.tipo===tipo)                   &&
+        (!cliente || d.cliente===cliente)
     );
 
-    const totalRev  = subset.reduce((s,d) => s + d.total, 0);
-    const totalUds  = subset.reduce((s,d) => s + d.unidades, 0);
-    const uniqCli   = new Set(subset.map(d => d.cliente).filter(Boolean)).size;
-    const avgTicket = subset.length ? totalRev / subset.length : 0;
+    const totalRev  = subset.reduce((s,d)=>s+d.total,0);
+    const totalUds  = subset.reduce((s,d)=>s+d.unidades,0);
+    const uniqCli   = new Set(subset.map(d=>d.cliente).filter(Boolean)).size;
+    const avgTicket = subset.length ? totalRev/subset.length : 0;
+
+    // KPIs históricos del año seleccionado (de Stats) o del subset
+    const yearStats = anio ? MAYOR_YEARS.find(y=>y.year===anio) : null;
+    const kpiTotal  = yearStats ? yearStats.total : totalRev;
+    const kpiCli    = yearStats ? yearStats.clientes : uniqCli;
 
     document.getElementById('mayorKpiGrid').innerHTML = `
-        <div class="kpi"><div class="kpi-header"><span class="kpi-label">Facturado</span><div class="kpi-icon green"><i class="fas fa-dollar-sign"></i></div></div><div class="kpi-value">${fmt(totalRev)}</div><div class="kpi-sub">Final a abonar</div></div>
-        <div class="kpi"><div class="kpi-header"><span class="kpi-label">Pedidos</span><div class="kpi-icon blue"><i class="fas fa-receipt"></i></div></div><div class="kpi-value">${subset.length.toLocaleString('es-AR')}</div><div class="kpi-sub">Órdenes en el período</div></div>
-        <div class="kpi"><div class="kpi-header"><span class="kpi-label">Unidades</span><div class="kpi-icon orange"><i class="fas fa-cubes"></i></div></div><div class="kpi-value">${totalUds.toLocaleString('es-AR')}</div><div class="kpi-sub">Totales vendidas</div></div>
-        <div class="kpi"><div class="kpi-header"><span class="kpi-label">Clientes Únicos</span><div class="kpi-icon red"><i class="fas fa-users"></i></div></div><div class="kpi-value">${uniqCli}</div><div class="kpi-sub">Compradores distintos</div></div>
+        <div class="kpi"><div class="kpi-header"><span class="kpi-label">Facturado</span><div class="kpi-icon green"><i class="fas fa-dollar-sign"></i></div></div><div class="kpi-value">${fmt(kpiTotal)}</div><div class="kpi-sub">${anio||'Histórico parcial'}</div></div>
+        <div class="kpi"><div class="kpi-header"><span class="kpi-label">Pedidos (2026)</span><div class="kpi-icon blue"><i class="fas fa-receipt"></i></div></div><div class="kpi-value">${subset.length.toLocaleString('es-AR')}</div><div class="kpi-sub">Con filtros aplicados</div></div>
+        <div class="kpi"><div class="kpi-header"><span class="kpi-label">Unidades (2026)</span><div class="kpi-icon orange"><i class="fas fa-cubes"></i></div></div><div class="kpi-value">${totalUds.toLocaleString('es-AR')}</div><div class="kpi-sub">Totales vendidas</div></div>
+        <div class="kpi"><div class="kpi-header"><span class="kpi-label">Clientes Activos</span><div class="kpi-icon red"><i class="fas fa-users"></i></div></div><div class="kpi-value">${kpiCli}</div><div class="kpi-sub">${anio||'2026'}</div></div>
         <div class="kpi"><div class="kpi-header"><span class="kpi-label">Ticket Prom.</span><div class="kpi-icon blue"><i class="fas fa-tag"></i></div></div><div class="kpi-value">${fmt(avgTicket)}</div><div class="kpi-sub">Por pedido</div></div>
     `;
 
-    // Chart 1: Revenue by month
-    const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-    const byMonth = {};
-    subset.forEach(d => {
-        const m = d.fecha?.substring(5,7);
-        if (m) byMonth[m] = (byMonth[m]||0) + d.total;
+    // Chart 1: Facturado por año (histórico de Stats)
+    const COLORS_YEAR = ['#94a3b8','#2563eb','#f59e0b','#16a97e'];
+    if (CHARTS.mayorAnio) CHARTS.mayorAnio.destroy();
+    CHARTS.mayorAnio = new Chart(document.getElementById('chartMayorAnio'), {
+        type:'bar',
+        data:{ labels: MAYOR_YEARS.map(y=>y.year), datasets:[{ data:MAYOR_YEARS.map(y=>y.total), backgroundColor:MAYOR_YEARS.map((_,i)=>COLORS_YEAR[i]||'#16a97e'), borderRadius:6, borderWidth:0 }] },
+        options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>` ${fmt(ctx.raw)}`}}}, scales:{ x:{ticks:{font:{family:'DM Sans',size:12}},grid:{display:false}}, y:{ticks:{callback:v=>fmt(v),font:{family:'DM Sans',size:10}},grid:{display:false}}}}
     });
-    const mLabels = Object.keys(byMonth).sort();
+
+    // Chart 2: Facturado por mes (del año seleccionado o 2026 si no hay filtro)
+    const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    const yearForMonth = anio || '2026';
+    document.getElementById('labelMayorMesAnio').textContent = yearForMonth;
+    let byMonth = {};
+    if (MAYOR_MONTHLY[yearForMonth]) {
+        byMonth = MAYOR_MONTHLY[yearForMonth];
+    } else {
+        subset.forEach(d=>{ const m=d.fecha?.substring(5,7); if(m) byMonth[m]=(byMonth[m]||0)+d.total; });
+    }
+    const mLabels = Object.keys(byMonth).filter(m=>byMonth[m]>0).sort();
     if (CHARTS.mayorMes) CHARTS.mayorMes.destroy();
     CHARTS.mayorMes = new Chart(document.getElementById('chartMayorMes'), {
-        type: 'bar',
-        data: { labels: mLabels.map(m => MESES[parseInt(m)-1]), datasets: [{ data: mLabels.map(m => byMonth[m]), backgroundColor: '#16a97e', borderRadius: 6, borderWidth: 0 }] },
-        options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>` ${fmt(ctx.raw)}`}}}, scales:{ x:{ticks:{font:{family:'DM Sans',size:11}},grid:{display:false}}, y:{ticks:{callback:v=>fmt(v),font:{family:'DM Sans',size:10}},grid:{display:false}}}}
+        type:'bar',
+        data:{ labels:mLabels.map(m=>MESES[parseInt(m)-1]), datasets:[{ data:mLabels.map(m=>byMonth[m]), backgroundColor:'#16a97e', borderRadius:6, borderWidth:0 }] },
+        options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>` ${fmt(ctx.raw)}`}}}, scales:{ x:{ticks:{font:{family:'DM Sans',size:11}},grid:{display:false}}, y:{ticks:{callback:v=>fmt(v),font:{family:'DM Sans',size:10}},grid:{display:false}}}}
     });
 
-    // Chart 2: Top 10 products by units
-    const prodMap = {};
-    subset.forEach(d => Object.entries(d.productos).forEach(([n,q]) => { prodMap[n]=(prodMap[n]||0)+q; }));
-    const top10 = Object.entries(prodMap).sort((a,b)=>b[1]-a[1]).slice(0,10);
-    if (CHARTS.mayorProd) CHARTS.mayorProd.destroy();
-    CHARTS.mayorProd = new Chart(document.getElementById('chartMayorProd'), {
-        type: 'bar',
-        data: { labels: top10.map(x => x[0].length>28?x[0].substring(0,28)+'…':x[0]), datasets: [{ data: top10.map(x=>x[1]), backgroundColor: '#8b5cf6', borderRadius: 6, borderWidth: 0 }] },
-        options: { responsive:true, maintainAspectRatio:false, indexAxis:'y', plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>` ${ctx.raw.toLocaleString('es-AR')} uds`}}}, scales:{ x:{ticks:{font:{family:'DM Sans',size:10}},grid:{display:false}}, y:{ticks:{font:{family:'DM Sans',size:10}},grid:{display:false}}}}
-    });
-
-    // Top clients table
-    const cliMap = {};
-    subset.forEach(d => {
-        if (!d.cliente) return;
-        if (!cliMap[d.cliente]) cliMap[d.cliente] = { pedidos:0, uds:0, total:0 };
-        cliMap[d.cliente].pedidos++;
-        cliMap[d.cliente].uds   += d.unidades;
-        cliMap[d.cliente].total += d.total;
-    });
-    const topCli = Object.entries(cliMap).sort((a,b)=>b[1].total-a[1].total);
-    document.getElementById('tableMayorClientesBody').innerHTML = topCli.map(([nombre,v],i) => `
-        <tr>
-            <td class="mono">${i+1}</td>
-            <td><strong>${nombre}</strong></td>
-            <td class="mono">${v.pedidos}</td>
-            <td class="mono">${v.uds.toLocaleString('es-AR')}</td>
-            <td><strong>${fmt(v.total)}</strong></td>
-            <td class="mono">${fmt(v.pedidos?v.total/v.pedidos:0)}</td>
-        </tr>`).join('') || '<tr><td colspan="6" class="empty">Sin datos</td></tr>';
-
-    // Last 20 orders
+    // Últimos pedidos
     const last20 = [...subset].sort((a,b)=>b.fecha.localeCompare(a.fecha)).slice(0,20);
-    document.getElementById('tableMayorPedidosBody').innerHTML = last20.map(d => `
+    document.getElementById('tableMayorPedidosBody').innerHTML = last20.map(d=>`
         <tr>
-            <td>${d.fecha}</td>
-            <td>${d.cliente}</td>
+            <td>${d.fecha}</td><td>${d.cliente}</td>
             <td><span class="badge" style="${d.tipo==='Distribuidor'?'background:var(--blue-light);color:var(--blue)':''}">${d.tipo}</span></td>
             <td class="mono">${d.unidades.toLocaleString('es-AR')}</td>
             <td><strong>${fmt(d.total)}</strong></td>
             <td class="mono">${d.provincia}</td>
         </tr>`).join('') || '<tr><td colspan="6" class="empty">Sin datos</td></tr>';
+}
+
+function renderMayoristaSkus() {
+    // Chart histórico de Stats
+    if (CHARTS.mayorTopProd) CHARTS.mayorTopProd.destroy();
+    if (MAYOR_TOP_HIST.length) {
+        CHARTS.mayorTopProd = new Chart(document.getElementById('chartMayorTopProd'), {
+            type:'bar',
+            data:{ labels:MAYOR_TOP_HIST.map(x=>x.nombre.length>28?x.nombre.substring(0,28)+'…':x.nombre), datasets:[{ data:MAYOR_TOP_HIST.map(x=>x.qty), backgroundColor:'#f59e0b', borderRadius:6, borderWidth:0 }] },
+            options:{ responsive:true, maintainAspectRatio:false, indexAxis:'y', plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>` ${ctx.raw.toLocaleString('es-AR')} uds`}}}, scales:{ x:{ticks:{font:{family:'DM Sans',size:10}},grid:{display:false}}, y:{ticks:{font:{family:'DM Sans',size:10}},grid:{display:false}}}}
+        });
+    }
+
+    // Agregado de productos 2026
+    const prodMap = {};
+    MAYOR_DATA.forEach(d=>Object.entries(d.productos).forEach(([n,q])=>{ prodMap[n]=(prodMap[n]||0)+q; }));
+    const sorted2026 = Object.entries(prodMap).sort((a,b)=>b[1]-a[1]);
+    const totalUds2026 = sorted2026.reduce((s,[,q])=>s+q,0);
+    const top10_2026 = sorted2026.slice(0,10);
+    if (CHARTS.mayorProd2026) CHARTS.mayorProd2026.destroy();
+    if (top10_2026.length) {
+        CHARTS.mayorProd2026 = new Chart(document.getElementById('chartMayorProd2026'), {
+            type:'bar',
+            data:{ labels:top10_2026.map(x=>x[0].length>28?x[0].substring(0,28)+'…':x[0]), datasets:[{ data:top10_2026.map(x=>x[1]), backgroundColor:'#8b5cf6', borderRadius:6, borderWidth:0 }] },
+            options:{ responsive:true, maintainAspectRatio:false, indexAxis:'y', plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>` ${ctx.raw.toLocaleString('es-AR')} uds`}}}, scales:{ x:{ticks:{font:{family:'DM Sans',size:10}},grid:{display:false}}, y:{ticks:{font:{family:'DM Sans',size:10}},grid:{display:false}}}}
+        });
+    }
+
+    const q = (document.getElementById('mayorSkuSearch')?.value||'').toLowerCase();
+    const filtered = sorted2026.filter(([n])=>!q||n.toLowerCase().includes(q));
+    document.getElementById('tableMayorSkusBody').innerHTML = filtered.map(([nombre,qty],i)=>`
+        <tr>
+            <td class="mono">${i+1}</td>
+            <td>${nombre}</td>
+            <td class="mono"><strong>${qty.toLocaleString('es-AR')}</strong></td>
+            <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <div style="flex:1;height:6px;background:var(--border);border-radius:3px;min-width:80px;">
+                        <div style="width:${totalUds2026?Math.round(qty/totalUds2026*100):0}%;height:100%;background:var(--green);border-radius:3px;"></div>
+                    </div>
+                    <span class="mono" style="font-size:11px;min-width:38px;">${totalUds2026?((qty/totalUds2026)*100).toFixed(1):0}%</span>
+                </div>
+            </td>
+        </tr>`).join('') || '<tr><td colspan="4" class="empty">Sin resultados</td></tr>';
+}
+
+function renderMayoristaClientes() {
+    const q      = (document.getElementById('mayorCliSearch')?.value||'').toLowerCase();
+    const tipo   = document.getElementById('filterMayorCliTipo')?.value||'';
+    const estado = document.getElementById('filterMayorCliEstado')?.value||'';
+
+    const filtered = MAYOR_CLIENTES.filter(c=>
+        c.total > 0 &&
+        (!q      || c.nombre.toLowerCase().includes(q)) &&
+        (!tipo   || c.tipo   === tipo)                  &&
+        (!estado || c.estado.includes(estado))
+    ).sort((a,b)=>b.total-a.total);
+
+    const totalH = filtered.reduce((s,c)=>s+c.total,0);
+    const activos = filtered.filter(c=>c.estado==='Cliente').length;
+    const exCli   = filtered.filter(c=>c.estado==='Ex-Cliente').length;
+
+    document.getElementById('mayorCliKpiGrid').innerHTML = `
+        <div class="kpi"><div class="kpi-header"><span class="kpi-label">Clientes filtrados</span><div class="kpi-icon blue"><i class="fas fa-users"></i></div></div><div class="kpi-value">${filtered.length}</div><div class="kpi-sub">Con compras registradas</div></div>
+        <div class="kpi"><div class="kpi-header"><span class="kpi-label">Activos</span><div class="kpi-icon green"><i class="fas fa-user-check"></i></div></div><div class="kpi-value">${activos}</div><div class="kpi-sub">Estado "Cliente"</div></div>
+        <div class="kpi"><div class="kpi-header"><span class="kpi-label">Ex-Clientes</span><div class="kpi-icon orange"><i class="fas fa-user-times"></i></div></div><div class="kpi-value">${exCli}</div><div class="kpi-sub">Sin compras recientes</div></div>
+        <div class="kpi"><div class="kpi-header"><span class="kpi-label">Facturado Total</span><div class="kpi-icon red"><i class="fas fa-dollar-sign"></i></div></div><div class="kpi-value">${fmt(totalH)}</div><div class="kpi-sub">Histórico</div></div>
+    `;
+
+    document.getElementById('tableMayorCliBody').innerHTML = filtered.slice(0,200).map((c,i)=>{
+        const estadoColor = c.estado==='Cliente' ? 'ok' : c.estado==='Ex-Cliente' ? 'warn' : '';
+        return `<tr>
+            <td class="mono">${i+1}</td>
+            <td><strong>${c.nombre}</strong></td>
+            <td style="font-size:12px;color:var(--text-3)">${c.tipo}</td>
+            <td class="mono">${c.prov}</td>
+            <td class="mono">${c.c23>0?fmt(c.c23):'-'}</td>
+            <td class="mono">${c.c24>0?fmt(c.c24):'-'}</td>
+            <td class="mono">${c.c25>0?fmt(c.c25):'-'}</td>
+            <td class="mono">${c.c26>0?fmt(c.c26):'-'}</td>
+            <td><strong>${fmt(c.total)}</strong></td>
+            <td>${estadoColor?`<span class="status-pill ${estadoColor}">${c.estado}</span>`:c.estado}</td>
+        </tr>`;
+    }).join('') || '<tr><td colspan="10" class="empty">Sin resultados</td></tr>';
 }
 
 loadData();
