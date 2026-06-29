@@ -139,6 +139,7 @@
     <button class="nav-btn" data-tab="marcas"><i class="fas fa-tags"></i> Marcas</button>
     <button class="nav-btn" data-tab="stock"><i class="fas fa-boxes"></i> Stock</button>
     <button class="nav-btn" data-tab="analisis"><i class="fas fa-traffic-light"></i> Análisis SKUs</button>
+    <button class="nav-btn" data-tab="mayorista"><i class="fas fa-store"></i> Mayorista</button>
     <div class="sidebar-bottom">
         <button class="theme-btn" onclick="toggleTheme()">
             <i class="fas fa-moon" id="themeIcon"></i>
@@ -223,6 +224,27 @@
         </select>
         <div class="filterbar-sep"></div>
         <input type="text" id="analisisSearch" class="search-input" placeholder="Buscar SKU o nombre…" oninput="renderAnalisis()" style="width:180px;">
+    </div>
+    <div class="filterbar" id="fb-mayorista">
+        <span class="filterbar-label">Año</span>
+        <select class="filter-select" id="filterAnioMay" onchange="renderMayorista()"><option value="">Todos</option></select>
+        <select class="filter-select" id="filterMesMay" onchange="renderMayorista()">
+            <option value="">Todos los meses</option>
+            <option value="01">Enero</option><option value="02">Febrero</option><option value="03">Marzo</option>
+            <option value="04">Abril</option><option value="05">Mayo</option><option value="06">Junio</option>
+            <option value="07">Julio</option><option value="08">Agosto</option><option value="09">Septiembre</option>
+            <option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
+        </select>
+        <div class="filterbar-sep"></div>
+        <span class="filterbar-label">Tipo</span>
+        <select class="filter-select" id="filterTipoMay" onchange="renderMayorista()">
+            <option value="">Todos</option>
+            <option value="Mayorista">Mayorista</option>
+            <option value="Distribuidor">Distribuidor</option>
+        </select>
+        <div class="filterbar-sep"></div>
+        <span class="filterbar-label">Cliente</span>
+        <select class="filter-select" id="filterClienteMay" onchange="renderMayorista()" style="max-width:220px;"><option value="">Todos</option></select>
     </div>
     <div class="filterbar" id="fb-stock">
         <span class="filterbar-label">Año</span>
@@ -324,6 +346,39 @@
                 <table>
                     <thead><tr><th>Estado</th><th>SKU</th><th>Nombre</th><th>Vendidas</th><th>Stock Actual</th><th>Mín.</th><th>Crít.</th></tr></thead>
                     <tbody id="tableStockBody"><tr><td colspan="7" class="empty">Sin datos</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAYORISTA -->
+    <div class="page" id="mayorista">
+        <div class="kpi-grid" id="mayorKpiGrid"></div>
+        <div class="chart-row">
+            <div class="chart-card">
+                <h3>Facturado por Mes</h3>
+                <div class="chart-wrap"><canvas id="chartMayorMes"></canvas></div>
+            </div>
+            <div class="chart-card">
+                <h3>Top 10 Productos — Unidades</h3>
+                <div class="chart-wrap"><canvas id="chartMayorProd"></canvas></div>
+            </div>
+        </div>
+        <div class="table-card" style="margin-bottom:24px;">
+            <div class="table-head"><h3>Top Clientes</h3></div>
+            <div class="table-scroll">
+                <table>
+                    <thead><tr><th>#</th><th>Cliente</th><th>Pedidos</th><th>Unidades</th><th>Total</th><th>Ticket Prom.</th></tr></thead>
+                    <tbody id="tableMayorClientesBody"><tr><td colspan="6" class="empty">Sin datos</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="table-card">
+            <div class="table-head"><h3>Últimos pedidos</h3></div>
+            <div class="table-scroll">
+                <table>
+                    <thead><tr><th>Fecha</th><th>Cliente</th><th>Tipo</th><th>Unidades</th><th>Total</th><th>Provincia</th></tr></thead>
+                    <tbody id="tableMayorPedidosBody"><tr><td colspan="6" class="empty">Sin datos</td></tr></tbody>
                 </table>
             </div>
         </div>
@@ -925,7 +980,7 @@ function renderAnalisis() {
     }).join('') || '<tr><td colspan="10" class="empty">Sin resultados</td></tr>';
 }
 
-const TITLES = { dashboard:'Dashboard', productos:'Productos', marcas:'Marcas', stock:'Stock', analisis:'Análisis SKUs' };
+const TITLES = { dashboard:'Dashboard', productos:'Productos', marcas:'Marcas', stock:'Stock', analisis:'Análisis SKUs', mayorista:'Mayorista' };
 document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -940,6 +995,7 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
         if (tab === 'stock') renderStock();
         if (tab === 'marcas') renderMarcas();
         if (tab === 'analisis') renderAnalisis();
+        if (tab === 'mayorista') renderMayorista();
     });
 });
 
@@ -950,7 +1006,192 @@ function toggleTheme() {
     document.getElementById('themeLabel').textContent = dark ? 'Modo Claro' : 'Modo Noche';
 }
 
+// ── MAYORISTA ──────────────────────────────────────────────────────────────
+const SHEETS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRlsKUXzsrDty9KNCrwUd9phclmXpQX5EtEIpZP8grD_CQeS-2Pn10yc8aq3MNNpXpLHpDe9Bq9McAF/pub?output=csv';
+let MAYOR_DATA = [];
+
+function parseCSVRow(line) {
+    const result = [];
+    let field = '', inQ = false;
+    for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (ch === '"') { inQ = !inQ; }
+        else if (ch === ',' && !inQ) { result.push(field); field = ''; }
+        else { field += ch; }
+    }
+    result.push(field);
+    return result;
+}
+
+function parseARS(s) {
+    if (!s) return 0;
+    return parseFloat(String(s).replace(/[$\s]/g,'').replace(/\./g,'').replace(',','.')) || 0;
+}
+
+function parseFechaMay(s) {
+    const p = (s || '').trim().split('/');
+    if (p.length !== 3) return null;
+    const year = 2000 + parseInt(p[2]);
+    const month = String(parseInt(p[1])).padStart(2,'0');
+    const day   = String(parseInt(p[0])).padStart(2,'0');
+    return `${year}-${month}-${day}`;
+}
+
+async function loadMayorista() {
+    try {
+        const res = await fetch(SHEETS_URL);
+        if (!res.ok) throw new Error('No se pudo cargar la planilla mayorista');
+        const text = await res.text();
+        const lines = text.split('\n');
+        if (lines.length < 7) return;
+
+        const header = parseCSVRow(lines[0]);
+        // Product names: columns 13 to 65
+        const PROD_NAMES = header.slice(13, 66).map(h => h.trim());
+        // Find province column index
+        const provIdx  = header.findIndex(h => h.trim() === 'Provincia');
+        const udsIdx   = header.findIndex(h => h.trim() === 'Unidades Totales por Pedido');
+
+        MAYOR_DATA = [];
+        for (let i = 6; i < lines.length; i++) {
+            const row = parseCSVRow(lines[i]);
+            if (!row || row.length < 12) continue;
+            const fechaRaw = row[0]?.trim();
+            if (!fechaRaw || !/^\d+\/\d+\/\d+$/.test(fechaRaw)) continue;
+            const fecha = parseFechaMay(fechaRaw);
+            if (!fecha) continue;
+
+            const productos = {};
+            PROD_NAMES.forEach((nombre, pi) => {
+                const qty = parseInt(row[13 + pi]) || 0;
+                if (qty > 0 && nombre) productos[nombre] = qty;
+            });
+
+            MAYOR_DATA.push({
+                fecha,
+                tipo:     row[1]?.trim() || '',
+                cliente:  row[6]?.trim() || '',
+                total:    parseARS(row[11]),
+                sinEnvio: parseARS(row[9]),
+                envio:    parseARS(row[10]),
+                unidades: udsIdx >= 0 ? (parseInt(row[udsIdx]) || 0) : Object.values(productos).reduce((s,v)=>s+v,0),
+                provincia: provIdx >= 0 ? row[provIdx]?.trim() || '' : '',
+                productos,
+            });
+        }
+
+        populateMayoristaFilters();
+        console.log('Mayorista cargado:', MAYOR_DATA.length, 'pedidos');
+    } catch(e) {
+        console.error('Error cargando mayorista:', e);
+    }
+}
+
+function populateMayoristaFilters() {
+    const anios    = [...new Set(MAYOR_DATA.map(d => d.fecha?.substring(0,4)).filter(Boolean))].sort();
+    const clientes = [...new Set(MAYOR_DATA.map(d => d.cliente).filter(Boolean))].sort();
+
+    const selAnio = document.getElementById('filterAnioMay');
+    if (selAnio) {
+        const val = selAnio.value;
+        selAnio.innerHTML = '<option value="">Todos</option>' +
+            anios.map(a => `<option value="${a}"${val===a?' selected':''}>${a}</option>`).join('');
+    }
+    const selCliente = document.getElementById('filterClienteMay');
+    if (selCliente) {
+        const val = selCliente.value;
+        selCliente.innerHTML = '<option value="">Todos</option>' +
+            clientes.map(c => `<option value="${c}"${val===c?' selected':''}>${c.length>35?c.substring(0,35)+'…':c}</option>`).join('');
+    }
+}
+
+function renderMayorista() {
+    const anio    = document.getElementById('filterAnioMay')?.value    || '';
+    const mes     = document.getElementById('filterMesMay')?.value     || '';
+    const tipo    = document.getElementById('filterTipoMay')?.value    || '';
+    const cliente = document.getElementById('filterClienteMay')?.value || '';
+
+    const subset = MAYOR_DATA.filter(d =>
+        (!anio    || d.fecha?.substring(0,4) === anio)  &&
+        (!mes     || d.fecha?.substring(5,7)  === mes)  &&
+        (!tipo    || d.tipo    === tipo)                 &&
+        (!cliente || d.cliente === cliente)
+    );
+
+    const totalRev  = subset.reduce((s,d) => s + d.total, 0);
+    const totalUds  = subset.reduce((s,d) => s + d.unidades, 0);
+    const uniqCli   = new Set(subset.map(d => d.cliente).filter(Boolean)).size;
+    const avgTicket = subset.length ? totalRev / subset.length : 0;
+
+    document.getElementById('mayorKpiGrid').innerHTML = `
+        <div class="kpi"><div class="kpi-header"><span class="kpi-label">Facturado</span><div class="kpi-icon green"><i class="fas fa-dollar-sign"></i></div></div><div class="kpi-value">${fmt(totalRev)}</div><div class="kpi-sub">Final a abonar</div></div>
+        <div class="kpi"><div class="kpi-header"><span class="kpi-label">Pedidos</span><div class="kpi-icon blue"><i class="fas fa-receipt"></i></div></div><div class="kpi-value">${subset.length.toLocaleString('es-AR')}</div><div class="kpi-sub">Órdenes en el período</div></div>
+        <div class="kpi"><div class="kpi-header"><span class="kpi-label">Unidades</span><div class="kpi-icon orange"><i class="fas fa-cubes"></i></div></div><div class="kpi-value">${totalUds.toLocaleString('es-AR')}</div><div class="kpi-sub">Totales vendidas</div></div>
+        <div class="kpi"><div class="kpi-header"><span class="kpi-label">Clientes Únicos</span><div class="kpi-icon red"><i class="fas fa-users"></i></div></div><div class="kpi-value">${uniqCli}</div><div class="kpi-sub">Compradores distintos</div></div>
+        <div class="kpi"><div class="kpi-header"><span class="kpi-label">Ticket Prom.</span><div class="kpi-icon blue"><i class="fas fa-tag"></i></div></div><div class="kpi-value">${fmt(avgTicket)}</div><div class="kpi-sub">Por pedido</div></div>
+    `;
+
+    // Chart 1: Revenue by month
+    const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    const byMonth = {};
+    subset.forEach(d => {
+        const m = d.fecha?.substring(5,7);
+        if (m) byMonth[m] = (byMonth[m]||0) + d.total;
+    });
+    const mLabels = Object.keys(byMonth).sort();
+    if (CHARTS.mayorMes) CHARTS.mayorMes.destroy();
+    CHARTS.mayorMes = new Chart(document.getElementById('chartMayorMes'), {
+        type: 'bar',
+        data: { labels: mLabels.map(m => MESES[parseInt(m)-1]), datasets: [{ data: mLabels.map(m => byMonth[m]), backgroundColor: '#16a97e', borderRadius: 6, borderWidth: 0 }] },
+        options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>` ${fmt(ctx.raw)}`}}}, scales:{ x:{ticks:{font:{family:'DM Sans',size:11}},grid:{display:false}}, y:{ticks:{callback:v=>fmt(v),font:{family:'DM Sans',size:10}},grid:{display:false}}}}
+    });
+
+    // Chart 2: Top 10 products by units
+    const prodMap = {};
+    subset.forEach(d => Object.entries(d.productos).forEach(([n,q]) => { prodMap[n]=(prodMap[n]||0)+q; }));
+    const top10 = Object.entries(prodMap).sort((a,b)=>b[1]-a[1]).slice(0,10);
+    if (CHARTS.mayorProd) CHARTS.mayorProd.destroy();
+    CHARTS.mayorProd = new Chart(document.getElementById('chartMayorProd'), {
+        type: 'bar',
+        data: { labels: top10.map(x => x[0].length>28?x[0].substring(0,28)+'…':x[0]), datasets: [{ data: top10.map(x=>x[1]), backgroundColor: '#8b5cf6', borderRadius: 6, borderWidth: 0 }] },
+        options: { responsive:true, maintainAspectRatio:false, indexAxis:'y', plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>` ${ctx.raw.toLocaleString('es-AR')} uds`}}}, scales:{ x:{ticks:{font:{family:'DM Sans',size:10}},grid:{display:false}}, y:{ticks:{font:{family:'DM Sans',size:10}},grid:{display:false}}}}
+    });
+
+    // Top clients table
+    const cliMap = {};
+    subset.forEach(d => {
+        if (!d.cliente) return;
+        if (!cliMap[d.cliente]) cliMap[d.cliente] = { pedidos:0, uds:0, total:0 };
+        cliMap[d.cliente].pedidos++;
+        cliMap[d.cliente].uds   += d.unidades;
+        cliMap[d.cliente].total += d.total;
+    });
+    const topCli = Object.entries(cliMap).sort((a,b)=>b[1].total-a[1].total);
+    document.getElementById('tableMayorClientesBody').innerHTML = topCli.map(([nombre,v],i) => `
+        <tr>
+            <td class="mono">${i+1}</td>
+            <td><strong>${nombre}</strong></td>
+            <td class="mono">${v.pedidos}</td>
+            <td class="mono">${v.uds.toLocaleString('es-AR')}</td>
+            <td><strong>${fmt(v.total)}</strong></td>
+            <td class="mono">${fmt(v.pedidos?v.total/v.pedidos:0)}</td>
+        </tr>`).join('') || '<tr><td colspan="6" class="empty">Sin datos</td></tr>';
+
+    // Last 20 orders
+    const last20 = [...subset].sort((a,b)=>b.fecha.localeCompare(a.fecha)).slice(0,20);
+    document.getElementById('tableMayorPedidosBody').innerHTML = last20.map(d => `
+        <tr>
+            <td>${d.fecha}</td>
+            <td>${d.cliente}</td>
+            <td><span class="badge" style="${d.tipo==='Distribuidor'?'background:var(--blue-light);color:var(--blue)':''}">${d.tipo}</span></td>
+            <td class="mono">${d.unidades.toLocaleString('es-AR')}</td>
+            <td><strong>${fmt(d.total)}</strong></td>
+            <td class="mono">${d.provincia}</td>
+        </tr>`).join('') || '<tr><td colspan="6" class="empty">Sin datos</td></tr>';
+}
+
 loadData();
+loadMayorista();
 document.getElementById('fb-dashboard').classList.add('active');
 </script>
 </body>
