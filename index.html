@@ -611,7 +611,8 @@ async function renderDashboard() {
     const kpiMap = {};
     subset.forEach(d => {
         if (!d.num_venta) return;
-        if (!kpiMap[d.num_venta]) kpiMap[d.num_venta] = { total: d.order_total, fecha: d.fecha, tienda: d.tienda, dni: d.dni };
+        if (!kpiMap[d.num_venta]) kpiMap[d.num_venta] = { total: 0, fecha: d.fecha, tienda: d.tienda, dni: d.dni };
+        kpiMap[d.num_venta].total += d.total;
     });
     const ordenes = Object.values(kpiMap);
     const revenue = ordenes.reduce((s, o) => s + o.total, 0);
