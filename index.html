@@ -138,6 +138,7 @@
     <button class="nav-btn" data-tab="productos"><i class="fas fa-box"></i> Productos</button>
     <button class="nav-btn" data-tab="marcas"><i class="fas fa-tags"></i> Marcas</button>
     <button class="nav-btn" data-tab="stock"><i class="fas fa-boxes"></i> Stock</button>
+    <button class="nav-btn" data-tab="analisis"><i class="fas fa-traffic-light"></i> Análisis SKUs</button>
     <div class="sidebar-bottom">
         <button class="theme-btn" onclick="toggleTheme()">
             <i class="fas fa-moon" id="themeIcon"></i>
@@ -211,6 +212,18 @@
         <select class="filter-select" id="filterTiendaMarcas" onchange="renderMarcas()"><option value="">Todas</option></select>
     </div>
 
+    <div class="filterbar" id="fb-analisis">
+        <span class="filterbar-label">Semáforo</span>
+        <select class="filter-select" id="analisisFilter" onchange="renderAnalisis()">
+            <option value="">Todos</option>
+            <option value="rojo">🔴 Liquidar</option>
+            <option value="amarillo">🟡 Revisar</option>
+            <option value="verde">🟢 Potenciar</option>
+            <option value="gris">⚪ Sin movimiento</option>
+        </select>
+        <div class="filterbar-sep"></div>
+        <input type="text" id="analisisSearch" class="search-input" placeholder="Buscar SKU o nombre…" oninput="renderAnalisis()" style="width:180px;">
+    </div>
     <div class="filterbar" id="fb-stock">
         <span class="filterbar-label">Año</span>
         <select class="filter-select" id="filterAnioStock" onchange="renderStock()"><option value="">Todos</option></select>
@@ -320,6 +333,23 @@
                 <table>
                     <thead><tr><th>DNI</th><th>Total Gastado</th><th>Órdenes</th><th>Ticket Promedio</th></tr></thead>
                     <tbody id="tableClientsBody"><tr><td colspan="4" class="empty">Sin datos</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ANÁLISIS SKUs -->
+    <div class="page" id="analisis">
+        <div class="kpi-grid" id="analisisKpiGrid"></div>
+        <div class="table-card">
+            <div class="table-head">
+                <h3>Análisis de SKUs — últimas 8 semanas</h3>
+                <span style="font-size:12px;color:var(--text-3)">Costo estimado = 33% del precio · Tendencia = últimas 2 sem vs 2 anteriores</span>
+            </div>
+            <div class="table-scroll">
+                <table>
+                    <thead><tr><th>Estado</th><th>SKU</th><th>Nombre</th><th>Stock</th><th>Rotación</th><th>Cobertura</th><th>Tendencia</th><th>Precio prom.</th><th>Margen est.</th><th>Acción</th></tr></thead>
+                    <tbody id="tableAnalisisBody"><tr><td colspan="10" class="empty">Sin datos</td></tr></tbody>
                 </table>
             </div>
         </div>
@@ -785,7 +815,99 @@ function renderStock() {
 }
 
 
-const TITLES = { dashboard:'Dashboard', productos:'Productos', marcas:'Marcas', stock:'Stock' };
+function renderAnalisis() {
+    const q      = (document.getElementById('analisisSearch')?.value || '').toLowerCase();
+    const filtro = document.getElementById('analisisFilter')?.value || '';
+    const SEMANAS = 8;
+    const hoy = new Date();
+    const lunes = new Date(hoy); lunes.setDate(hoy.getDate() - hoy.getDay() + (hoy.getDay() === 0 ? -6 : 1));
+    lunes.setHours(0,0,0,0);
+    const desde8s  = new Date(lunes); desde8s.setDate(lunes.getDate()  - SEMANAS * 7);
+    const corteRec = new Date(lunes); corteRec.setDate(lunes.getDate() - 14);
+    const corteAnt = new Date(lunes); corteAnt.setDate(lunes.getDate() - 28);
+
+    const toDate = s => new Date(s + 'T00:00:00');
+
+    const porSku = {};
+    DATA.forEach(d => {
+        const sku = (d.sku || '').trim();
+        if (!sku || sku === 'S/D' || sku === 'null') return;
+        const fecha = toDate(d.fecha);
+        if (fecha < desde8s) return;
+        if (!porSku[sku]) porSku[sku] = { udsTotal:0, ingresosTotal:0, udsRec:0, udsAnt:0 };
+        porSku[sku].udsTotal      += d.uds;
+        porSku[sku].ingresosTotal += d.total;
+        if (fecha >= corteRec) porSku[sku].udsRec += d.uds;
+        else if (fecha >= corteAnt) porSku[sku].udsAnt += d.uds;
+    });
+
+    const prodMap = {};
+    PRODUCTOS.forEach(p => { prodMap[p.sku] = p; });
+    const diasTotal = SEMANAS * 7;
+
+    const semColors = {
+        verde:    { bg:'var(--green-light)',   dot:'var(--green)',    pill:'ok',     label:'Potenciar' },
+        amarillo: { bg:'var(--orange-light)',  dot:'var(--orange)',   pill:'warn',   label:'Revisar' },
+        rojo:     { bg:'var(--red-light)',     dot:'var(--red)',      pill:'danger', label:'Liquidar' },
+        gris:     { bg:'var(--surface-2)',     dot:'var(--text-4)',   pill:'',       label:'Sin movimiento' },
+    };
+
+    const resultados = Object.entries(porSku).map(([sku, d]) => {
+        const prod         = prodMap[sku] || {};
+        const stock        = prod.stock_actual ?? 0;
+        const nombre       = prod.nombre || sku;
+        const rotDiaria    = d.udsTotal / diasTotal;
+        const diasCob      = rotDiaria > 0 ? Math.round(stock / rotDiaria) : 999;
+        const precioProm   = d.udsTotal > 0 ? Math.round(d.ingresosTotal / d.udsTotal) : 0;
+        const margenEst    = Math.round(precioProm * 0.67);
+        const tendPct      = d.udsAnt > 0 ? Math.round(((d.udsRec - d.udsAnt) / d.udsAnt) * 100)
+                           : d.udsRec > 0 ? 100 : 0;
+        let semaforo = d.udsTotal === 0 ? 'gris'
+                     : diasCob > 60 || tendPct < -20 ? 'rojo'
+                     : diasCob > 30 || tendPct < -10 ? 'amarillo'
+                     : 'verde';
+        return { sku, nombre, stock, rotDiaria: Math.round(rotDiaria * 10) / 10, diasCob, precioProm, margenEst, tendPct, semaforo };
+    });
+
+    const orden = { rojo:0, amarillo:1, verde:2, gris:3 };
+    resultados.sort((a,b) => orden[a.semaforo] - orden[b.semaforo] || b.precioProm - a.precioProm);
+
+    // KPIs
+    const cnt = s => resultados.filter(r => r.semaforo === s).length;
+    document.getElementById('analisisKpiGrid').innerHTML = `
+        <div class="kpi"><div class="kpi-header"><span class="kpi-label">Liquidar / Bundlear</span><div class="kpi-icon red"><i class="fas fa-exclamation-circle"></i></div></div><div class="kpi-value">${cnt('rojo')}</div><div class="kpi-sub">SKUs con stock excesivo o caída fuerte</div></div>
+        <div class="kpi"><div class="kpi-header"><span class="kpi-label">Revisar</span><div class="kpi-icon orange"><i class="fas fa-exclamation-triangle"></i></div></div><div class="kpi-value">${cnt('amarillo')}</div><div class="kpi-sub">Cobertura alta o tendencia negativa</div></div>
+        <div class="kpi"><div class="kpi-header"><span class="kpi-label">Potenciar</span><div class="kpi-icon green"><i class="fas fa-rocket"></i></div></div><div class="kpi-value">${cnt('verde')}</div><div class="kpi-sub">Buena rotación y tendencia positiva</div></div>
+        <div class="kpi"><div class="kpi-header"><span class="kpi-label">Sin movimiento</span><div class="kpi-icon blue"><i class="fas fa-minus-circle"></i></div></div><div class="kpi-value">${cnt('gris')}</div><div class="kpi-sub">Sin ventas en las últimas 8 semanas</div></div>
+    `;
+
+    const filtrados = resultados.filter(r =>
+        (!filtro || r.semaforo === filtro) &&
+        (!q || r.sku.toLowerCase().includes(q) || r.nombre.toLowerCase().includes(q))
+    );
+
+    document.getElementById('tableAnalisisBody').innerHTML = filtrados.map(r => {
+        const c = semColors[r.semaforo];
+        const tendColor = r.tendPct > 0 ? 'var(--green)' : r.tendPct < 0 ? 'var(--red)' : 'var(--text-3)';
+        const tendStr   = r.tendPct > 0 ? `+${r.tendPct}%` : r.tendPct !== 0 ? `${r.tendPct}%` : '—';
+        const diasStr   = r.diasCob === 999 ? '∞' : r.diasCob + ' días';
+        return `
+        <tr style="background:${c.bg}">
+            <td><span class="status-pill ${c.pill}">${['verde','amarillo','rojo'].includes(r.semaforo) ? {verde:'🟢',amarillo:'🟡',rojo:'🔴'}[r.semaforo]+' ' : '⚪ '}${c.label}</span></td>
+            <td><span class="badge">${r.sku}</span></td>
+            <td style="max-width:200px;white-space:normal;font-size:12px;">${r.nombre}</td>
+            <td class="mono">${r.stock}</td>
+            <td class="mono">${r.rotDiaria} u/día</td>
+            <td class="mono" style="font-weight:700">${diasStr}</td>
+            <td class="mono" style="color:${tendColor};font-weight:700">${tendStr}</td>
+            <td class="mono">${fmt(r.precioProm)}</td>
+            <td class="mono" style="color:var(--green)">${fmt(r.margenEst)}</td>
+            <td style="font-size:11px;font-weight:600;color:${c.dot}">${c.label}</td>
+        </tr>`;
+    }).join('') || '<tr><td colspan="10" class="empty">Sin resultados</td></tr>';
+}
+
+const TITLES = { dashboard:'Dashboard', productos:'Productos', marcas:'Marcas', stock:'Stock', analisis:'Análisis SKUs' };
 document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -799,6 +921,7 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
         if (fb) fb.classList.add('active');
         if (tab === 'stock') renderStock();
         if (tab === 'marcas') renderMarcas();
+        if (tab === 'analisis') renderAnalisis();
     });
 });
 
