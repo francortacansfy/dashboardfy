@@ -484,7 +484,7 @@ async function loadData() {
         const pageSize = 1000;
         while (true) {
             const res = await fetch(
-                `${SUPA_URL}/rest/v1/ventas?select=num_venta,fecha,unidades,ingresos_productos_ars,total_ars,sku,tienda,tienda_oficial,dni&ingresos_productos_ars=gt.0&order=fecha.desc&limit=${pageSize}&offset=${from}`,
+                `${SUPA_URL}/rest/v1/ventas?select=num_venta,fecha,unidades,ingresos_productos_ars,cargo_venta_impuestos_ars,descuentos_bonificaciones,total_ars,sku,tienda,tienda_oficial,dni&ingresos_productos_ars=gt.0&order=fecha.desc&limit=${pageSize}&offset=${from}`,
                 { headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` } }
             );
             if (!res.ok) throw new Error(`Supabase error: ${res.status}`);
@@ -498,7 +498,11 @@ async function loadData() {
             num_venta:   r.num_venta || '',
             fecha:       r.fecha    || '',
             uds:         r.unidades || 0,
-            total:       parseFloat(r.ingresos_productos_ars) || 0,
+            // Ventas brutas = ingresos + comisión ML + descuentos subsidiados
+            // Para Shopify: cargo y desc son 0, queda igual a ingresos_productos_ars
+            total:       (parseFloat(r.ingresos_productos_ars) || 0)
+                       - (parseFloat(r.cargo_venta_impuestos_ars) || 0)
+                       + (parseFloat(r.descuentos_bonificaciones) || 0),
             order_total: parseFloat(r.total_ars) || 0,
             sku:         r.sku      || 'S/D',
             tienda:      r.tienda   || '',
@@ -1000,7 +1004,7 @@ function renderAnalisis() {
     });
 
     const orden = { rojo:0, amarillo:1, verde:2, gris:3 };
-    resultados.sort((a,b) => orden[a.semaforo] - orden[b.semaforo] || b.precioProm - a.precioProm);
+    resultados.sort((a,b) => orden[a.semaforo] - orden[b.semaforo] || b.udsTotal - a.udsTotal);
 
     // KPIs
     const cnt = s => resultados.filter(r => r.semaforo === s).length;
