@@ -180,6 +180,9 @@
         <div class="filterbar-sep"></div>
         <span class="filterbar-label">Tienda</span>
         <select class="filter-select" id="filterTiendaDash" onchange="renderDashboard()"><option value="">Todas</option></select>
+        <div class="filterbar-sep"></div>
+        <span class="filterbar-label">Cuenta Shopify</span>
+        <select class="filter-select" id="filterCuentaDash" onchange="renderDashboard()"><option value="">Todas</option></select>
     </div>
 
     <div class="filterbar" id="fb-productos">
@@ -495,7 +498,7 @@ async function loadData() {
         const pageSize = 1000;
         while (true) {
             const res = await fetch(
-                `${SUPA_URL}/rest/v1/ventas?select=num_venta,fecha,unidades,ingresos_productos_ars,total_ars,sku,tienda,tienda_oficial,dni&order=fecha.desc,row_id.desc&limit=${pageSize}&offset=${from}`,
+                `${SUPA_URL}/rest/v1/ventas?select=num_venta,fecha,unidades,ingresos_productos_ars,total_ars,sku,tienda,tienda_oficial,cuenta_shopify,dni&order=fecha.desc,row_id.desc&limit=${pageSize}&offset=${from}`,
                 { headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` } }
             );
             if (!res.ok) throw new Error(`Supabase error: ${res.status}`);
@@ -518,6 +521,7 @@ async function loadData() {
                 sku:         r.sku      || 'S/D',
                 tienda,
                 marca:       r.tienda_oficial || r.tienda || 'S/D',
+                cuenta:      r.cuenta_shopify || '',
                 dni:         r.dni      || 'S/D',
             };
         });
@@ -541,6 +545,7 @@ async function loadData() {
 function populateTiendaFilters() {
     const tiendas = [...new Set(DATA.map(d => d.tienda).filter(Boolean))].sort();
     const marcas  = [...new Set(DATA.map(d => d.marca).filter(x => x && x !== 'S/D'))].sort();
+    const cuentas = [...new Set(DATA.map(d => d.cuenta).filter(Boolean))].sort();
     const anios   = [...new Set(DATA.map(d => d.fecha?.substring(0,4)).filter(Boolean))].sort();
 
     ['filterTiendaDash','filterTiendaProd','filterTiendaMarcas'].forEach(id => {
@@ -549,6 +554,14 @@ function populateTiendaFilters() {
         const val = sel.value;
         sel.innerHTML = '<option value="">Todas</option>' +
             tiendas.map(t => `<option value="${t}"${val===t?' selected':''}>${t}</option>`).join('');
+    });
+
+    ['filterCuentaDash'].forEach(id => {
+        const sel = document.getElementById(id);
+        if (!sel) return;
+        const val = sel.value;
+        sel.innerHTML = '<option value="">Todas</option>' +
+            cuentas.map(c => `<option value="${c}"${val===c?' selected':''}>${c}</option>`).join('');
     });
 
     ['filterMarcaDash','filterMarcaProd'].forEach(id => {
@@ -687,11 +700,13 @@ function renderMarcas() {
 async function renderDashboard() {
     const tienda = document.getElementById('filterTiendaDash')?.value || '';
     const marca  = document.getElementById('filterMarcaDash')?.value  || '';
+    const cuenta = document.getElementById('filterCuentaDash')?.value || '';
     const anio   = document.getElementById('filterAnioDash')?.value   || '';
     const mes    = document.getElementById('filterMesDash')?.value    || '';
     const subset = DATA.filter(d =>
         (!tienda || d.tienda === tienda) &&
         (!marca  || d.marca  === marca)  &&
+        (!cuenta || d.cuenta === cuenta) &&
         (!anio   || d.fecha?.substring(0,4) === anio) &&
         (!mes    || d.fecha?.substring(5,7) === mes)
     );
