@@ -470,6 +470,17 @@ function fmt(n) {
     return '$' + Math.round(n).toLocaleString('es-AR');
 }
 
+// Algunas ventas de Mercado Libre llegan sin la columna 'tienda' cargada.
+// Se reconocen igual por el formato de num_venta: ML usa 16 dígitos, Shopify 13.
+function normalizeTienda(tienda, numVenta) {
+    const v = (tienda || '').trim();
+    if (v) return v;
+    const len = (numVenta || '').length;
+    if (len === 16) return 'Mercado Libre';
+    if (len === 13) return 'Shopify';
+    return '';
+}
+
 async function loadData() {
     const overlay   = document.getElementById('loadingOverlay');
     const syncBtn   = document.getElementById('syncBtn');
@@ -484,7 +495,7 @@ async function loadData() {
         const pageSize = 1000;
         while (true) {
             const res = await fetch(
-                `${SUPA_URL}/rest/v1/ventas?select=num_venta,fecha,unidades,ingresos_productos_ars,cargo_venta_impuestos_ars,descuentos_bonificaciones,total_ars,sku,tienda,tienda_oficial,dni&ingresos_productos_ars=gt.0&order=fecha.desc&limit=${pageSize}&offset=${from}`,
+                `${SUPA_URL}/rest/v1/ventas?select=num_venta,fecha,unidades,ingresos_productos_ars,total_ars,sku,tienda,tienda_oficial,dni&order=fecha.desc&limit=${pageSize}&offset=${from}`,
                 { headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` } }
             );
             if (!res.ok) throw new Error(`Supabase error: ${res.status}`);
@@ -494,24 +505,24 @@ async function loadData() {
             from += pageSize;
         }
 
-        DATA = all.map(r => ({
-            num_venta:   r.num_venta || '',
-            fecha:       r.fecha    || '',
-            uds:         r.unidades || 0,
-            // Ventas brutas = ingresos + comisión ML + descuentos subsidiados
-            // Para Shopify: cargo y desc son 0, queda igual a ingresos_productos_ars
-            total:       (parseFloat(r.ingresos_productos_ars) || 0)
-                       - (parseFloat(r.cargo_venta_impuestos_ars) || 0)
-                       + (parseFloat(r.descuentos_bonificaciones) || 0),
-            order_total: parseFloat(r.total_ars) || 0,
-            sku:         r.sku      || 'S/D',
-            tienda:      r.tienda   || '',
-            marca:       r.tienda_oficial || r.tienda || 'S/D',
-            dni:         r.dni      || 'S/D',
-        }));
+        DATA = all.map(r => {
+            const tienda = normalizeTienda(r.tienda, r.num_venta);
+            // Ingresos por producto tal cual vienen de Mercado Libre/Shopify, sin ajustes.
+            const total = parseFloat(r.ingresos_productos_ars) || 0;
+            return {
+                num_venta:   r.num_venta || '',
+                fecha:       r.fecha    || '',
+                uds:         r.unidades || 0,
+                total,
+                order_total: parseFloat(r.total_ars) || 0,
+                sku:         r.sku      || 'S/D',
+                tienda,
+                marca:       r.tienda_oficial || r.tienda || 'S/D',
+                dni:         r.dni      || 'S/D',
+            };
+        });
 
         await loadProductos();
-        await loadServerCounts();
 
         console.log('Filas cargadas:', DATA.length);
         statusDot.classList.add('ok');
@@ -526,27 +537,6 @@ async function loadData() {
     }
 }
 
-let SERVER_COUNTS = { ordenes: 0, clientes: 0 };
-
-async function loadServerCounts(tienda = '') {
-    const tiendaFilter = tienda ? `&tienda=eq.${encodeURIComponent(tienda)}` : '';
-    let allRows = [];
-    let from = 0;
-    const pageSize = 1000;
-    while (true) {
-        const res = await fetch(
-            `${SUPA_URL}/rest/v1/ventas?select=num_venta,dni&ingresos_productos_ars=gt.0${tiendaFilter}&limit=${pageSize}&offset=${from}`,
-            { headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` } }
-        );
-        if (!res.ok) return;
-        const page = await res.json();
-        allRows = allRows.concat(page);
-        if (page.length < pageSize) break;
-        from += pageSize;
-    }
-    SERVER_COUNTS.ordenes  = new Set(allRows.map(r => r.num_venta).filter(Boolean)).size;
-    SERVER_COUNTS.clientes = new Set(allRows.map(r => r.dni).filter(x => x && x !== 'S/D')).size;
-}
 
 function populateTiendaFilters() {
     const tiendas = [...new Set(DATA.map(d => d.tienda).filter(Boolean))].sort();
@@ -694,23 +684,6 @@ function renderMarcas() {
     }).join('') || '<tr><td colspan="7" class="empty">Sin resultados</td></tr>';
 }
 
-async function fetchExactOrderCount(tienda, marca, anio, mes) {
-    let url = `${SUPA_URL}/rest/v1/ventas?select=num_venta&ingresos_productos_ars=gt.0`;
-    if (tienda) url += `&tienda=eq.${encodeURIComponent(tienda)}`;
-    if (marca)  url += `&tienda_oficial=eq.${encodeURIComponent(marca)}`;
-    if (anio && mes) {
-        const lastDay = new Date(parseInt(anio), parseInt(mes), 0).getDate();
-        url += `&fecha=gte.${anio}-${mes}-01&fecha=lte.${anio}-${mes}-${String(lastDay).padStart(2,'0')}`;
-    } else if (anio) {
-        url += `&fecha=gte.${anio}-01-01&fecha=lte.${anio}-12-31`;
-    }
-    url += `&limit=10000`;
-    const res = await fetch(url, { headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` } });
-    if (!res.ok) return null;
-    const rows = await res.json();
-    return new Set(rows.map(r => r.num_venta).filter(Boolean)).size;
-}
-
 async function renderDashboard() {
     const tienda = document.getElementById('filterTiendaDash')?.value || '';
     const marca  = document.getElementById('filterMarcaDash')?.value  || '';
@@ -734,20 +707,11 @@ async function renderDashboard() {
     const revenue = ordenes.reduce((s, o) => s + o.total, 0);
     const lines   = subset.length;
 
-    const hasFilter = tienda || marca || anio || mes;
-    let orders = hasFilter ? ordenes.length : SERVER_COUNTS.ordenes;
-    const uniqueClients = hasFilter ? new Set(subset.map(d => d.dni).filter(x => x && x !== 'S/D')).size : SERVER_COUNTS.clientes;
+    // DATA trae todas las filas (sin filtro de ingresos), así que el subset
+    // ya refleja el total real de órdenes/clientes sin necesidad de fetches aparte.
+    const orders = ordenes.length;
+    const uniqueClients = new Set(subset.map(d => d.dni).filter(x => x && x !== 'S/D')).size;
     const avgTick = orders ? revenue / orders : 0;
-
-    // Fetch exact server-side count when filters applied (more accurate than client-side)
-    if (hasFilter) {
-        fetchExactOrderCount(tienda, marca, anio, mes).then(exactCount => {
-            if (exactCount !== null) {
-                const el = document.getElementById('kpiOrdenesUnicas');
-                if (el) el.textContent = exactCount.toLocaleString('es-AR');
-            }
-        });
-    }
 
     document.getElementById('kpiGrid').innerHTML = `
         <div class="kpi">
