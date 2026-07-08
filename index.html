@@ -498,7 +498,7 @@ async function loadData() {
         const pageSize = 1000;
         while (true) {
             const res = await fetch(
-                `${SUPA_URL}/rest/v1/ventas?select=num_venta,fecha,unidades,ingresos_productos_ars,total_ars,sku,tienda,tienda_oficial,cuenta_shopify,dni&order=fecha.desc,row_id.desc&limit=${pageSize}&offset=${from}`,
+                `${SUPA_URL}/rest/v1/ventas?select=num_venta,fecha,unidades,ingresos_productos_ars,sku,tienda,tienda_oficial,cuenta_shopify,dni&order=fecha.desc,row_id.desc&limit=${pageSize}&offset=${from}`,
                 { headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` } }
             );
             if (!res.ok) throw new Error(`Supabase error: ${res.status}`);
@@ -517,7 +517,6 @@ async function loadData() {
                 fecha:       r.fecha    || '',
                 uds:         r.unidades || 0,
                 total,
-                order_total: parseFloat(r.total_ars) || 0,
                 sku:         r.sku      || 'S/D',
                 tienda,
                 marca:       r.tienda_oficial || r.tienda || 'S/D',
@@ -787,10 +786,11 @@ async function renderDashboard() {
     const ordenMap = {};
     subset.forEach(d => {
         if (!ordenMap[d.num_venta]) {
-            ordenMap[d.num_venta] = { fecha:d.fecha, num_venta:d.num_venta, dni:d.dni, tienda:d.tienda, skus:[], uds:0, total:d.order_total };
+            ordenMap[d.num_venta] = { fecha:d.fecha, num_venta:d.num_venta, dni:d.dni, tienda:d.tienda, skus:[], uds:0, total:0 };
         }
         ordenMap[d.num_venta].skus.push(d.sku);
         ordenMap[d.num_venta].uds += d.uds;
+        ordenMap[d.num_venta].total += d.total;
     });
     const last15 = Object.values(ordenMap).sort((a,b) => b.fecha.localeCompare(a.fecha)).slice(0,15);
     document.getElementById('tableOrdersBody').innerHTML = last15.map(d => `
