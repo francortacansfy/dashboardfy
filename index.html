@@ -498,7 +498,7 @@ async function loadData() {
         const pageSize = 1000;
         while (true) {
             const res = await fetch(
-                `${SUPA_URL}/rest/v1/ventas?select=num_venta,fecha,unidades,ingresos_productos_ars,sku,tienda,tienda_oficial,cuenta_shopify,dni&order=fecha.desc,row_id.desc&limit=${pageSize}&offset=${from}`,
+                `${SUPA_URL}/rest/v1/ventas?select=num_venta,fecha,unidades,ingresos_productos_ars,sku,tienda,tienda_oficial,cuenta_shopify,dni,tipo_fila&order=fecha.desc,row_id.desc&limit=${pageSize}&offset=${from}`,
                 { headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` } }
             );
             if (!res.ok) throw new Error(`Supabase error: ${res.status}`);
@@ -522,6 +522,10 @@ async function loadData() {
                 marca:       r.tienda_oficial || r.tienda || 'S/D',
                 cuenta:      r.cuenta_shopify || '',
                 dni:         r.dni      || 'S/D',
+                // 'padre'/'hija' = cabecera/desglose de un paquete ML. La
+                // cabecera ya trae el total del paquete completo: sumar la
+                // hija tambien duplicaria esa plata.
+                tipoFila:    r.tipo_fila || null,
             };
         });
 
@@ -601,8 +605,9 @@ function renderMarcas() {
     const ordenPorMarca = {};
     subset.forEach(d => {
         if (!map[d.marca]) { map[d.marca] = { uds:0, total:0 }; ordenPorMarca[d.marca] = new Set(); }
-        map[d.marca].uds   += d.uds;
-        map[d.marca].total += d.total;
+        map[d.marca].uds += d.uds;
+        // hija excluida: su plata ya esta en la cabecera del paquete (padre)
+        if (d.tipoFila !== 'hija') map[d.marca].total += d.total;
         if (d.num_venta) ordenPorMarca[d.marca].add(d.num_venta);
     });
 
@@ -711,9 +716,11 @@ async function renderDashboard() {
     );
 
     // Agrupar por num_venta para calcular revenue por orden (igual que AOV)
+    // hija excluida: es desglose de producto del mismo paquete, no una orden
+    // aparte — contarla duplicaria plata y ordenes.
     const kpiMap = {};
     subset.forEach(d => {
-        if (!d.num_venta) return;
+        if (!d.num_venta || d.tipoFila === 'hija') return;
         if (!kpiMap[d.num_venta]) kpiMap[d.num_venta] = { total: 0, fecha: d.fecha, tienda: d.tienda, dni: d.dni };
         kpiMap[d.num_venta].total += d.total;
     });
@@ -820,8 +827,11 @@ function renderProductos() {
         (!q      || d.sku.toLowerCase().includes(q))
     );
 
+    // cabecera de paquete ('padre') no tiene SKU real (viene "S/D") y ya no
+    // esta en $0: excluirla para que no infle un bucket S/D fantasma.
     const map = {};
     subset.forEach(d => {
+        if (d.tipoFila === 'padre') return;
         if (!map[d.sku]) map[d.sku] = { uds:0, total:0 };
         map[d.sku].uds   += d.uds;
         map[d.sku].total += d.total;
