@@ -1023,6 +1023,7 @@ function prepararControlesObjetivoKpis() {
 }
 
 function guardarObjetivoKpis() {
+    const anterior = JSON.parse(localStorage.getItem('fyl_kpi_objetivo') || '{}');
     localStorage.setItem('fyl_kpi_objetivo', JSON.stringify({
         mes: document.getElementById('kpiObjetivoMes')?.value || '',
         tipo: document.getElementById('kpiObjetivoTipo')?.value || 'rutinas',
@@ -1031,6 +1032,7 @@ function guardarObjetivoKpis() {
         decision: document.getElementById('kpiDecision')?.value || '',
         responsable: document.getElementById('kpiResponsable')?.value || '',
         nota: document.getElementById('kpiNota')?.value || '',
+        updatedAt: new Date().toISOString(),
     }));
 }
 
@@ -1117,9 +1119,18 @@ function renderMetaGapKpis(tipo, actual) {
     const tieneMeta = Number.isFinite(metaRaw);
     const gap = tieneMeta ? metaRaw - principal.value : 0;
     const avance = tieneMeta && metaRaw > 0 ? Math.max(0, Math.min(999, principal.value / metaRaw * 100)) : 0;
+    const estado = !tieneMeta ? {label:'Sin meta', color:'blue', sub:'Cargá una meta para medir avance'} :
+        avance >= 100 ? {label:'Alcanzado', color:'green', sub:'Meta alcanzada o superada'} :
+        avance >= 75 ? {label:'En camino', color:'orange', sub:'Todavía falta, pero viene encaminado'} :
+        {label:'En riesgo', color:'red', sub:'Falta bastante para llegar'};
     const fmtMeta = n => metaTipo === 'money' ? fmt(n) : metaTipo === 'pct' ? fmtPct(n) : n.toLocaleString('es-AR');
     const gapDisplay = !tieneMeta ? 'Sin meta' : metaTipo === 'money' ? fmt(gap) : metaTipo === 'pct' ? `${gap >= 0 ? '+' : ''}${gap.toFixed(1).replace('.', ',')} pp` : `${gap >= 0 ? '+' : ''}${gap.toLocaleString('es-AR')}`;
     document.getElementById('metaKpiGrid').innerHTML = `
+        <div class="kpi">
+            <div class="kpi-header"><span class="kpi-label">Estado</span><div class="kpi-icon ${estado.color}"><i class="fas fa-signal"></i></div></div>
+            <div class="kpi-value">${estado.label}</div>
+            <div class="kpi-sub">${estado.sub}</div>
+        </div>
         <div class="kpi">
             <div class="kpi-header"><span class="kpi-label">${principal.label}</span><div class="kpi-icon green"><i class="fas fa-bullseye"></i></div></div>
             <div class="kpi-value">${principal.display}</div>
@@ -1141,6 +1152,10 @@ function renderMetaGapKpis(tipo, actual) {
             <div class="kpi-sub">Actual / meta</div>
         </div>
     `;
+    const guardado = JSON.parse(localStorage.getItem('fyl_kpi_objetivo') || '{}');
+    const updated = guardado.updatedAt ? new Date(guardado.updatedAt).toLocaleString('es-AR') : 'Sin actualizaciones guardadas';
+    const updatedEl = document.getElementById('kpiDecisionUpdated');
+    if (updatedEl) updatedEl.textContent = `Última actualización: ${updated}`;
 }
 
 function renderMirarFinoKpis(tipo) {
