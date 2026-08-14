@@ -1765,7 +1765,13 @@ function prepararControlesObjetivoKpis() {
     agruparRangoFechas('kpiBaseDesde', 'kpiBaseHasta', 'Período anterior');
     const tipoSel = document.getElementById('kpiObjetivoTipo');
     if (tipoSel && !tipoSel.dataset.ready) {
-        tipoSel.value = 'rutinas';
+        if (!tipoSel.querySelector('option[value=""]')) {
+            tipoSel.insertAdjacentHTML('afterbegin', '<option value="">Elegir objetivo</option>');
+        }
+        if (!tipoSel.querySelector('option[value="nuevo"]')) {
+            tipoSel.insertAdjacentHTML('beforeend', '<option value="nuevo">Cargar nuevo</option>');
+        }
+        tipoSel.value = '';
         tipoSel.dataset.ready = '1';
     }
     ['Meta','MetaTipo'].forEach(campo => {
