@@ -1906,14 +1906,13 @@ function prepararControlesObjetivoKpis() {
     aplicarLayoutObjetivoLocal();
     sincronizarPeriodoKpisTexto();
     [
-        ['kpiActualDesde', ''],
-        ['kpiActualHasta', ''],
-        ['kpiBaseDesde', ''],
-        ['kpiBaseHasta', ''],
-    ].forEach(([id, value]) => {
+        'kpiActualDesde',
+        'kpiActualHasta',
+        'kpiBaseDesde',
+        'kpiBaseHasta',
+    ].forEach(id => {
         const el = document.getElementById(id);
         if (el && !el.dataset.ready) {
-            el.value = value;
             el.dataset.ready = '1';
         }
     });
