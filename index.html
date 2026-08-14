@@ -1193,6 +1193,7 @@ function renderDecisionKpis() {
 }
 
 function limpiarObjetivoKpis() {
+    KPI_DECISION_ACTIVA_ID = null;
     ['kpiObjetivoMeta', 'kpiDecision', 'kpiResponsable', 'kpiNota'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = '';
