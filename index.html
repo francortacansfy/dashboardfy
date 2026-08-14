@@ -1419,7 +1419,7 @@ function valorPlanKpi(kpi, m) {
     return { label:'Ticket promedio', value:m.ticket, display:fmt(m.ticket), suffix:'' };
 }
 
-function topCombosPlan(rows) {
+function mapCombosPlan(rows) {
     const map = {};
     rows.filter(d => d.completa && d.tipoFila !== 'hija' && COMBOS_REALES.has(d.sku)).forEach(d => {
         if (!map[d.sku]) map[d.sku] = { sku:d.sku, marca:d.marca, ventas:0, ordenes:new Set(), tiendas:{} };
@@ -1427,10 +1427,25 @@ function topCombosPlan(rows) {
         if (d.num_venta && !d.esPaquete) map[d.sku].ordenes.add(d.num_venta);
         map[d.sku].tiendas[d.tienda || 'S/D'] = (map[d.sku].tiendas[d.tienda || 'S/D'] || 0) + d.total;
     });
-    return Object.values(map)
-        .map(x => ({ ...x, ordenesCount:x.ordenes.size, ticket:x.ordenes.size ? x.ventas / x.ordenes.size : 0 }))
-        .sort((a, b) => b.ventas - a.ventas)
-        .slice(0, 12);
+    return map;
+}
+
+function compararCombosPlan(actualRows, baseRows, fallbackRows) {
+    const actual = mapCombosPlan(actualRows.length ? actualRows : fallbackRows);
+    const base = mapCombosPlan(baseRows);
+    const skus = [...new Set([...Object.keys(actual), ...Object.keys(base)])];
+    return skus.map(sku => {
+        const a = actual[sku] || { sku, marca:base[sku]?.marca || '', ventas:0, ordenes:new Set(), tiendas:{} };
+        const b = base[sku] || { ventas:0 };
+        const delta = a.ventas - b.ventas;
+        return {
+            ...a,
+            baseVentas:b.ventas || 0,
+            delta,
+            ordenesCount:a.ordenes?.size || 0,
+            ticket:a.ordenes?.size ? a.ventas / a.ordenes.size : 0,
+        };
+    }).sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
 }
 
 function renderPlanComercial() {
@@ -1447,7 +1462,7 @@ function renderPlanComercial() {
     const filtrado = DATA.filter(d => (!marca || d.marca === marca) && (!tienda || d.tienda === tienda));
     const actualRows = filtrado.filter(d => planFechaEnRango(d.fecha, desde, hasta));
     const baseRows = filtrado.filter(d => planFechaEnRango(d.fecha, baseDesde, baseHasta));
-    const combos = topCombosPlan(actualRows.length ? actualRows : filtrado);
+    const combos = compararCombosPlan(actualRows, baseRows, filtrado);
     const selected = new Set(estado.skus || []);
     const selectedSkus = [...selected];
     const actual = calcularPlanMetricas(actualRows, selectedSkus);
@@ -1465,17 +1480,29 @@ function renderPlanComercial() {
         <div class="kpi"><div class="kpi-header"><span class="kpi-label">Avance ventas</span><div class="kpi-icon orange"><i class="fas fa-gauge-high"></i></div></div><div class="kpi-value">${base.ventas ? fmtPct(avance) : '-'}</div><div class="kpi-sub">Actual vs base elegida</div></div>
     `;
     const list = document.getElementById('planFocusList');
-    if (list) list.innerHTML = combos.map(c => {
+    const renderCombo = c => {
         const checked = selected.has(c.sku) ? 'checked' : '';
         const tiendaTxt = Object.entries(c.tiendas).sort((a,b) => b[1]-a[1]).map(([t,v]) => `${t} ${fmtMoneyCompact(v)}`).join(' · ');
+        const deltaTxt = `${c.delta >= 0 ? '+' : ''}${fmt(c.delta)}`;
+        const deltaColor = c.delta >= 0 ? 'var(--green)' : 'var(--red)';
         return `<label class="focus-item">
             <input type="checkbox" data-plan-sku value="${escapeHtml(c.sku)}" ${checked} onchange="guardarPlanEstado();renderPlanComercial()">
             <span>
                 <span class="focus-title">${escapeHtml(c.sku)} · ${escapeHtml(c.marca)}</span>
-                <span class="focus-meta">${fmt(c.ventas)} · ${c.ordenesCount} órdenes · Ticket ${fmt(c.ticket)}<br>${escapeHtml(tiendaTxt)}</span>
+                <span class="focus-meta">${fmt(c.ventas)} · ${c.ordenesCount} órdenes · Ticket ${fmt(c.ticket)}<br>Base ${fmt(c.baseVentas)} · <strong style="color:${deltaColor}">${deltaTxt}</strong>${tiendaTxt ? `<br>${escapeHtml(tiendaTxt)}` : ''}</span>
             </span>
         </label>`;
-    }).join('') || '<div class="empty" style="grid-column:1/-1">Sin combos reales para el filtro elegido.</div>';
+    };
+    if (list) {
+        const ganan = combos.filter(c => c.delta >= 0 && c.ventas > 0).sort((a, b) => b.delta - a.delta).slice(0, 6);
+        const pierden = combos.filter(c => c.delta < 0 || (c.baseVentas > 0 && c.ventas === 0)).sort((a, b) => a.delta - b.delta).slice(0, 6);
+        list.innerHTML = combos.length ? `
+            <div style="grid-column:1/-1" class="section-title">Ganan / reforzar</div>
+            ${ganan.length ? ganan.map(renderCombo).join('') : '<div class="empty">Sin ganadores en este período.</div>'}
+            <div style="grid-column:1/-1" class="section-title">Pierden / recuperar</div>
+            ${pierden.length ? pierden.map(renderCombo).join('') : '<div class="empty">Sin caídas contra la base.</div>'}
+        ` : '<div class="empty" style="grid-column:1/-1">Sin combos reales para el filtro elegido.</div>';
+    }
     renderTareasPlan();
     guardarPlanEstado();
 }
