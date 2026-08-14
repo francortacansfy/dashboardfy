@@ -1709,6 +1709,9 @@ function elegirReferenciaKpisPorFecha(base) {
     const actualHasta = document.getElementById('kpiActualHasta')?.value || '';
     const baseDesde = document.getElementById('kpiBaseDesde')?.value || '';
     const baseHasta = document.getElementById('kpiBaseHasta')?.value || '';
+    if (!actualDesde || !actualHasta || !baseDesde || !baseHasta) {
+        return { actual:null, anterior:null, ultimos:[], label:'Elegí dos períodos para comparar' };
+    }
     const actual = calcularGrowthRangoKpis(base, actualDesde, actualHasta, 'Actual');
     const anterior = calcularGrowthRangoKpis(base, baseDesde, baseHasta, 'Base');
     return {
