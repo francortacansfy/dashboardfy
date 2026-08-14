@@ -1931,6 +1931,7 @@ function transformarObjetivoEnCampoEscribible() {
     if (!select.querySelector('option[value="nuevo"]')) {
         select.insertAdjacentHTML('beforeend', '<option value="nuevo">Crear nuevo objetivo</option>');
     }
+    poblarObjetivosCustomKpis();
     let input = document.getElementById('kpiObjetivoNuevo');
     if (!input) {
         input = document.createElement('input');
