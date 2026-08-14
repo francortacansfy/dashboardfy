@@ -1371,6 +1371,12 @@ function normalizarTextoSimple(texto) {
     return String(texto || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
 
+function objetivoTipoActualKpis() {
+    const nuevo = document.getElementById('kpiObjetivoNuevo')?.value || '';
+    if (nuevo.trim()) return 'nuevo';
+    return normalizarObjetivoTipo(document.getElementById('kpiObjetivoTipo')?.value || '');
+}
+
 function categoriaDesdeObjetivo(row) {
     const texto = normalizarTextoSimple(textoObjetivoSeleccionado());
     const categorias = Object.keys(row?.categorias || {});
