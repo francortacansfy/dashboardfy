@@ -1228,6 +1228,7 @@ function ordenarObjetivoKpis() {
 }
 
 const KPI_DECISIONES_KEY = 'fyl_kpi_decisiones';
+const KPI_OBJETIVOS_CUSTOM_KEY = 'fyl_kpi_objetivos_custom';
 let KPI_DECISION_ACTIVA_ID = null;
 
 function leerDecisionActualKpis() {
@@ -1313,9 +1314,37 @@ function guardarDecisionKpis() {
     const item = { ...actual, id: Date.now().toString() };
     decisiones.unshift(item);
     localStorage.setItem(KPI_DECISIONES_KEY, JSON.stringify(decisiones.slice(0, 30)));
+    guardarObjetivoCustomKpis(item);
     KPI_DECISION_ACTIVA_ID = item.id;
     poblarDecisionesPlan();
     renderDecisionKpis();
+}
+
+function guardarObjetivoCustomKpis(item) {
+    const texto = (item.objetivoNuevo || (item.tipo === 'nuevo' ? item.objetivoTexto : '') || '').trim();
+    if (!texto) return;
+    const objetivos = JSON.parse(localStorage.getItem(KPI_OBJETIVOS_CUSTOM_KEY) || '[]');
+    if (!objetivos.some(x => x.toLowerCase() === texto.toLowerCase())) {
+        objetivos.push(texto);
+        localStorage.setItem(KPI_OBJETIVOS_CUSTOM_KEY, JSON.stringify(objetivos.slice(-20)));
+    }
+    poblarObjetivosCustomKpis();
+}
+
+function poblarObjetivosCustomKpis() {
+    const select = document.getElementById('kpiObjetivoTipo');
+    if (!select || select.tagName !== 'SELECT') return;
+    const objetivos = JSON.parse(localStorage.getItem(KPI_OBJETIVOS_CUSTOM_KEY) || '[]');
+    objetivos.forEach(texto => {
+        const value = `custom:${texto}`;
+        if (!select.querySelector(`option[value="${CSS.escape(value)}"]`)) {
+            const opt = document.createElement('option');
+            opt.value = value;
+            opt.textContent = texto;
+            const nuevo = select.querySelector('option[value="nuevo"]');
+            select.insertBefore(opt, nuevo || null);
+        }
+    });
 }
 
 function cargarDecisionKpis(id) {
