@@ -2220,6 +2220,7 @@ function calcularGrowthRangoKpis(base, desde, hasta, label) {
         comboShare: total ? combo / total * 100 : 0,
         comboVentas: combo,
         comboUds,
+        categorias,
         topCategoria: Object.entries(categorias).sort((a,b) => b[1] - a[1])[0] || ['-', 0],
     };
 }
