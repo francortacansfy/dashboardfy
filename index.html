@@ -3363,6 +3363,7 @@ function renderMayoristaClientes() {
 }
 
 aplicarLayoutObjetivoLocal();
+restaurarEstadoFormularioKpis();
 loadData();
 loadMayorista();
 activarTab(localStorage.getItem(LAST_TAB_KEY) || 'dashboard', false);
