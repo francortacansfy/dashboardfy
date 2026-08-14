@@ -1084,6 +1084,57 @@ function renderGrowthMensual(base) {
     const head = document.querySelector('#growthKpiCard thead tr');
     if (head) head.innerHTML = `<th>Mes</th>${cfg.cols.map(c => `<th style="text-align:right">${c}</th>`).join('')}`;
     document.getElementById('growthKpiBody').innerHTML = ultimos.map(r => `<tr><td><strong>${r.mes}</strong></td>${cfg.values(r).map(v => `<td style="text-align:right">${v}</td>`).join('')}</tr>`).join('') || '<tr><td colspan="4" class="empty">Sin datos de meses cerrados</td></tr>';
+    renderMetaGapKpis(objetivoTipo, actual);
+    renderMirarFinoKpis(objetivoTipo);
+}
+
+function valorPrincipalObjetivo(tipo, row) {
+    if (!row) return { label:'Actual', value:0, display:'-' };
+    if (tipo === 'shopify') return { label:'% Shopify', value:row.shopifyShare, display:fmtPct(row.shopifyShare), unidad:'%' };
+    if (tipo === 'ml') return { label:'% Mercado Libre', value:row.mlShare, display:fmtPct(row.mlShare), unidad:'%' };
+    if (tipo === 'categorias') return { label:'Ventas categoría líder', value:row.topCategoria?.[1] || 0, display:fmt(row.topCategoria?.[1] || 0), unidad:'$' };
+    return { label:'% Combos reales', value:row.comboShare, display:fmtPct(row.comboShare), unidad:'%' };
+}
+
+function renderMetaGapKpis(tipo, actual) {
+    const metaRaw = parseFloat(document.getElementById('kpiObjetivoMeta')?.value || '');
+    const principal = valorPrincipalObjetivo(tipo, actual);
+    const tieneMeta = Number.isFinite(metaRaw);
+    const gap = tieneMeta ? metaRaw - principal.value : 0;
+    const avance = tieneMeta && metaRaw > 0 ? Math.max(0, Math.min(999, principal.value / metaRaw * 100)) : 0;
+    const gapDisplay = !tieneMeta ? 'Sin meta' : principal.unidad === '$' ? fmt(gap) : `${gap >= 0 ? '+' : ''}${gap.toFixed(1).replace('.', ',')} pp`;
+    document.getElementById('metaKpiGrid').innerHTML = `
+        <div class="kpi">
+            <div class="kpi-header"><span class="kpi-label">${principal.label}</span><div class="kpi-icon green"><i class="fas fa-bullseye"></i></div></div>
+            <div class="kpi-value">${principal.display}</div>
+            <div class="kpi-sub">Valor actual del mes objetivo</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi-header"><span class="kpi-label">Meta</span><div class="kpi-icon blue"><i class="fas fa-flag-checkered"></i></div></div>
+            <div class="kpi-value">${tieneMeta ? (principal.unidad === '$' ? fmt(metaRaw) : fmtPct(metaRaw)) : '-'}</div>
+            <div class="kpi-sub">Editable arriba</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi-header"><span class="kpi-label">Gap</span><div class="kpi-icon ${tieneMeta && gap <= 0 ? 'green' : 'orange'}"><i class="fas fa-route"></i></div></div>
+            <div class="kpi-value">${gapDisplay}</div>
+            <div class="kpi-sub">${tieneMeta && gap <= 0 ? 'Meta alcanzada o superada' : 'Falta para llegar'}</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi-header"><span class="kpi-label">Avance</span><div class="kpi-icon red"><i class="fas fa-chart-simple"></i></div></div>
+            <div class="kpi-value">${tieneMeta ? fmtPct(avance) : '-'}</div>
+            <div class="kpi-sub">Actual / meta</div>
+        </div>
+    `;
+}
+
+function renderMirarFinoKpis(tipo) {
+    const items = {
+        rutinas: ['Top combos reales por ventas', 'Combos que bajaron contra el mes anterior', 'Ticket Shopify por marca', 'Stock armado y componentes limitantes'],
+        shopify: ['Ventas Shopify por marca', 'Ticket Shopify por marca', 'SKUs top de Shopify', 'Categorías que empujan Shopify'],
+        ml: ['Ventas ML por marca', 'SKUs que más caen en ML', 'Ticket ML por marca', 'Stock crítico en publicaciones principales'],
+        categorias: ['Categoría líder por marca', 'Categorías que más suben y bajan', 'Top SKUs dentro de la categoría', 'Stock de productos que frenan crecimiento'],
+    }[tipo] || [];
+    document.getElementById('kpiMirarFino').innerHTML = `<ul style="margin:0;padding-left:18px;font-size:13px;color:var(--text-2);line-height:1.9">${items.map(x => `<li>${x}</li>`).join('')}</ul>`;
 }
 
 function renderMarcas() {
