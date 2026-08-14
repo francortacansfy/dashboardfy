@@ -1503,8 +1503,8 @@ function renderPlanComercial() {
     if (grid) grid.innerHTML = `
         <div class="kpi"><div class="kpi-header"><span class="kpi-label">${principal.label}</span><div class="kpi-icon green"><i class="fas fa-bullseye"></i></div></div><div class="kpi-value">${principal.display}</div><div class="kpi-sub">Foco seleccionado</div></div>
         <div class="kpi"><div class="kpi-header"><span class="kpi-label">Ventas foco</span><div class="kpi-icon blue"><i class="fas fa-dollar-sign"></i></div></div><div class="kpi-value">${fmtMoneyCompact(actual.ventas)}</div><div class="kpi-sub">${fmt(actual.ventas)} · ${actual.ordenes} órdenes</div></div>
-        <div class="kpi"><div class="kpi-header"><span class="kpi-label">Diferencia</span><div class="kpi-icon ${delta >= 0 ? 'green' : 'red'}"><i class="fas fa-chart-line"></i></div></div><div class="kpi-value">${deltaTxt}</div><div class="kpi-sub">Período 2: ${principalBase.display}</div></div>
-        <div class="kpi"><div class="kpi-header"><span class="kpi-label">Avance ventas</span><div class="kpi-icon orange"><i class="fas fa-gauge-high"></i></div></div><div class="kpi-value">${base.ventas ? fmtPct(avance) : '-'}</div><div class="kpi-sub">Período 1 vs período 2</div></div>
+        <div class="kpi"><div class="kpi-header"><span class="kpi-label">Diferencia</span><div class="kpi-icon ${delta >= 0 ? 'green' : 'red'}"><i class="fas fa-chart-line"></i></div></div><div class="kpi-value">${deltaTxt}</div><div class="kpi-sub">Anterior: ${principalBase.display}</div></div>
+        <div class="kpi"><div class="kpi-header"><span class="kpi-label">Avance ventas</span><div class="kpi-icon orange"><i class="fas fa-gauge-high"></i></div></div><div class="kpi-value">${base.ventas ? fmtPct(avance) : '-'}</div><div class="kpi-sub">Analizado vs anterior</div></div>
     `;
     const list = document.getElementById('planFocusList');
     const renderCombo = c => {
@@ -1516,7 +1516,7 @@ function renderPlanComercial() {
             <input type="checkbox" data-plan-sku value="${escapeHtml(c.sku)}" ${checked} onchange="togglePlanSku(this.value,this.checked)">
             <span>
                 <span class="focus-title">${escapeHtml(c.sku)} · ${escapeHtml(c.marca)}</span>
-                <span class="focus-meta">${fmt(c.ventas)} · ${c.ordenesCount} órdenes · Ticket ${fmt(c.ticket)}<br>Período 2 ${fmt(c.baseVentas)} · <strong style="color:${deltaColor}">${deltaTxt}</strong>${tiendaTxt ? `<br>${escapeHtml(tiendaTxt)}` : ''}</span>
+                <span class="focus-meta">${fmt(c.ventas)} · ${c.ordenesCount} órdenes · Ticket ${fmt(c.ticket)}<br>Anterior ${fmt(c.baseVentas)} · <strong style="color:${deltaColor}">${deltaTxt}</strong>${tiendaTxt ? `<br>${escapeHtml(tiendaTxt)}` : ''}</span>
             </span>
         </label>`;
     };
@@ -1729,7 +1729,7 @@ function elegirReferenciaKpisPorFecha(base) {
         actual,
         anterior,
         ultimos: [anterior, actual],
-        label: `Período 1: ${actualDesde || '-'} a ${actualHasta || '-'} · Período 2: ${baseDesde || '-'} a ${baseHasta || '-'}`,
+        label: `Analizado: ${actualDesde || '-'} a ${actualHasta || '-'} · Anterior: ${baseDesde || '-'} a ${baseHasta || '-'}`,
     };
 }
 
@@ -1786,7 +1786,7 @@ function renderGrowthMensual(base) {
     const lectura = document.getElementById('kpiObjetivoLectura');
     if (lectura) lectura.innerHTML = `<strong>Comparación: ${refData.label}</strong> · Meta = a dónde queremos llegar. ${cfg.texto}`;
     document.getElementById('growthKpiGrid').innerHTML = actual ? cfg.cards.map(([label, display, val, prev, suffix, color, icon]) => `
-        <div class="kpi"><div class="kpi-header"><span class="kpi-label">${label}</span><div class="kpi-icon ${color}"><i class="fas fa-${icon}"></i></div></div><div class="kpi-value">${display}</div><div class="kpi-sub">Período 1 vs período 2: ${val === null || !anterior ? '—' : deltaBadge(val, prev, suffix)}</div></div>
+        <div class="kpi"><div class="kpi-header"><span class="kpi-label">${label}</span><div class="kpi-icon ${color}"><i class="fas fa-${icon}"></i></div></div><div class="kpi-value">${display}</div><div class="kpi-sub">Analizado vs anterior: ${val === null || !anterior ? '—' : deltaBadge(val, prev, suffix)}</div></div>
     `).join('') : '<div class="empty" style="grid-column:1/-1">Sin datos para mostrar.</div>';
     const head = document.querySelector('#growthKpiCard thead tr');
     if (head) head.innerHTML = `<th>Mes</th>${cfg.cols.map(c => `<th style="text-align:right">${c}</th>`).join('')}`;
@@ -1841,7 +1841,7 @@ function renderMetaGapKpis(tipo, actual) {
         <div class="kpi">
             <div class="kpi-header"><span class="kpi-label">${principal.label}</span><div class="kpi-icon green"><i class="fas fa-bullseye"></i></div></div>
             <div class="kpi-value">${principal.display}</div>
-            <div class="kpi-sub">Valor del período 1</div>
+            <div class="kpi-sub">Valor del período analizado</div>
         </div>
         <div class="kpi">
             <div class="kpi-header"><span class="kpi-label">Meta</span><div class="kpi-icon blue"><i class="fas fa-flag-checkered"></i></div></div>
