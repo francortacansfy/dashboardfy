@@ -1898,32 +1898,23 @@ function aplicarLayoutObjetivoLocal() {
 }
 
 function transformarObjetivoEnCampoEscribible() {
-    const actual = document.getElementById('kpiObjetivoTipo');
-    if (!actual || actual.tagName !== 'SELECT') return;
-    const valor = actual.value ? (actual.options[actual.selectedIndex]?.textContent || actual.value) : '';
-    const input = document.createElement('input');
-    input.className = 'search-input';
-    input.id = 'kpiObjetivoTipo';
-    input.setAttribute('list', 'kpiObjetivoOpciones');
-    input.placeholder = 'Elegir o escribir objetivo';
-    input.style.width = '100%';
-    input.value = valor;
-    input.oninput = cambiarObjetivoKpis;
-    input.onchange = cambiarObjetivoKpis;
-    const datalist = document.createElement('datalist');
-    datalist.id = 'kpiObjetivoOpciones';
-    [
-        'Subir ticket con combos/rutinas',
-        'Potenciar Shopify',
-        'Defender Mercado Libre',
-        'Crecer por categorías',
-    ].forEach(x => {
-        const opt = document.createElement('option');
-        opt.value = x;
-        datalist.appendChild(opt);
-    });
-    actual.replaceWith(input);
-    input.after(datalist);
+    const select = document.getElementById('kpiObjetivoTipo');
+    if (!select || select.tagName !== 'SELECT') return;
+    if (!select.querySelector('option[value="nuevo"]')) {
+        select.insertAdjacentHTML('beforeend', '<option value="nuevo">Crear nuevo objetivo</option>');
+    }
+    let input = document.getElementById('kpiObjetivoNuevo');
+    if (!input) {
+        input = document.createElement('input');
+        input.className = 'search-input';
+        input.id = 'kpiObjetivoNuevo';
+        input.placeholder = 'Escribir nuevo objetivo';
+        input.style.cssText = 'width:100%;margin-top:8px;display:none';
+        input.oninput = cambiarObjetivoKpis;
+        select.after(input);
+    }
+    input.style.display = select.value === 'nuevo' ? 'block' : 'none';
+    if (select.value === 'nuevo') input.focus();
 }
 
 function calcularGrowthRangoKpis(base, desde, hasta, label) {
