@@ -1346,7 +1346,7 @@ function cambiarObjetivoKpis() {
 function textoObjetivoSeleccionado() {
     const el = document.getElementById('kpiObjetivoTipo');
     if (!el) return '';
-    const nuevo = document.getElementById('kpiObjetivoNuevo')?.value || '';
+    const nuevo = textoObjetivoNuevoKpis();
     if (el.value === 'nuevo') return nuevo;
     if (!el.value && nuevo.trim()) return nuevo;
     if (String(el.value || '').startsWith('custom:')) return el.options?.[el.selectedIndex]?.textContent || el.value.replace('custom:', '');
@@ -1355,7 +1355,7 @@ function textoObjetivoSeleccionado() {
 
 function normalizarObjetivoTipo(valor) {
     const v = String(valor || '').toLowerCase();
-    const nuevo = document.getElementById('kpiObjetivoNuevo')?.value || '';
+    const nuevo = textoObjetivoNuevoKpis();
     if (!v && nuevo.trim()) return 'nuevo';
     if (v === 'nuevo') return 'nuevo';
     if (v.startsWith('custom:')) return 'nuevo';
@@ -1372,9 +1372,19 @@ function normalizarTextoSimple(texto) {
 }
 
 function objetivoTipoActualKpis() {
-    const nuevo = document.getElementById('kpiObjetivoNuevo')?.value || '';
+    const nuevo = textoObjetivoNuevoKpis();
     if (nuevo.trim()) return 'nuevo';
     return normalizarObjetivoTipo(document.getElementById('kpiObjetivoTipo')?.value || '');
+}
+
+function textoObjetivoNuevoKpis() {
+    const directo = document.getElementById('kpiObjetivoNuevo')?.value || '';
+    if (directo.trim()) return directo;
+    const objetivo = document.getElementById('kpiObjetivoTipo');
+    const box = objetivo?.closest('div');
+    const inputs = box ? [...box.querySelectorAll('input.search-input')] : [];
+    const candidato = inputs.find(i => i.id !== 'kpiObjetivoTipo' && i.value.trim());
+    return candidato?.value || '';
 }
 
 function categoriaDesdeObjetivo(row) {
