@@ -1224,7 +1224,7 @@ function prepararControlesObjetivoKpis() {
     ['Meta','MetaTipo'].forEach(campo => {
         const el = document.getElementById('kpiObjetivo' + campo) || document.getElementById('kpi' + campo);
         if (el && !el.dataset.ready) {
-            el.value = campo === 'MetaTipo' ? 'auto' : '';
+            if (!el.value) el.value = campo === 'MetaTipo' ? 'auto' : '';
             el.dataset.ready = '1';
         }
     });
