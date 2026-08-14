@@ -914,6 +914,13 @@ async function renderDashboard() {
     // envio, no una venta en si. Cuenta hijas+sueltas, igual que el tile
     // nativo de ML — SIN excluir canceladas/devueltas: ML si las cuenta ahi
     // (el tile nativo "Cantidad de ventas" incluye canceladas).
+    const growthBase = DATA.filter(d =>
+        (!tienda || d.tienda === tienda) &&
+        (!marca  || d.marca  === marca) &&
+        (!anio   || d.fecha?.substring(0,4) === anio)
+    );
+    renderGrowthMensual(growthBase);
+
     const kpiMap = {};
     subset.filter(d => d.tipoFila !== 'padre').forEach(d => {
         if (d.num_venta) kpiMap[d.num_venta] = true;
