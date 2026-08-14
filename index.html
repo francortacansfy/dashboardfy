@@ -2352,7 +2352,7 @@ function isoDate(d) {
 }
 
 function obtenerRangoSeguimientoKpis() {
-    const preset = document.getElementById('kpiSeguimientoPreset')?.value || 'mes_actual';
+    const preset = document.getElementById('kpiSeguimientoPreset')?.value || 'objetivo';
     const desdeInput = document.getElementById('kpiSeguimientoDesde');
     const hastaInput = document.getElementById('kpiSeguimientoHasta');
     const custom = preset === 'personalizado';
@@ -2361,7 +2361,18 @@ function obtenerRangoSeguimientoKpis() {
     const hoy = new Date();
     let desde = new Date(hoy);
     let hasta = new Date(hoy);
-    if (preset === 'mes_actual') {
+    if (preset === 'objetivo') {
+        let desdeObj = document.getElementById('kpiActualDesde')?.value || '';
+        let hastaObj = document.getElementById('kpiActualHasta')?.value || '';
+        if (!desdeObj || !hastaObj) {
+            const visible = parseFechaRangoKpis(document.getElementById('kpiPeriodoRango')?.textContent || '');
+            if (visible) {
+                desdeObj = visible.desde;
+                hastaObj = visible.hasta;
+            }
+        }
+        return { desde: desdeObj, hasta: hastaObj, label:'Objetivo' };
+    } else if (preset === 'mes_actual') {
         desde = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
     } else if (preset === 'ultimo_mes') {
         desde = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1);
