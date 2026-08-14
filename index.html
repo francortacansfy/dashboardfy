@@ -1116,7 +1116,13 @@ function leerDecisionActualKpis() {
 }
 
 function guardarObjetivoKpis() {
+    KPI_DECISION_ACTIVA_ID = null;
     renderDecisionKpis();
+}
+
+function cambiarObjetivoKpis() {
+    KPI_DECISION_ACTIVA_ID = null;
+    renderKpis();
 }
 
 function guardarDecisionKpis() {
