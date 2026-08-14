@@ -1012,10 +1012,10 @@ function prepararControlesObjetivoKpis() {
         tipoSel.dataset.ready = '1';
     }
     const guardado = JSON.parse(localStorage.getItem('fyl_kpi_objetivo') || '{}');
-    ['Meta','Decision','Responsable','Nota'].forEach(campo => {
+    ['Meta','MetaTipo','Decision','Responsable','Nota'].forEach(campo => {
         const el = document.getElementById('kpiObjetivo' + campo) || document.getElementById('kpi' + campo);
         if (el && !el.dataset.ready) {
-            el.value = guardado[campo.toLowerCase()] || '';
+            el.value = guardado[campo.toLowerCase()] || (campo === 'MetaTipo' ? 'auto' : '');
             el.dataset.ready = '1';
         }
     });
@@ -1026,6 +1026,7 @@ function guardarObjetivoKpis() {
         mes: document.getElementById('kpiObjetivoMes')?.value || '',
         tipo: document.getElementById('kpiObjetivoTipo')?.value || 'rutinas',
         meta: document.getElementById('kpiObjetivoMeta')?.value || '',
+        metatipo: document.getElementById('kpiObjetivoMetaTipo')?.value || 'auto',
         decision: document.getElementById('kpiDecision')?.value || '',
         responsable: document.getElementById('kpiResponsable')?.value || '',
         nota: document.getElementById('kpiNota')?.value || '',
