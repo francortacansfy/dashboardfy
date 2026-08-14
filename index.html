@@ -1242,7 +1242,23 @@ function guardarObjetivoKpis() {
 
 function cambiarObjetivoKpis() {
     KPI_DECISION_ACTIVA_ID = null;
+    actualizarDecisionDesdeObjetivo();
     renderKpis();
+}
+
+function textoObjetivoSeleccionado() {
+    const sel = document.getElementById('kpiObjetivoTipo');
+    return sel?.options[sel.selectedIndex]?.textContent || '';
+}
+
+function actualizarDecisionDesdeObjetivo() {
+    const decision = document.getElementById('kpiDecision');
+    if (!decision || decision.value.trim()) return;
+    const objetivo = textoObjetivoSeleccionado();
+    const meta = document.getElementById('kpiObjetivoMeta')?.value || '';
+    const tipo = document.getElementById('kpiObjetivoMetaTipo')?.value || 'auto';
+    const unidad = tipo === 'money' ? '$' : tipo === 'pct' ? '%' : '';
+    decision.value = meta ? `${objetivo} a ${unidad}${meta}` : objetivo;
 }
 
 function guardarDecisionKpis() {
