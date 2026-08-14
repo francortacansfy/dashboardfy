@@ -2098,7 +2098,11 @@ function transformarObjetivoEnCampoEscribible() {
         input.id = 'kpiObjetivoNuevo';
         input.placeholder = 'Escribir nuevo objetivo';
         input.style.cssText = 'width:100%;margin-top:8px;display:none';
-        input.oninput = cambiarObjetivoKpis;
+        input.oninput = () => {
+            const sel = document.getElementById('kpiObjetivoTipo');
+            if (sel) sel.value = 'nuevo';
+            cambiarObjetivoKpis();
+        };
         select.after(input);
     }
     if (input.value.trim() && !select.value) select.value = 'nuevo';
