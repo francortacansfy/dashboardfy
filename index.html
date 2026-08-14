@@ -1103,16 +1103,30 @@ const KPI_DECISIONES_KEY = 'fyl_kpi_decisiones';
 let KPI_DECISION_ACTIVA_ID = null;
 
 function leerDecisionActualKpis() {
+    const decision = document.getElementById('kpiDecision')?.value || '';
+    const metatipo = document.getElementById('kpiObjetivoMetaTipo')?.value || 'auto';
+    const metaTexto = extraerMetaDesdeDecision(decision, metatipo);
     return {
         referencia: document.getElementById('kpiObjetivoMes')?.value || 'avg3',
         tipo: document.getElementById('kpiObjetivoTipo')?.value || 'rutinas',
-        meta: document.getElementById('kpiObjetivoMeta')?.value || '',
-        metatipo: document.getElementById('kpiObjetivoMetaTipo')?.value || 'auto',
-        decision: document.getElementById('kpiDecision')?.value || '',
+        meta: metaTexto || document.getElementById('kpiObjetivoMeta')?.value || '',
+        metatipo,
+        decision,
         responsable: document.getElementById('kpiResponsable')?.value || '',
         nota: document.getElementById('kpiNota')?.value || '',
         updatedAt: new Date().toISOString(),
     };
+}
+
+function extraerMetaDesdeDecision(texto, metatipo = 'auto') {
+    const raw = String(texto || '');
+    if (metatipo !== 'pct' && metatipo !== 'auto') return '';
+    const match = raw.match(/(?:% ?|a ?)(\d+(?:[,.]\d+)?) ?%?/i) || raw.match(/(\d+(?:[,.]\d+)?) ?%/);
+    return match ? match[1].replace(',', '.') : '';
+}
+
+function metaEfectivaDecision(item) {
+    return extraerMetaDesdeDecision(item?.decision, item?.metatipo) || item?.meta || '';
 }
 
 function guardarObjetivoKpis() {
@@ -1150,8 +1164,8 @@ function cargarDecisionKpis(id) {
     };
     set('kpiObjetivoMes', item.referencia || 'avg3');
     set('kpiObjetivoTipo', item.tipo || 'rutinas');
-    set('kpiObjetivoMeta', item.meta || '');
     set('kpiObjetivoMetaTipo', item.metatipo || 'auto');
+    set('kpiObjetivoMeta', metaEfectivaDecision(item));
     set('kpiDecision', item.decision || '');
     set('kpiResponsable', item.responsable || '');
     set('kpiNota', item.nota || '');
@@ -1186,7 +1200,7 @@ function renderDecisionKpis() {
             const fecha = d.updatedAt ? new Date(d.updatedAt).toLocaleString('es-AR') : '';
             return `<button class="decision-item ${d.id === KPI_DECISION_ACTIVA_ID ? 'active' : ''}" type="button" onclick="cargarDecisionKpis('${d.id}')">
                 <div class="decision-title">${escapeHtml(d.decision)}</div>
-                <div class="decision-meta">${escapeHtml(objetivo)} · Meta: ${escapeHtml(d.meta || '-')} · ${escapeHtml(fecha)}</div>
+                <div class="decision-meta">${escapeHtml(objetivo)} · Meta: ${escapeHtml(metaEfectivaDecision(d) || '-')} · ${escapeHtml(fecha)}</div>
             </button>`;
         }).join('') : '';
     }
