@@ -1892,6 +1892,36 @@ function aplicarLayoutObjetivoLocal() {
     if (baseHastaBox) baseHastaBox.style.display = 'none';
     if (hastaBox) hastaBox.remove();
     row.dataset.objetivoLayout = '1';
+    transformarObjetivoEnCampoEscribible();
+}
+
+function transformarObjetivoEnCampoEscribible() {
+    const actual = document.getElementById('kpiObjetivoTipo');
+    if (!actual || actual.tagName !== 'SELECT') return;
+    const valor = actual.value ? (actual.options[actual.selectedIndex]?.textContent || actual.value) : '';
+    const input = document.createElement('input');
+    input.className = 'search-input';
+    input.id = 'kpiObjetivoTipo';
+    input.setAttribute('list', 'kpiObjetivoOpciones');
+    input.placeholder = 'Elegir o escribir objetivo';
+    input.style.width = '100%';
+    input.value = valor;
+    input.oninput = cambiarObjetivoKpis;
+    input.onchange = cambiarObjetivoKpis;
+    const datalist = document.createElement('datalist');
+    datalist.id = 'kpiObjetivoOpciones';
+    [
+        'Subir ticket con combos/rutinas',
+        'Potenciar Shopify',
+        'Defender Mercado Libre',
+        'Crecer por categorías',
+    ].forEach(x => {
+        const opt = document.createElement('option');
+        opt.value = x;
+        datalist.appendChild(opt);
+    });
+    actual.replaceWith(input);
+    input.after(datalist);
 }
 
 function calcularGrowthRangoKpis(base, desde, hasta, label) {
