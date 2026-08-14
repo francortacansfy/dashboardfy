@@ -2455,7 +2455,7 @@ function renderSeguimientoMesActual(base, tipo) {
     }
     const rango = obtenerRangoSeguimientoKpis();
     if (!rango.desde || !rango.hasta) {
-        document.getElementById('kpiMesActualGrid').innerHTML = '<div class="empty" style="grid-column:1/-1">Elegí el rango personalizado para ver seguimiento.</div>';
+        document.getElementById('kpiMesActualGrid').innerHTML = '<div class="empty" style="grid-column:1/-1">Elegí el período del objetivo para ver seguimiento.</div>';
         return;
     }
     const actual = calcularGrowthRangoKpis(base, rango.desde, rango.hasta, 'Seguimiento');
