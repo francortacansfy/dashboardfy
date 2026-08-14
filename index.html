@@ -1940,6 +1940,26 @@ function aplicarLayoutObjetivoLocal() {
     transformarObjetivoEnCampoEscribible();
 }
 
+function crearSelectorMetricaObjetivo() {
+    let box = document.getElementById('kpiMetricaBox');
+    if (box) return box;
+    box = document.createElement('div');
+    box.id = 'kpiMetricaBox';
+    box.innerHTML = `
+        <label class="filterbar-label" style="display:block;margin-bottom:6px;padding:0">Métrica a medir</label>
+        <select class="filter-select" id="kpiObjetivoMetrica" onchange="cambiarObjetivoKpis()" style="width:100%">
+            <option value="auto">Auto según objetivo</option>
+            <option value="ticket">Ticket promedio</option>
+            <option value="combos">% combos reales</option>
+            <option value="shopify">% Shopify</option>
+            <option value="ml">% Mercado Libre</option>
+            <option value="ventas">Ventas $</option>
+            <option value="unidades">Unidades</option>
+        </select>
+    `;
+    return box;
+}
+
 function transformarObjetivoEnCampoEscribible() {
     const select = document.getElementById('kpiObjetivoTipo');
     if (!select || select.tagName !== 'SELECT') return;
