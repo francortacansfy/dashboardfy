@@ -923,6 +923,8 @@ function renderAll() {
     renderKpis();
     renderProductos();
     renderMarcas();
+    prepararPlanComercial();
+    renderPlanComercial();
 }
 
 function isMesCerrado(ym) {
@@ -1317,6 +1319,203 @@ function limpiarObjetivoKpis() {
     if (metaTipo) metaTipo.value = 'auto';
     renderKpis();
     renderDecisionKpis();
+}
+
+const PLAN_KEY = 'fyl_plan_comercial';
+
+function leerPlanEstado() {
+    try { return JSON.parse(localStorage.getItem(PLAN_KEY) || '{}'); }
+    catch(e) { return {}; }
+}
+
+function guardarPlanEstado() {
+    const prev = leerPlanEstado();
+    const val = id => document.getElementById(id)?.value || '';
+    const checks = [...document.querySelectorAll('[data-plan-sku]:checked')].map(x => x.value);
+    localStorage.setItem(PLAN_KEY, JSON.stringify({
+        ...prev,
+        kpi: val('planKpi'),
+        marca: val('planMarca'),
+        tienda: val('planTienda'),
+        desde: val('planDesde'),
+        hasta: val('planHasta'),
+        base: val('planBase'),
+        tema: val('planTema'),
+        forma: val('planForma'),
+        skus: checks.length ? checks : prev.skus || [],
+        tareas: prev.tareas || [],
+    }));
+}
+
+function prepararPlanComercial() {
+    const estado = leerPlanEstado();
+    const hoy = new Date();
+    const desdeDefault = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-01`;
+    const hastaDefault = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+    [
+        ['planKpi', estado.kpi || 'ticket'],
+        ['planMarca', estado.marca || ''],
+        ['planTienda', estado.tienda || ''],
+        ['planDesde', estado.desde || desdeDefault],
+        ['planHasta', estado.hasta || hastaDefault],
+        ['planBase', estado.base || 'prev'],
+        ['planTema', estado.tema || ''],
+        ['planForma', estado.forma || 'Mixto: ML + Shopify/Klaviyo'],
+    ].forEach(([id, value]) => {
+        const el = document.getElementById(id);
+        if (el && !el.dataset.planReady) {
+            el.value = value;
+            el.dataset.planReady = '1';
+        }
+    });
+}
+
+function planFechaEnRango(fecha, desde, hasta) {
+    const f = (fecha || '').substring(0, 10);
+    return (!desde || f >= desde) && (!hasta || f <= hasta);
+}
+
+function restarDias(fechaIso, dias) {
+    const d = new Date(`${fechaIso}T00:00:00`);
+    d.setDate(d.getDate() - dias);
+    return d.toISOString().substring(0, 10);
+}
+
+function sumarDias(fechaIso, dias) {
+    const d = new Date(`${fechaIso}T00:00:00`);
+    d.setDate(d.getDate() + dias);
+    return d.toISOString().substring(0, 10);
+}
+
+function calcularPlanMetricas(rows, skus = []) {
+    const usarSku = skus.length > 0;
+    const subset = rows.filter(d => d.completa && d.tipoFila !== 'hija' && (!usarSku || skus.includes(d.sku)));
+    const ordenes = new Set(subset.filter(d => !d.esPaquete).map(d => d.num_venta).filter(Boolean)).size;
+    const ventas = subset.reduce((s, d) => s + d.total, 0);
+    const combos = subset.filter(d => COMBOS_REALES.has(d.sku));
+    const ventasCombos = combos.reduce((s, d) => s + d.total, 0);
+    const uds = subset.reduce((s, d) => s + (d.uds || 0), 0);
+    const shopify = subset.filter(d => d.tienda === 'Shopify').reduce((s, d) => s + d.total, 0);
+    return {
+        ventas,
+        ordenes,
+        uds,
+        ticket: ordenes ? ventas / ordenes : 0,
+        ventasCombos,
+        comboShare: ventas ? ventasCombos / ventas * 100 : 0,
+        shopifyShare: ventas ? shopify / ventas * 100 : 0,
+    };
+}
+
+function valorPlanKpi(kpi, m) {
+    if (kpi === 'combos') return { label:'% combos reales', value:m.comboShare, display:fmtPct(m.comboShare), suffix:' pp' };
+    if (kpi === 'shopify') return { label:'% Shopify', value:m.shopifyShare, display:fmtPct(m.shopifyShare), suffix:' pp' };
+    return { label:'Ticket promedio', value:m.ticket, display:fmt(m.ticket), suffix:'' };
+}
+
+function topCombosPlan(rows) {
+    const map = {};
+    rows.filter(d => d.completa && d.tipoFila !== 'hija' && COMBOS_REALES.has(d.sku)).forEach(d => {
+        if (!map[d.sku]) map[d.sku] = { sku:d.sku, marca:d.marca, ventas:0, ordenes:new Set(), tiendas:{} };
+        map[d.sku].ventas += d.total;
+        if (d.num_venta && !d.esPaquete) map[d.sku].ordenes.add(d.num_venta);
+        map[d.sku].tiendas[d.tienda || 'S/D'] = (map[d.sku].tiendas[d.tienda || 'S/D'] || 0) + d.total;
+    });
+    return Object.values(map)
+        .map(x => ({ ...x, ordenesCount:x.ordenes.size, ticket:x.ordenes.size ? x.ventas / x.ordenes.size : 0 }))
+        .sort((a, b) => b.ventas - a.ventas)
+        .slice(0, 12);
+}
+
+function renderPlanComercial() {
+    if (!DATA.length || !document.getElementById('planKpi')) return;
+    prepararPlanComercial();
+    const estado = leerPlanEstado();
+    const kpi = document.getElementById('planKpi').value || 'ticket';
+    const marca = document.getElementById('planMarca').value || '';
+    const tienda = document.getElementById('planTienda').value || '';
+    const desde = document.getElementById('planDesde').value;
+    const hasta = document.getElementById('planHasta').value;
+    const baseTipo = document.getElementById('planBase').value || 'prev';
+    const filtrado = DATA.filter(d => (!marca || d.marca === marca) && (!tienda || d.tienda === tienda));
+    const actualRows = filtrado.filter(d => planFechaEnRango(d.fecha, desde, hasta));
+    const dias = Math.max(1, Math.round((new Date(`${hasta}T00:00:00`) - new Date(`${desde}T00:00:00`)) / 86400000) + 1);
+    const baseRows = baseTipo === 'avg3'
+        ? filtrado.filter(d => {
+            const f = (d.fecha || '').substring(0, 10);
+            return f >= restarDias(desde, 90) && f < desde;
+        })
+        : filtrado.filter(d => planFechaEnRango(d.fecha, restarDias(desde, dias), sumarDias(desde, -1)));
+    const combos = topCombosPlan(actualRows.length ? actualRows : filtrado);
+    const selected = new Set(estado.skus || []);
+    if (!selected.size && combos[0]) selected.add(combos[0].sku);
+    const selectedSkus = [...selected];
+    const actual = calcularPlanMetricas(actualRows, selectedSkus);
+    const base = calcularPlanMetricas(baseRows, selectedSkus);
+    const principal = valorPlanKpi(kpi, actual);
+    const principalBase = valorPlanKpi(kpi, base);
+    const delta = principal.value - principalBase.value;
+    const deltaTxt = kpi === 'ticket' ? fmt(delta) : `${delta >= 0 ? '+' : ''}${delta.toFixed(1).replace('.', ',')} pp`;
+    const avance = base.ventas ? (actual.ventas / base.ventas * 100) : 0;
+    const grid = document.getElementById('planKpiGrid');
+    if (grid) grid.innerHTML = `
+        <div class="kpi"><div class="kpi-header"><span class="kpi-label">${principal.label}</span><div class="kpi-icon green"><i class="fas fa-bullseye"></i></div></div><div class="kpi-value">${principal.display}</div><div class="kpi-sub">Foco seleccionado</div></div>
+        <div class="kpi"><div class="kpi-header"><span class="kpi-label">Ventas foco</span><div class="kpi-icon blue"><i class="fas fa-dollar-sign"></i></div></div><div class="kpi-value">${fmtMoneyCompact(actual.ventas)}</div><div class="kpi-sub">${fmt(actual.ventas)} · ${actual.ordenes} órdenes</div></div>
+        <div class="kpi"><div class="kpi-header"><span class="kpi-label">Contra base</span><div class="kpi-icon ${delta >= 0 ? 'green' : 'red'}"><i class="fas fa-chart-line"></i></div></div><div class="kpi-value">${deltaTxt}</div><div class="kpi-sub">Base: ${principalBase.display}</div></div>
+        <div class="kpi"><div class="kpi-header"><span class="kpi-label">Avance ventas</span><div class="kpi-icon orange"><i class="fas fa-gauge-high"></i></div></div><div class="kpi-value">${base.ventas ? fmtPct(avance) : '-'}</div><div class="kpi-sub">Actual vs base elegida</div></div>
+    `;
+    const list = document.getElementById('planFocusList');
+    if (list) list.innerHTML = combos.map(c => {
+        const checked = selected.has(c.sku) ? 'checked' : '';
+        const tiendaTxt = Object.entries(c.tiendas).sort((a,b) => b[1]-a[1]).map(([t,v]) => `${t} ${fmtMoneyCompact(v)}`).join(' · ');
+        return `<label class="focus-item">
+            <input type="checkbox" data-plan-sku value="${escapeHtml(c.sku)}" ${checked} onchange="guardarPlanEstado();renderPlanComercial()">
+            <span>
+                <span class="focus-title">${escapeHtml(c.sku)} · ${escapeHtml(c.marca)}</span>
+                <span class="focus-meta">${fmt(c.ventas)} · ${c.ordenesCount} órdenes · Ticket ${fmt(c.ticket)}<br>${escapeHtml(tiendaTxt)}</span>
+            </span>
+        </label>`;
+    }).join('') || '<div class="empty" style="grid-column:1/-1">Sin combos reales para el filtro elegido.</div>';
+    renderTareasPlan();
+    guardarPlanEstado();
+}
+
+function agregarTareaPlan() {
+    const estado = leerPlanEstado();
+    const tareas = estado.tareas || [];
+    tareas.push({ id:Date.now().toString(), texto:'', responsable:'', estado:'Pendiente' });
+    localStorage.setItem(PLAN_KEY, JSON.stringify({ ...estado, tareas }));
+    renderTareasPlan();
+}
+
+function actualizarTareaPlan(id, campo, valor) {
+    const estado = leerPlanEstado();
+    const tareas = (estado.tareas || []).map(t => t.id === id ? { ...t, [campo]:valor } : t);
+    localStorage.setItem(PLAN_KEY, JSON.stringify({ ...estado, tareas }));
+}
+
+function borrarTareaPlan(id) {
+    const estado = leerPlanEstado();
+    const tareas = (estado.tareas || []).filter(t => t.id !== id);
+    localStorage.setItem(PLAN_KEY, JSON.stringify({ ...estado, tareas }));
+    renderTareasPlan();
+}
+
+function renderTareasPlan() {
+    const estado = leerPlanEstado();
+    const tareas = estado.tareas || [];
+    const el = document.getElementById('planTaskList');
+    if (!el) return;
+    el.innerHTML = tareas.length ? tareas.map(t => `
+        <div class="task-row">
+            <input class="search-input" value="${escapeHtml(t.texto)}" placeholder="Ej: subir template a Klaviyo" oninput="actualizarTareaPlan('${t.id}','texto',this.value)" style="width:100%">
+            <input class="search-input" value="${escapeHtml(t.responsable)}" placeholder="Responsable" oninput="actualizarTareaPlan('${t.id}','responsable',this.value)" style="width:100%">
+            <select class="filter-select" onchange="actualizarTareaPlan('${t.id}','estado',this.value)" style="width:100%">
+                ${['Pendiente','En curso','Hecho','Pausado'].map(x => `<option value="${x}"${t.estado === x ? ' selected' : ''}>${x}</option>`).join('')}
+            </select>
+            <button class="task-delete" onclick="borrarTareaPlan('${t.id}')" type="button"><i class="fas fa-trash"></i></button>
+        </div>
+    `).join('') : '<div class="empty">Todavía no hay tareas. Agregá las acciones concretas del foco elegido.</div>';
 }
 
 function promedioRows(rows, label) {
