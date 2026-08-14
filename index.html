@@ -1221,7 +1221,7 @@ function ordenarObjetivoKpis() {
     const row = tipoSel?.closest('div')?.parentElement;
     const objetivoBox = tipoSel?.closest('div');
     if (!row || !objetivoBox) return;
-    row.style.gridTemplateColumns = 'minmax(420px,1fr) 280px 120px 150px 110px';
+    row.style.gridTemplateColumns = 'minmax(360px,1fr) 220px 240px 120px 150px 110px';
     if (row.firstElementChild !== objetivoBox) row.insertBefore(objetivoBox, row.firstElementChild);
     agruparRangoFechas('kpiActualDesde', 'kpiActualHasta', 'Período a analizar');
     ['kpiBaseDesde', 'kpiBaseHasta'].forEach(id => {
@@ -1901,6 +1901,7 @@ function aplicarLayoutObjetivoLocal() {
     row.innerHTML = '';
     row.appendChild(objetivoBox);
     row.appendChild(desdeBox);
+    row.appendChild(crearSelectorMetricaObjetivo());
     row.appendChild(tipoBox);
     row.appendChild(metaBox);
     row.appendChild(limpiar);
