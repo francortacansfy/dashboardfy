@@ -1958,6 +1958,41 @@ function transformarObjetivoEnCampoEscribible() {
     if (select.value === 'nuevo') input.focus();
 }
 
+function parseFechaRangoKpis(valor) {
+    const partes = String(valor || '').match(/\d{1,2}[\/-]\d{1,2}[\/-]\d{2,4}/g) || [];
+    if (partes.length < 2) return null;
+    const normalizar = fecha => {
+        const [d, m, y] = fecha.split(/[\/-]/).map(x => x.padStart(2, '0'));
+        const year = y.length === 2 ? `20${y}` : y;
+        return `${year}-${m}-${d}`;
+    };
+    return { desde: normalizar(partes[0]), hasta: normalizar(partes[1]) };
+}
+
+function fmtFechaRangoKpis(iso) {
+    if (!iso) return '';
+    const [y, m, d] = iso.split('-');
+    return `${d}/${m}/${y}`;
+}
+
+function actualizarPeriodoKpisDesdeTexto() {
+    const input = document.getElementById('kpiPeriodoRango');
+    const rango = parseFechaRangoKpis(input?.value || '');
+    if (!rango) return;
+    const desde = document.getElementById('kpiActualDesde');
+    const hasta = document.getElementById('kpiActualHasta');
+    if (desde) desde.value = rango.desde;
+    if (hasta) hasta.value = rango.hasta;
+    cambiarObjetivoKpis();
+}
+
+function sincronizarPeriodoKpisTexto() {
+    const input = document.getElementById('kpiPeriodoRango');
+    const desde = document.getElementById('kpiActualDesde')?.value || '';
+    const hasta = document.getElementById('kpiActualHasta')?.value || '';
+    if (input && desde && hasta) input.value = `${fmtFechaRangoKpis(desde)} - ${fmtFechaRangoKpis(hasta)}`;
+}
+
 function calcularGrowthRangoKpis(base, desde, hasta, label) {
     const subset = base.filter(d => planFechaEnRango(d.fecha, desde, hasta));
     const ordenes = new Set();
