@@ -1091,6 +1091,17 @@ function guardarObjetivoKpis() {
     }));
 }
 
+function limpiarObjetivoKpis() {
+    ['kpiObjetivoMeta', 'kpiDecision', 'kpiResponsable', 'kpiNota'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+    });
+    const metaTipo = document.getElementById('kpiObjetivoMetaTipo');
+    if (metaTipo) metaTipo.value = 'auto';
+    guardarObjetivoKpis();
+    renderKpis();
+}
+
 function renderGrowthMensual(base) {
     prepararControlesObjetivoKpis();
     const rows = calcularGrowthMensual(base);
