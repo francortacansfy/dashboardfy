@@ -1282,6 +1282,7 @@ function restaurarEstadoFormularioKpis() {
     transformarObjetivoEnCampoEscribible();
     set('kpiObjetivoNuevo', estado.objetivoNuevo);
     if (estado.objetivoNuevo && !document.getElementById('kpiObjetivoTipo')?.value) set('kpiObjetivoTipo', 'nuevo');
+    transformarObjetivoEnCampoEscribible();
     set('kpiObjetivoMetrica', estado.metrica || 'auto');
     set('kpiActualDesde', estado.desde);
     set('kpiActualHasta', estado.hasta);
