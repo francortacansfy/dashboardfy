@@ -2115,6 +2115,7 @@ function togglePeriodoKpisPopover() {
 function aplicarPeriodoKpisPopover() {
     document.getElementById('kpiPeriodoPopover')?.classList.remove('show');
     sincronizarPeriodoKpisTexto();
+    guardarEstadoFormularioKpis();
     cambiarObjetivoKpis();
 }
 
