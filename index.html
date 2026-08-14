@@ -1345,6 +1345,7 @@ function limpiarObjetivoKpis() {
 }
 
 const PLAN_KEY = 'fyl_plan_comercial';
+let PLAN_SKUS_SELECCIONADOS = new Set();
 
 function leerPlanEstado() {
     try { return JSON.parse(localStorage.getItem(PLAN_KEY) || '{}'); }
@@ -1354,7 +1355,6 @@ function leerPlanEstado() {
 function guardarPlanEstado() {
     const prev = leerPlanEstado();
     const val = id => document.getElementById(id)?.value || '';
-    const checks = [...document.querySelectorAll('[data-plan-sku]:checked')].map(x => x.value);
     localStorage.setItem(PLAN_KEY, JSON.stringify({
         ...prev,
         kpi: val('planKpi'),
@@ -1367,7 +1367,6 @@ function guardarPlanEstado() {
         tema: val('planTema'),
         forma: val('planForma'),
         search: val('planProductoSearch'),
-        skus: checks.length ? checks : prev.skus || [],
         tareas: prev.tareas || [],
     }));
 }
@@ -1459,7 +1458,7 @@ function compararCombosPlan(actualRows, baseRows, fallbackRows) {
     const base = mapCombosPlan(baseRows);
     const skus = [...new Set([...Object.keys(actual), ...Object.keys(base)])];
     const search = (document.getElementById('planProductoSearch')?.value || '').trim().toLowerCase();
-    const selected = new Set((leerPlanEstado().skus || []).map(String));
+    const selected = PLAN_SKUS_SELECCIONADOS;
     return skus.map(sku => {
         const a = actual[sku] || { sku, marca:base[sku]?.marca || '', ventas:0, ordenes:new Set(), tiendas:{} };
         const b = base[sku] || { ventas:0 };
@@ -1491,7 +1490,7 @@ function renderPlanComercial() {
     const actualRows = filtrado.filter(d => planFechaEnRango(d.fecha, desde, hasta));
     const baseRows = filtrado.filter(d => planFechaEnRango(d.fecha, baseDesde, baseHasta));
     const combos = compararCombosPlan(actualRows, baseRows, filtrado);
-    const selected = new Set(estado.skus || []);
+    const selected = PLAN_SKUS_SELECCIONADOS;
     const selectedSkus = [...selected];
     const actual = calcularPlanMetricas(actualRows, selectedSkus);
     const base = calcularPlanMetricas(baseRows, selectedSkus);
@@ -1514,7 +1513,7 @@ function renderPlanComercial() {
         const deltaTxt = `${c.delta >= 0 ? '+' : ''}${fmt(c.delta)}`;
         const deltaColor = c.delta >= 0 ? 'var(--green)' : 'var(--red)';
         return `<label class="focus-item">
-            <input type="checkbox" data-plan-sku value="${escapeHtml(c.sku)}" ${checked} onchange="guardarPlanEstado();renderPlanComercial()">
+            <input type="checkbox" data-plan-sku value="${escapeHtml(c.sku)}" ${checked} onchange="togglePlanSku(this.value,this.checked)">
             <span>
                 <span class="focus-title">${escapeHtml(c.sku)} · ${escapeHtml(c.marca)}</span>
                 <span class="focus-meta">${fmt(c.ventas)} · ${c.ordenesCount} órdenes · Ticket ${fmt(c.ticket)}<br>Período 2 ${fmt(c.baseVentas)} · <strong style="color:${deltaColor}">${deltaTxt}</strong>${tiendaTxt ? `<br>${escapeHtml(tiendaTxt)}` : ''}</span>
