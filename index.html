@@ -1268,6 +1268,7 @@ function guardarObjetivoKpis() {
 
 function cambiarObjetivoKpis() {
     KPI_DECISION_ACTIVA_ID = null;
+    transformarObjetivoEnCampoEscribible();
     actualizarDecisionDesdeObjetivo();
     renderKpis();
 }
