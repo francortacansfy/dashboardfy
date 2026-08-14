@@ -2232,6 +2232,12 @@ function valorPrincipalObjetivo(tipo, row) {
 function valoresObjetivoDineroYPorcentaje(tipo, row) {
     if (!row) return { moneyLabel:'Ventas objetivo', money:0, pctLabel:'% objetivo', pct:0 };
     const metrica = document.getElementById('kpiObjetivoMetrica')?.value || 'auto';
+    const catObjetivo = categoriaDesdeObjetivo(row);
+    const textoObj = normalizarTextoSimple(textoObjetivoSeleccionado());
+    if (metrica === 'auto' && catObjetivo && (textoObj.includes('venta') || textoObj.includes('crecer') || textoObj.includes('subir'))) {
+        const money = row.categorias?.[catObjetivo] || 0;
+        return { moneyLabel:`Ventas ${catObjetivo}`, money, pctLabel:`% ${catObjetivo}`, pct:row.total ? money / row.total * 100 : 0 };
+    }
     if (metrica === 'ventas') return { moneyLabel:'Ventas $', money:row.total || 0, pctLabel:'% de ventas', pct:100 };
     if (metrica === 'ticket') return { moneyLabel:'Ticket promedio', money:row.ticket || 0, pctLabel:'% combos reales', pct:row.comboShare || 0 };
     if (metrica === 'combos') return { moneyLabel:'Ventas combos reales', money:row.comboVentas || 0, pctLabel:'% combos reales', pct:row.comboShare || 0 };
