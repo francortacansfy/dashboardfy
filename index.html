@@ -276,6 +276,27 @@
     </div>
     <div class="page active" id="dashboard">
         <div class="kpi-grid" id="kpiGrid"></div>
+        <div class="table-card" id="growthKpiCard">
+            <div class="table-head">
+                <h3>KPIs de crecimiento mensual</h3>
+                <span style="font-size:12px;color:var(--text-3)">Meses cerrados · Shopify, ticket y combos reales</span>
+            </div>
+            <div class="kpi-grid" id="growthKpiGrid" style="padding:18px 22px 0;margin-bottom:18px"></div>
+            <div class="table-scroll">
+                <table class="table-compact">
+                    <thead>
+                        <tr>
+                            <th>Mes</th>
+                            <th style="text-align:right">% Shopify</th>
+                            <th style="text-align:right">Ticket Shopify</th>
+                            <th style="text-align:right">% Combos reales</th>
+                            <th style="text-align:right">Ventas combos</th>
+                        </tr>
+                    </thead>
+                    <tbody id="growthKpiBody"><tr><td colspan="5" class="empty">Sin datos</td></tr></tbody>
+                </table>
+            </div>
+        </div>
         <div class="section-title">Top 5 SKU — Ingresos</div>
         <div class="sku-grid" id="skuCards"></div>
         <div class="chart-row">
@@ -1526,4 +1547,3 @@ document.getElementById('fb-dashboard').classList.add('active');
 </script>
 </body>
 </html>
-
