@@ -1816,6 +1816,59 @@ function agruparRangoFechas(desdeId, hastaId, label) {
     desde.dataset.grouped = '1';
 }
 
+function aplicarLayoutObjetivoLocal() {
+    const objetivo = document.getElementById('kpiObjetivoTipo');
+    const desde = document.getElementById('kpiActualDesde');
+    const hasta = document.getElementById('kpiActualHasta');
+    const tipo = document.getElementById('kpiObjetivoMetaTipo');
+    const meta = document.getElementById('kpiObjetivoMeta');
+    const limpiar = document.querySelector('button[onclick="limpiarObjetivoKpis()"]');
+    if (!objetivo || !desde || !hasta || !tipo || !meta || !limpiar) return;
+
+    const row = objetivo.closest('div')?.parentElement;
+    if (!row || row.dataset.objetivoLayout === '1') return;
+
+    const objetivoBox = objetivo.closest('div');
+    const desdeBox = desde.closest('div');
+    const hastaBox = hasta.closest('div');
+    const tipoBox = tipo.closest('div');
+    const metaBox = meta.closest('div');
+    const baseDesdeBox = document.getElementById('kpiBaseDesde')?.closest('div');
+    const baseHastaBox = document.getElementById('kpiBaseHasta')?.closest('div');
+
+    row.style.gridTemplateColumns = 'minmax(420px,1fr) 280px 120px 150px 110px';
+    row.innerHTML = '';
+    row.appendChild(objetivoBox);
+    row.appendChild(desdeBox);
+    row.appendChild(tipoBox);
+    row.appendChild(metaBox);
+    row.appendChild(limpiar);
+    row.appendChild(baseDesdeBox);
+    row.appendChild(baseHastaBox);
+
+    const objetivoLabel = objetivoBox.querySelector('label');
+    if (objetivoLabel) objetivoLabel.textContent = 'Objetivo';
+    const desdeLabel = desdeBox.querySelector('label');
+    if (desdeLabel) desdeLabel.textContent = 'Período a analizar';
+    const rango = document.createElement('div');
+    rango.className = 'range-pair';
+    rango.appendChild(desde);
+    rango.appendChild(hasta);
+    desdeBox.appendChild(rango);
+
+    if (!objetivo.querySelector('option[value=""]')) {
+        objetivo.insertAdjacentHTML('afterbegin', '<option value="">Elegir objetivo</option>');
+    }
+    if (!objetivo.querySelector('option[value="nuevo"]')) {
+        objetivo.insertAdjacentHTML('beforeend', '<option value="nuevo">Cargar nuevo</option>');
+    }
+    if (!objetivo.dataset.keepValue) objetivo.value = '';
+    if (baseDesdeBox) baseDesdeBox.style.display = 'none';
+    if (baseHastaBox) baseHastaBox.style.display = 'none';
+    if (hastaBox) hastaBox.remove();
+    row.dataset.objetivoLayout = '1';
+}
+
 function calcularGrowthRangoKpis(base, desde, hasta, label) {
     const subset = base.filter(d => planFechaEnRango(d.fecha, desde, hasta));
     const ordenes = new Set();
