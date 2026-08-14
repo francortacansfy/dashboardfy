@@ -1101,7 +1101,6 @@ function prepararControlesObjetivoKpis() {
     });
 }
 
-const KPI_DRAFT_KEY = 'fyl_kpi_objetivo';
 const KPI_DECISIONES_KEY = 'fyl_kpi_decisiones';
 
 function leerDecisionActualKpis() {
@@ -1118,14 +1117,6 @@ function leerDecisionActualKpis() {
 }
 
 function guardarObjetivoKpis() {
-    const actual = leerDecisionActualKpis();
-    localStorage.setItem(KPI_DRAFT_KEY, JSON.stringify({
-        referencia: actual.referencia,
-        tipo: actual.tipo,
-        meta: actual.meta,
-        metatipo: actual.metatipo,
-        updatedAt: actual.updatedAt,
-    }));
     renderDecisionKpis();
 }
 
@@ -1139,7 +1130,6 @@ function guardarDecisionKpis() {
     const item = { ...actual, id: Date.now().toString() };
     decisiones.unshift(item);
     localStorage.setItem(KPI_DECISIONES_KEY, JSON.stringify(decisiones.slice(0, 30)));
-    localStorage.setItem(KPI_DRAFT_KEY, JSON.stringify(item));
     renderDecisionKpis();
 }
 
@@ -1158,7 +1148,6 @@ function cargarDecisionKpis(id) {
     set('kpiDecision', item.decision || '');
     set('kpiResponsable', item.responsable || '');
     set('kpiNota', item.nota || '');
-    localStorage.setItem(KPI_DRAFT_KEY, JSON.stringify(item));
     renderKpis();
 }
 
@@ -1169,7 +1158,6 @@ function escapeHtml(str) {
 }
 
 function renderDecisionKpis() {
-    const guardado = JSON.parse(localStorage.getItem(KPI_DRAFT_KEY) || '{}');
     const decisiones = JSON.parse(localStorage.getItem(KPI_DECISIONES_KEY) || '[]');
     const ultima = decisiones[0];
     const updated = ultima?.updatedAt ? new Date(ultima.updatedAt).toLocaleString('es-AR') : 'Sin decisiones guardadas';
