@@ -1527,6 +1527,7 @@ function limpiarObjetivoKpis() {
     });
     const metaTipo = document.getElementById('kpiObjetivoMetaTipo');
     if (metaTipo) metaTipo.value = 'auto';
+    localStorage.removeItem(KPI_FORM_STATE_KEY);
     renderKpis();
     renderDecisionKpis();
 }
