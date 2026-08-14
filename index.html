@@ -1534,6 +1534,12 @@ function renderPlanComercial() {
     guardarPlanEstado();
 }
 
+function togglePlanSku(sku, checked) {
+    if (checked) PLAN_SKUS_SELECCIONADOS.add(sku);
+    else PLAN_SKUS_SELECCIONADOS.delete(sku);
+    renderPlanComercial();
+}
+
 function agregarTareaPlan() {
     const estado = leerPlanEstado();
     const tareas = estado.tareas || [];
