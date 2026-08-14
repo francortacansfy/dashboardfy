@@ -1150,6 +1150,7 @@ function renderGrowthMensual(base) {
     if (head) head.innerHTML = `<th>Mes</th>${cfg.cols.map(c => `<th style="text-align:right">${c}</th>`).join('')}`;
     document.getElementById('growthKpiBody').innerHTML = ultimos.map(r => `<tr><td><strong>${r.mes}</strong></td>${cfg.values(r).map(v => `<td style="text-align:right">${v}</td>`).join('')}</tr>`).join('') || '<tr><td colspan="4" class="empty">Sin datos de meses cerrados</td></tr>';
     renderMetaGapKpis(objetivoTipo, actual);
+    renderSeguimientoMesActual(base, objetivoTipo);
     renderMirarFinoKpis(objetivoTipo);
 }
 
@@ -1218,6 +1219,47 @@ function renderMirarFinoKpis(tipo) {
         categorias: ['Categoría líder por marca', 'Categorías que más suben y bajan', 'Top SKUs dentro de la categoría', 'Stock de productos que frenan crecimiento'],
     }[tipo] || [];
     document.getElementById('kpiMirarFino').innerHTML = `<ul style="margin:0;padding-left:18px;font-size:13px;color:var(--text-2);line-height:1.9">${items.map(x => `<li>${x}</li>`).join('')}</ul>`;
+}
+
+function renderSeguimientoMesActual(base, tipo) {
+    const hoy = new Date();
+    const ym = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}`;
+    const actual = calcularGrowthPeriodo(base, ym);
+    const metaRaw = parseFloat(document.getElementById('kpiObjetivoMeta')?.value || '');
+    const principal = valorPrincipalObjetivo(tipo, actual);
+    const diasTranscurridos = hoy.getDate();
+    const diasMes = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0).getDate();
+    const proyeccion = diasTranscurridos > 0 ? principal.value / diasTranscurridos * diasMes : 0;
+    const tieneMeta = Number.isFinite(metaRaw);
+    const gapProyectado = tieneMeta ? metaRaw - proyeccion : 0;
+    const diasRestantes = Math.max(0, diasMes - diasTranscurridos);
+    const ritmoNecesario = tieneMeta && diasRestantes > 0 ? Math.max(0, (metaRaw - principal.value) / diasRestantes) : 0;
+    const unidad = principal.unidad === '$' ? 'money' : principal.unidad === '%' ? 'pct' : 'number';
+    const fmtTipo = n => unidad === 'money' ? fmt(n) : unidad === 'pct' ? fmtPct(n) : Math.round(n).toLocaleString('es-AR');
+    const estado = !tieneMeta ? 'Sin meta' : proyeccion >= metaRaw ? 'En camino' : 'En riesgo';
+    const color = !tieneMeta ? 'blue' : proyeccion >= metaRaw ? 'green' : 'red';
+    document.getElementById('kpiMesActualGrid').innerHTML = actual ? `
+        <div class="kpi">
+            <div class="kpi-header"><span class="kpi-label">Mes actual</span><div class="kpi-icon ${color}"><i class="fas fa-calendar-day"></i></div></div>
+            <div class="kpi-value">${estado}</div>
+            <div class="kpi-sub">${ym} · día ${diasTranscurridos}/${diasMes}</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi-header"><span class="kpi-label">Actual MTD</span><div class="kpi-icon green"><i class="fas fa-gauge"></i></div></div>
+            <div class="kpi-value">${fmtTipo(principal.value)}</div>
+            <div class="kpi-sub">${principal.label}</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi-header"><span class="kpi-label">Proyección cierre</span><div class="kpi-icon orange"><i class="fas fa-chart-line"></i></div></div>
+            <div class="kpi-value">${fmtTipo(proyeccion)}</div>
+            <div class="kpi-sub">${tieneMeta ? `Gap proyectado: ${fmtTipo(gapProyectado)}` : 'Cargá meta para comparar'}</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi-header"><span class="kpi-label">Ritmo necesario</span><div class="kpi-icon blue"><i class="fas fa-forward"></i></div></div>
+            <div class="kpi-value">${tieneMeta ? fmtTipo(ritmoNecesario) : '-'}</div>
+            <div class="kpi-sub">Por día restante</div>
+        </div>
+    ` : '<div class="empty" style="grid-column:1/-1">Sin datos del mes actual con los filtros elegidos.</div>';
 }
 
 function renderMarcas() {
