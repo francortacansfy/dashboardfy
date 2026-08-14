@@ -2346,7 +2346,7 @@ function renderGrowthMensual(base) {
 }
 
 function aplicarPeriodoVisibleAInputsKpis() {
-    const visible = parseFechaRangoKpis(document.getElementById('kpiPeriodoRango')?.textContent || '');
+    const visible = parseFechaRangoKpis(textoPeriodoVisibleKpis());
     if (!visible) return;
     const desde = document.getElementById('kpiActualDesde');
     const hasta = document.getElementById('kpiActualHasta');
