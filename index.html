@@ -2211,6 +2211,12 @@ function renderGrowthMensual(base) {
 function valorPrincipalObjetivo(tipo, row) {
     if (!row) return { label:'Actual', value:0, display:'-' };
     const metrica = document.getElementById('kpiObjetivoMetrica')?.value || 'auto';
+    const catObjetivo = categoriaDesdeObjetivo(row);
+    const textoObj = normalizarTextoSimple(textoObjetivoSeleccionado());
+    if (metrica === 'auto' && catObjetivo && (textoObj.includes('venta') || textoObj.includes('crecer') || textoObj.includes('subir'))) {
+        const value = row.categorias?.[catObjetivo] || 0;
+        return { label:`Ventas ${catObjetivo}`, value, display:fmt(value), unidad:'$' };
+    }
     if (metrica === 'ticket') return { label:'Ticket promedio', value:row.ticket, display:fmt(row.ticket), unidad:'$' };
     if (metrica === 'combos') return { label:'% combos reales', value:row.comboShare, display:fmtPct(row.comboShare), unidad:'%' };
     if (metrica === 'shopify') return { label:'% Shopify', value:row.shopifyShare, display:fmtPct(row.shopifyShare), unidad:'%' };
