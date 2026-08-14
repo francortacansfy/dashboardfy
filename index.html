@@ -2131,7 +2131,40 @@ function sincronizarPeriodoKpisTexto() {
     const input = document.getElementById('kpiPeriodoRango');
     const desde = document.getElementById('kpiActualDesde')?.value || '';
     const hasta = document.getElementById('kpiActualHasta')?.value || '';
-    if (input) input.textContent = desde && hasta ? `${fmtFechaRangoKpis(desde)} - ${fmtFechaRangoKpis(hasta)}` : 'Elegir período';
+    if (input) {
+        const texto = desde && hasta ? `${fmtFechaRangoKpis(desde)} - ${fmtFechaRangoKpis(hasta)}` : 'Elegir período';
+        if ('value' in input) input.value = texto;
+        input.textContent = texto;
+    }
+}
+
+function textoPeriodoVisibleKpis() {
+    const el = document.getElementById('kpiPeriodoRango');
+    const visible = el ? (el.value || el.textContent || '') : '';
+    if (visible.trim()) return visible;
+    try {
+        const estado = JSON.parse(localStorage.getItem(KPI_FORM_STATE_KEY) || '{}');
+        return estado.periodoTexto || '';
+    } catch(e) {
+        return '';
+    }
+}
+
+function rangoObjetivoKpis() {
+    let desde = document.getElementById('kpiActualDesde')?.value || '';
+    let hasta = document.getElementById('kpiActualHasta')?.value || '';
+    if (!desde || !hasta) {
+        const visible = parseFechaRangoKpis(textoPeriodoVisibleKpis());
+        if (visible) {
+            desde = visible.desde;
+            hasta = visible.hasta;
+            const desdeEl = document.getElementById('kpiActualDesde');
+            const hastaEl = document.getElementById('kpiActualHasta');
+            if (desdeEl) desdeEl.value = desde;
+            if (hastaEl) hastaEl.value = hasta;
+        }
+    }
+    return { desde, hasta };
 }
 
 function togglePeriodoKpisPopover() {
