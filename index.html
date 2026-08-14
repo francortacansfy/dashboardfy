@@ -1382,7 +1382,12 @@ function renderDecisionKpis() {
     const listaEl = document.getElementById('kpiDecisionLista');
     if (listaEl) {
         listaEl.innerHTML = decisiones.length ? decisiones.map(d => {
-            const objetivo = document.querySelector(`#kpiObjetivoTipo option[value="${d.tipo}"]`)?.textContent || d.tipo || 'Objetivo';
+            const objetivo = d.objetivoTexto || ({
+                rutinas:'Subir ticket con combos/rutinas',
+                shopify:'Potenciar Shopify',
+                ml:'Defender Mercado Libre',
+                categorias:'Crecer por categorías',
+            }[d.tipo]) || d.tipo || 'Objetivo';
             const fecha = d.updatedAt ? new Date(d.updatedAt).toLocaleString('es-AR') : '';
             return `<div class="decision-row">
                 <button class="decision-item ${d.id === KPI_DECISION_ACTIVA_ID ? 'active' : ''}" type="button" onclick="cargarDecisionKpis('${d.id}')">
