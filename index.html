@@ -1346,12 +1346,15 @@ function textoObjetivoSeleccionado() {
     if (!el) return '';
     const nuevo = document.getElementById('kpiObjetivoNuevo')?.value || '';
     if (el.value === 'nuevo') return nuevo;
+    if (!el.value && nuevo.trim()) return nuevo;
     if (String(el.value || '').startsWith('custom:')) return el.options?.[el.selectedIndex]?.textContent || el.value.replace('custom:', '');
     return el.options?.[el.selectedIndex]?.textContent || '';
 }
 
 function normalizarObjetivoTipo(valor) {
     const v = String(valor || '').toLowerCase();
+    const nuevo = document.getElementById('kpiObjetivoNuevo')?.value || '';
+    if (!v && nuevo.trim()) return 'nuevo';
     if (v === 'nuevo') return 'nuevo';
     if (v.startsWith('custom:')) return 'nuevo';
     if (v === 'rutinas' || v.includes('ticket') || v.includes('combo') || v.includes('rutina')) return 'rutinas';
