@@ -2227,6 +2227,7 @@ function elegirReferenciaKpisPorFecha(base) {
 
 function renderGrowthMensual(base) {
     prepararControlesObjetivoKpis();
+    aplicarPeriodoVisibleAInputsKpis();
     const nuevoTexto = textoObjetivoNuevoKpis();
     if (nuevoTexto.trim()) {
         const sel = document.getElementById('kpiObjetivoTipo');
@@ -2317,6 +2318,15 @@ function renderGrowthMensual(base) {
     renderMetaGapKpis(objetivoTipo, actual);
     renderSeguimientoMesActual(base, objetivoTipo);
     renderMirarFinoKpis(objetivoTipo);
+}
+
+function aplicarPeriodoVisibleAInputsKpis() {
+    const visible = parseFechaRangoKpis(document.getElementById('kpiPeriodoRango')?.textContent || '');
+    if (!visible) return;
+    const desde = document.getElementById('kpiActualDesde');
+    const hasta = document.getElementById('kpiActualHasta');
+    if (desde && !desde.value) desde.value = visible.desde;
+    if (hasta && !hasta.value) hasta.value = visible.hasta;
 }
 
 function valorPrincipalObjetivo(tipo, row) {
