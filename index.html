@@ -1774,7 +1774,7 @@ function renderGrowthMensual(base) {
     const lectura = document.getElementById('kpiObjetivoLectura');
     if (lectura) lectura.innerHTML = `<strong>Comparación: ${refData.label}</strong> · Meta = a dónde queremos llegar. ${cfg.texto}`;
     document.getElementById('growthKpiGrid').innerHTML = actual ? cfg.cards.map(([label, display, val, prev, suffix, color, icon]) => `
-        <div class="kpi"><div class="kpi-header"><span class="kpi-label">${label}</span><div class="kpi-icon ${color}"><i class="fas fa-${icon}"></i></div></div><div class="kpi-value">${display}</div><div class="kpi-sub">Contra referencia anterior: ${val === null || !anterior ? '—' : deltaBadge(val, prev, suffix)}</div></div>
+        <div class="kpi"><div class="kpi-header"><span class="kpi-label">${label}</span><div class="kpi-icon ${color}"><i class="fas fa-${icon}"></i></div></div><div class="kpi-value">${display}</div><div class="kpi-sub">Período 1 vs período 2: ${val === null || !anterior ? '—' : deltaBadge(val, prev, suffix)}</div></div>
     `).join('') : '<div class="empty" style="grid-column:1/-1">Sin datos para mostrar.</div>';
     const head = document.querySelector('#growthKpiCard thead tr');
     if (head) head.innerHTML = `<th>Mes</th>${cfg.cols.map(c => `<th style="text-align:right">${c}</th>`).join('')}`;
@@ -1829,7 +1829,7 @@ function renderMetaGapKpis(tipo, actual) {
         <div class="kpi">
             <div class="kpi-header"><span class="kpi-label">${principal.label}</span><div class="kpi-icon green"><i class="fas fa-bullseye"></i></div></div>
             <div class="kpi-value">${principal.display}</div>
-            <div class="kpi-sub">Valor de la referencia elegida</div>
+            <div class="kpi-sub">Valor del período 1</div>
         </div>
         <div class="kpi">
             <div class="kpi-header"><span class="kpi-label">Meta</span><div class="kpi-icon blue"><i class="fas fa-flag-checkered"></i></div></div>
