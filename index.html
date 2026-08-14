@@ -1369,6 +1369,7 @@ function cargarDecisionKpis(id) {
     set('kpiObjetivoTipo', item.tipo || 'rutinas');
     transformarObjetivoEnCampoEscribible();
     set('kpiObjetivoNuevo', item.objetivoNuevo || (item.tipo === 'nuevo' ? item.objetivoTexto : ''));
+    set('kpiObjetivoMetrica', item.metrica || 'auto');
     set('kpiObjetivoMetaTipo', item.metatipo || 'auto');
     set('kpiObjetivoMeta', metaEfectivaDecision(item));
     set('kpiDecision', item.decision || '');
