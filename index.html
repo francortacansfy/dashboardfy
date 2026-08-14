@@ -2270,6 +2270,36 @@ function renderMirarFinoKpis(tipo) {
     document.getElementById('kpiMirarFino').innerHTML = `<ul style="margin:0;padding-left:18px;font-size:13px;color:var(--text-2);line-height:1.9">${items.map(x => `<li>${x}</li>`).join('')}</ul>`;
 }
 
+function isoDate(d) {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function obtenerRangoSeguimientoKpis() {
+    const preset = document.getElementById('kpiSeguimientoPreset')?.value || 'mes_actual';
+    const desdeInput = document.getElementById('kpiSeguimientoDesde');
+    const hastaInput = document.getElementById('kpiSeguimientoHasta');
+    const custom = preset === 'personalizado';
+    if (desdeInput) desdeInput.style.display = custom ? 'block' : 'none';
+    if (hastaInput) hastaInput.style.display = custom ? 'block' : 'none';
+    const hoy = new Date();
+    let desde = new Date(hoy);
+    let hasta = new Date(hoy);
+    if (preset === 'mes_actual') {
+        desde = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+    } else if (preset === 'ultimo_mes') {
+        desde = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1);
+        hasta = new Date(hoy.getFullYear(), hoy.getMonth(), 0);
+    } else if (preset === 'ultimos_2_meses') {
+        desde = new Date(hoy.getFullYear(), hoy.getMonth() - 2, 1);
+        hasta = new Date(hoy.getFullYear(), hoy.getMonth(), 0);
+    } else if (preset === 'ultimos_7_dias') {
+        desde.setDate(hoy.getDate() - 6);
+    } else if (custom) {
+        return { desde: desdeInput?.value || '', hasta: hastaInput?.value || '', label:'Personalizado' };
+    }
+    return { desde: isoDate(desde), hasta: isoDate(hasta), label:preset };
+}
+
 function renderSeguimientoMesActual(base, tipo) {
     if (!tipo) {
         document.getElementById('kpiMesActualGrid').innerHTML = '<div class="empty" style="grid-column:1/-1">Sin objetivo elegido.</div>';
