@@ -1910,23 +1910,30 @@ function renderAnalisis() {
 }
 
 const TITLES = { dashboard:'Dashboard', kpis:'KPIs', productos:'Productos', marcas:'Marcas', stock:'Stock', analisis:'Análisis SKUs', mayorista:'Mayorista' };
+const LAST_TAB_KEY = 'fyl_dashboard_tab_activo';
+
+function activarTab(tab, guardar = true) {
+    const page = document.getElementById(tab);
+    const btn = document.querySelector(`.nav-btn[data-tab="${tab}"]`);
+    if (!page || !btn) return;
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.filterbar').forEach(f => f.classList.remove('active'));
+    btn.classList.add('active');
+    page.classList.add('active');
+    document.getElementById('pageTitle').textContent = TITLES[tab] || '';
+    const fb = document.getElementById('fb-' + tab);
+    if (fb) fb.classList.add('active');
+    if (guardar) localStorage.setItem(LAST_TAB_KEY, tab);
+    if (tab === 'kpis') renderKpis();
+    if (tab === 'stock') { renderStock(); renderStockMl(); }
+    if (tab === 'marcas') renderMarcas();
+    if (tab === 'analisis') renderAnalisis();
+    if (tab === 'mayorista') renderMayorista();
+}
+
 document.querySelectorAll('.nav-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('.filterbar').forEach(f => f.classList.remove('active'));
-        btn.classList.add('active');
-        const tab = btn.dataset.tab;
-        document.getElementById(tab).classList.add('active');
-        document.getElementById('pageTitle').textContent = TITLES[tab] || '';
-        const fb = document.getElementById('fb-' + tab);
-        if (fb) fb.classList.add('active');
-        if (tab === 'kpis') renderKpis();
-        if (tab === 'stock') { renderStock(); renderStockMl(); }
-        if (tab === 'marcas') renderMarcas();
-        if (tab === 'analisis') renderAnalisis();
-        if (tab === 'mayorista') renderMayorista();
-    });
+    btn.addEventListener('click', () => activarTab(btn.dataset.tab));
 });
 
 function toggleTheme() {
