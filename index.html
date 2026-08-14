@@ -1727,11 +1727,18 @@ function calcularGrowthRangoKpis(base, desde, hasta, label) {
 function elegirReferenciaKpisPorFecha(base) {
     const actualDesde = document.getElementById('kpiActualDesde')?.value || '';
     const actualHasta = document.getElementById('kpiActualHasta')?.value || '';
-    const baseDesde = document.getElementById('kpiBaseDesde')?.value || '';
-    const baseHasta = document.getElementById('kpiBaseHasta')?.value || '';
-    if (!actualDesde || !actualHasta || !baseDesde || !baseHasta) {
-        return { actual:null, anterior:null, ultimos:[], label:'Elegí dos períodos para comparar' };
+    if (!actualDesde || !actualHasta) {
+        return { actual:null, anterior:null, ultimos:[], label:'Elegí desde y hasta para comparar contra el período anterior' };
     }
+    const dias = Math.max(1, Math.round((new Date(`${actualHasta}T00:00:00`) - new Date(`${actualDesde}T00:00:00`)) / 86400000) + 1);
+    const baseHasta = sumarDias(actualDesde, -1);
+    const baseDesde = restarDias(actualDesde, dias);
+    const set = (id, value) => {
+        const el = document.getElementById(id);
+        if (el) el.value = value;
+    };
+    set('kpiBaseDesde', baseDesde);
+    set('kpiBaseHasta', baseHasta);
     const actual = calcularGrowthRangoKpis(base, actualDesde, actualHasta, 'Actual');
     const anterior = calcularGrowthRangoKpis(base, baseDesde, baseHasta, 'Base');
     return {
