@@ -1618,7 +1618,7 @@ async function renderDashboard() {
     const montoDevueltas  = filasDevueltas.filter(d => d.tipoFila !== 'hija').reduce((s, d) => s + d.total, 0);
 
     document.getElementById('kpiGrid').innerHTML = `
-        <div class="kpi centered">
+        <div class="kpi money-main">
             <div class="kpi-header"><span class="kpi-label">Ingresos Totales</span><div class="kpi-icon green"><i class="fas fa-dollar-sign"></i></div></div>
             <div class="kpi-value">${fmtMoneyCompact(revenue)}</div>
             <div class="kpi-sub">${fmt(revenue)}</div>
