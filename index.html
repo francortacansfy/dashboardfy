@@ -1434,6 +1434,7 @@ function prepararPlanComercial() {
         }
     });
     poblarDecisionesPlan();
+    poblarProductosPlan();
 }
 
 function poblarDecisionesPlan() {
@@ -1451,6 +1452,21 @@ function decisionPlanActiva() {
     const id = document.getElementById('planKpi')?.value || '';
     const decisiones = JSON.parse(localStorage.getItem(KPI_DECISIONES_KEY) || '[]');
     return decisiones.find(d => d.id === id) || null;
+}
+
+function poblarProductosPlan() {
+    const catSel = document.getElementById('planCategoria');
+    if (catSel && !catSel.dataset.ready) {
+        const cats = [...new Set(DATA.map(categoriaKpi).filter(Boolean))].sort();
+        catSel.innerHTML = '<option value="">Todas</option>' + cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+        catSel.dataset.ready = '1';
+    }
+    const list = document.getElementById('planProductosList');
+    if (list && !list.dataset.ready) {
+        const skus = [...new Set(DATA.map(d => d.sku).filter(Boolean))].sort();
+        list.innerHTML = skus.map(s => `<option value="${escapeHtml(s)}"></option>`).join('');
+        list.dataset.ready = '1';
+    }
 }
 
 function planFechaEnRango(fecha, desde, hasta) {
