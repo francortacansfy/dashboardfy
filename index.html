@@ -2476,15 +2476,9 @@ function obtenerRangoSeguimientoKpis() {
     let desde = new Date(hoy);
     let hasta = new Date(hoy);
     if (preset === 'objetivo') {
-        let desdeObj = document.getElementById('kpiActualDesde')?.value || '';
-        let hastaObj = document.getElementById('kpiActualHasta')?.value || '';
-        if (!desdeObj || !hastaObj) {
-            const visible = parseFechaRangoKpis(document.getElementById('kpiPeriodoRango')?.textContent || '');
-            if (visible) {
-                desdeObj = visible.desde;
-                hastaObj = visible.hasta;
-            }
-        }
+        const objetivo = rangoObjetivoKpis();
+        const desdeObj = objetivo.desde;
+        const hastaObj = objetivo.hasta;
         return { desde: desdeObj, hasta: hastaObj, label:'Objetivo' };
     } else if (preset === 'mes_actual') {
         desde = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
