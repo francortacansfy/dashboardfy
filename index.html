@@ -1242,7 +1242,7 @@ function leerDecisionActualKpis() {
         baseHasta: document.getElementById('kpiBaseHasta')?.value || '',
         tipo: normalizarObjetivoTipo(document.getElementById('kpiObjetivoTipo')?.value || ''),
         objetivoTexto: textoObjetivoSeleccionado(),
-        objetivoNuevo: document.getElementById('kpiObjetivoNuevo')?.value || '',
+        objetivoNuevo: normalizarObjetivoTipo(document.getElementById('kpiObjetivoTipo')?.value || '') === 'nuevo' ? textoObjetivoSeleccionado() : '',
         meta: metaTexto || document.getElementById('kpiObjetivoMeta')?.value || '',
         metatipo,
         decision,
