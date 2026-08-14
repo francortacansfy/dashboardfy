@@ -2194,6 +2194,20 @@ function renderGrowthMensual(base) {
             values: r => [r.topCategoria?.[0] || '-', fmt(r.topCategoria?.[1] || 0), fmt(r.total)],
         },
     };
+    if (objetivoTipo === 'nuevo') {
+        const principalActual = valorPrincipalObjetivo(objetivoTipo, actual);
+        const principalAnterior = valorPrincipalObjetivo(objetivoTipo, anterior);
+        cfgs.nuevo = {
+            texto: 'Objetivo personalizado. El tablero usa la métrica detectada por el texto o la elegida manualmente.',
+            cards: [
+                [principalActual.label, principalActual.display, principalActual.value, principalAnterior.value, principalActual.unidad === '$' ? '' : ' pp', 'green', 'bullseye'],
+                ['Ventas período', fmt(actual?.total || 0), (actual?.total || 0)/1000000, (anterior?.total || 0)/1000000, 'M', 'blue', 'dollar-sign'],
+                ['Ticket período', fmt(actual?.ticket || 0), (actual?.ticket || 0)/1000, (anterior?.ticket || 0)/1000, 'k', 'orange', 'tag'],
+            ],
+            cols: [principalActual.label, 'Ventas período', 'Ticket período'],
+            values: r => [valorPrincipalObjetivo(objetivoTipo, r).display, fmt(r.total), fmt(r.ticket)],
+        };
+    }
     const cfg = cfgs[objetivoTipo] || cfgs.rutinas;
     const lectura = document.getElementById('kpiObjetivoLectura');
     if (lectura) lectura.innerHTML = `<strong>Comparación: ${refData.label}</strong> · Meta = a dónde queremos llegar. ${cfg.texto}`;
