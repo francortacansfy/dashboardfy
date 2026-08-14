@@ -1175,6 +1175,23 @@ function cargarDecisionKpis(id) {
     renderKpis();
 }
 
+function borrarDecisionKpis(id) {
+    const decisiones = JSON.parse(localStorage.getItem(KPI_DECISIONES_KEY) || '[]');
+    const item = decisiones.find(d => d.id === id);
+    if (!item) return;
+    if (!confirm(`¿Borrar esta decisión?\n\n${item.decision}`)) return;
+    const nuevas = decisiones.filter(d => d.id !== id);
+    localStorage.setItem(KPI_DECISIONES_KEY, JSON.stringify(nuevas));
+    if (KPI_DECISION_ACTIVA_ID === id) {
+        KPI_DECISION_ACTIVA_ID = null;
+        ['kpiDecision', 'kpiResponsable', 'kpiNota'].forEach(idEl => {
+            const el = document.getElementById(idEl);
+            if (el) el.value = '';
+        });
+    }
+    renderKpis();
+}
+
 function escapeHtml(str) {
     return String(str || '').replace(/[&<>"']/g, ch => ({
         '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
@@ -1201,10 +1218,13 @@ function renderDecisionKpis() {
         listaEl.innerHTML = decisiones.length ? decisiones.map(d => {
             const objetivo = document.querySelector(`#kpiObjetivoTipo option[value="${d.tipo}"]`)?.textContent || d.tipo || 'Objetivo';
             const fecha = d.updatedAt ? new Date(d.updatedAt).toLocaleString('es-AR') : '';
-            return `<button class="decision-item ${d.id === KPI_DECISION_ACTIVA_ID ? 'active' : ''}" type="button" onclick="cargarDecisionKpis('${d.id}')">
-                <div class="decision-title">${escapeHtml(d.decision)}</div>
-                <div class="decision-meta">${escapeHtml(objetivo)} · Meta: ${escapeHtml(metaEfectivaDecision(d) || '-')} · ${escapeHtml(fecha)}</div>
-            </button>`;
+            return `<div class="decision-row">
+                <button class="decision-item ${d.id === KPI_DECISION_ACTIVA_ID ? 'active' : ''}" type="button" onclick="cargarDecisionKpis('${d.id}')">
+                    <div class="decision-title">${escapeHtml(d.decision)}</div>
+                    <div class="decision-meta">${escapeHtml(objetivo)} · Meta: ${escapeHtml(metaEfectivaDecision(d) || '-')} · ${escapeHtml(fecha)}</div>
+                </button>
+                <button class="decision-delete" type="button" title="Borrar decisión" onclick="borrarDecisionKpis('${d.id}')"><i class="fas fa-trash"></i></button>
+            </div>`;
         }).join('') : '';
     }
 }
