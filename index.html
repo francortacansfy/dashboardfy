@@ -710,7 +710,7 @@ function populateTiendaFilters() {
     const marcas  = [...new Set(DATA.map(d => d.marca).filter(x => x && x !== 'S/D'))].sort();
     const anios   = [...new Set(DATA.map(d => d.fecha?.substring(0,4)).filter(Boolean))].sort();
 
-    ['filterTiendaDash','filterTiendaProd','filterTiendaMarcas'].forEach(id => {
+    ['filterTiendaDash','filterTiendaKpis','filterTiendaProd','filterTiendaMarcas'].forEach(id => {
         const sel = document.getElementById(id);
         if (!sel) return;
         const val = sel.value;
@@ -718,7 +718,7 @@ function populateTiendaFilters() {
             tiendas.map(t => `<option value="${t}"${val===t?' selected':''}>${t}</option>`).join('');
     });
 
-    ['filterMarcaDash','filterMarcaProd'].forEach(id => {
+    ['filterMarcaDash','filterMarcaKpis','filterMarcaProd'].forEach(id => {
         const sel = document.getElementById(id);
         if (!sel) return;
         const val = sel.value;
@@ -726,7 +726,7 @@ function populateTiendaFilters() {
             marcas.map(m => `<option value="${m}"${val===m?' selected':''}>${m}</option>`).join('');
     });
 
-    ['filterAnioDash','filterAnioProd','filterAnioMarcas','filterAnioStock'].forEach(id => {
+    ['filterAnioDash','filterAnioKpis','filterAnioProd','filterAnioMarcas','filterAnioStock'].forEach(id => {
         const sel = document.getElementById(id);
         if (!sel) return;
         const val = sel.value;
