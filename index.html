@@ -2305,14 +2305,17 @@ function renderSeguimientoMesActual(base, tipo) {
         document.getElementById('kpiMesActualGrid').innerHTML = '<div class="empty" style="grid-column:1/-1">Sin objetivo elegido.</div>';
         return;
     }
-    const hoy = new Date();
-    const ym = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}`;
-    const actual = calcularGrowthPeriodo(base, ym);
+    const rango = obtenerRangoSeguimientoKpis();
+    if (!rango.desde || !rango.hasta) {
+        document.getElementById('kpiMesActualGrid').innerHTML = '<div class="empty" style="grid-column:1/-1">Elegí el rango personalizado para ver seguimiento.</div>';
+        return;
+    }
+    const actual = calcularGrowthRangoKpis(base, rango.desde, rango.hasta, 'Seguimiento');
     const metaRaw = parseFloat(document.getElementById('kpiObjetivoMeta')?.value || '');
     const principal = valorPrincipalObjetivo(tipo, actual);
     const doble = valoresObjetivoDineroYPorcentaje(tipo, actual);
-    const diasTranscurridos = hoy.getDate();
-    const diasMes = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0).getDate();
+    const diasTranscurridos = Math.max(1, Math.round((new Date(`${rango.hasta}T00:00:00`) - new Date(`${rango.desde}T00:00:00`)) / 86400000) + 1);
+    const diasMes = diasTranscurridos;
     const unidad = principal.unidad === '$' ? 'money' : principal.unidad === '%' ? 'pct' : 'number';
     const esPorcentaje = unidad === 'pct';
     const proyeccion = esPorcentaje ? principal.value : (diasTranscurridos > 0 ? principal.value / diasTranscurridos * diasMes : 0);
@@ -2331,9 +2334,9 @@ function renderSeguimientoMesActual(base, tipo) {
     const ritmoSub = esPorcentaje ? 'No aplica para porcentajes' : 'Por día restante';
     document.getElementById('kpiMesActualGrid').innerHTML = actual ? `
         <div class="kpi">
-            <div class="kpi-header"><span class="kpi-label">Mes actual</span><div class="kpi-icon ${color}"><i class="fas fa-calendar-day"></i></div></div>
+            <div class="kpi-header"><span class="kpi-label">Período</span><div class="kpi-icon ${color}"><i class="fas fa-calendar-day"></i></div></div>
             <div class="kpi-value">${estado}</div>
-            <div class="kpi-sub">${ym} · día ${diasTranscurridos}/${diasMes}</div>
+            <div class="kpi-sub">${rango.desde} a ${rango.hasta}</div>
         </div>
         <div class="kpi">
             <div class="kpi-header"><span class="kpi-label">Objetivo en $</span><div class="kpi-icon green"><i class="fas fa-dollar-sign"></i></div></div>
@@ -2350,7 +2353,7 @@ function renderSeguimientoMesActual(base, tipo) {
             <div class="kpi-value">${fmtMoneyCompact(proyeccionDinero)}</div>
             <div class="kpi-sub">${fmt(proyeccionDinero)} al ritmo actual</div>
         </div>
-    ` : '<div class="empty" style="grid-column:1/-1">Sin datos del mes actual con los filtros elegidos.</div>';
+    ` : '<div class="empty" style="grid-column:1/-1">Sin datos del período con los filtros elegidos.</div>';
 }
 
 function renderMarcas() {
