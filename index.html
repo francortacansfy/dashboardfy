@@ -1209,7 +1209,7 @@ function renderMetaGapKpis(tipo, actual) {
             <div class="kpi-sub">Tipo: ${metaTipo === 'money' ? '$' : metaTipo === 'pct' ? '%' : 'número'}</div>
         </div>
         <div class="kpi">
-            <div class="kpi-header"><span class="kpi-label">Gap</span><div class="kpi-icon ${tieneMeta && gap <= 0 ? 'green' : 'orange'}"><i class="fas fa-route"></i></div></div>
+            <div class="kpi-header"><span class="kpi-label">Diferencia</span><div class="kpi-icon ${tieneMeta && gap <= 0 ? 'green' : 'orange'}"><i class="fas fa-route"></i></div></div>
             <div class="kpi-value">${gapDisplay}</div>
             <div class="kpi-sub">${tieneMeta && gap <= 0 ? 'Meta alcanzada o superada' : 'Falta para llegar'}</div>
         </div>
@@ -1254,8 +1254,8 @@ function renderSeguimientoMesActual(base, tipo) {
     const fmtTipo = n => unidad === 'money' ? fmt(n) : unidad === 'pct' ? fmtPct(n) : Math.round(n).toLocaleString('es-AR');
     const estado = !tieneMeta ? 'Sin meta' : proyeccion >= metaRaw ? 'En camino' : 'En riesgo';
     const color = !tieneMeta ? 'blue' : proyeccion >= metaRaw ? 'green' : 'red';
-    const cierreLabel = esPorcentaje ? 'Lectura MTD' : 'Proyección cierre';
-    const cierreSub = !tieneMeta ? 'Cargá meta para comparar' : esPorcentaje ? `Gap actual: ${gapActual >= 0 ? '+' : ''}${gapActual.toFixed(1).replace('.', ',')} pp` : `Gap proyectado: ${fmtTipo(gapProyectado)}`;
+    const cierreLabel = esPorcentaje ? 'Lectura del mes' : 'Cierre estimado';
+    const cierreSub = !tieneMeta ? 'Cargá meta para comparar' : esPorcentaje ? `Diferencia actual: ${gapActual >= 0 ? '+' : ''}${gapActual.toFixed(1).replace('.', ',')} pp` : `Diferencia estimada: ${fmtTipo(gapProyectado)}`;
     const ritmoValue = !tieneMeta ? '-' : esPorcentaje ? '-' : fmtTipo(ritmoNecesario);
     const ritmoSub = esPorcentaje ? 'No aplica para porcentajes' : 'Por día restante';
     document.getElementById('kpiMesActualGrid').innerHTML = actual ? `
@@ -1265,7 +1265,7 @@ function renderSeguimientoMesActual(base, tipo) {
             <div class="kpi-sub">${ym} · día ${diasTranscurridos}/${diasMes}</div>
         </div>
         <div class="kpi">
-            <div class="kpi-header"><span class="kpi-label">Actual MTD</span><div class="kpi-icon green"><i class="fas fa-gauge"></i></div></div>
+            <div class="kpi-header"><span class="kpi-label">Acumulado del mes</span><div class="kpi-icon green"><i class="fas fa-gauge"></i></div></div>
             <div class="kpi-value">${fmtTipo(principal.value)}</div>
             <div class="kpi-sub">${principal.label}</div>
         </div>
