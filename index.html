@@ -1564,6 +1564,16 @@ function renderPlanComercial() {
     const baseDesde = document.getElementById('planBaseDesde').value;
     const baseHasta = document.getElementById('planBaseHasta').value;
     const filtrado = DATA.filter(d => (!marca || d.marca === marca) && (!tienda || d.tienda === tienda));
+    const tieneRangos = desde && hasta && baseDesde && baseHasta;
+    if (!tieneRangos) {
+        const grid = document.getElementById('planKpiGrid');
+        const list = document.getElementById('planFocusList');
+        if (grid) grid.innerHTML = '<div class="empty" style="grid-column:1/-1">Elegí decisión y rangos para medir el plan.</div>';
+        if (list) list.innerHTML = '<div class="empty" style="grid-column:1/-1">Todavía no hay productos foco seleccionados.</div>';
+        renderTareasPlan();
+        guardarPlanEstado();
+        return;
+    }
     const actualRows = filtrado.filter(d => planFechaEnRango(d.fecha, desde, hasta));
     const baseRows = filtrado.filter(d => planFechaEnRango(d.fecha, baseDesde, baseHasta));
     const combos = compararCombosPlan(actualRows, baseRows, filtrado);
