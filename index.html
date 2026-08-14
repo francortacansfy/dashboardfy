@@ -1759,11 +1759,8 @@ function prepararControlesObjetivoKpis() {
     const hasta = document.getElementById('kpiActualHasta');
     if (desde?.previousElementSibling) desde.previousElementSibling.textContent = 'Desde';
     if (hasta?.previousElementSibling) hasta.previousElementSibling.textContent = 'Hasta';
-    ['kpiBaseDesde', 'kpiBaseHasta'].forEach(id => {
-        const el = document.getElementById(id);
-        const box = el?.closest('div');
-        if (box) box.style.display = 'none';
-    });
+    agruparRangoFechas('kpiActualDesde', 'kpiActualHasta', 'Período a analizar');
+    agruparRangoFechas('kpiBaseDesde', 'kpiBaseHasta', 'Período anterior');
     const tipoSel = document.getElementById('kpiObjetivoTipo');
     if (tipoSel && !tipoSel.dataset.ready) {
         tipoSel.value = 'rutinas';
@@ -1776,6 +1773,24 @@ function prepararControlesObjetivoKpis() {
             el.dataset.ready = '1';
         }
     });
+}
+
+function agruparRangoFechas(desdeId, hastaId, label) {
+    const desde = document.getElementById(desdeId);
+    const hasta = document.getElementById(hastaId);
+    if (!desde || !hasta || desde.dataset.grouped === '1') return;
+    const boxDesde = desde.closest('div');
+    const boxHasta = hasta.closest('div');
+    if (!boxDesde || !boxHasta) return;
+    const labelEl = boxDesde.querySelector('label');
+    if (labelEl) labelEl.textContent = label;
+    const wrap = document.createElement('div');
+    wrap.className = 'range-pair';
+    boxDesde.appendChild(wrap);
+    wrap.appendChild(desde);
+    wrap.appendChild(hasta);
+    boxHasta.style.display = 'none';
+    desde.dataset.grouped = '1';
 }
 
 function calcularGrowthRangoKpis(base, desde, hasta, label) {
