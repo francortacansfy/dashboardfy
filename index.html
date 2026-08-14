@@ -1373,6 +1373,7 @@ function cargarDecisionKpis(id) {
     set('kpiDecision', item.decision || '');
     set('kpiResponsable', item.responsable || '');
     set('kpiNota', item.nota || '');
+    sincronizarPeriodoKpisTexto();
     renderKpis();
 }
 
