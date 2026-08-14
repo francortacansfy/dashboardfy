@@ -1272,8 +1272,20 @@ function cambiarObjetivoKpis() {
 }
 
 function textoObjetivoSeleccionado() {
-    const sel = document.getElementById('kpiObjetivoTipo');
-    return sel?.options[sel.selectedIndex]?.textContent || '';
+    const el = document.getElementById('kpiObjetivoTipo');
+    if (!el) return '';
+    if (el.tagName === 'SELECT') return el.options[el.selectedIndex]?.textContent || '';
+    return el.value || '';
+}
+
+function normalizarObjetivoTipo(valor) {
+    const v = String(valor || '').toLowerCase();
+    if (v === 'rutinas' || v.includes('ticket') || v.includes('combo') || v.includes('rutina')) return 'rutinas';
+    if (v === 'shopify' || v.includes('shopify')) return 'shopify';
+    if (v === 'ml' || v.includes('mercado libre')) return 'ml';
+    if (v === 'categorias' || v.includes('categor')) return 'categorias';
+    if (v.trim()) return 'nuevo';
+    return '';
 }
 
 function actualizarDecisionDesdeObjetivo() {
