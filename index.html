@@ -1717,7 +1717,7 @@ function elegirReferenciaKpisPorFecha(base) {
         actual,
         anterior,
         ultimos: [anterior, actual],
-        label: `Actual ${actualDesde || '-'} a ${actualHasta || '-'} · Base ${baseDesde || '-'} a ${baseHasta || '-'}`,
+        label: `Período 1: ${actualDesde || '-'} a ${actualHasta || '-'} · Período 2: ${baseDesde || '-'} a ${baseHasta || '-'}`,
     };
 }
 
@@ -1772,10 +1772,10 @@ function renderGrowthMensual(base) {
     };
     const cfg = cfgs[objetivoTipo] || cfgs.rutinas;
     const lectura = document.getElementById('kpiObjetivoLectura');
-    if (lectura) lectura.innerHTML = `<strong>Referencia: ${refData.label}</strong> · Meta = a donde queremos llegar. ${cfg.texto}`;
+    if (lectura) lectura.innerHTML = `<strong>Comparación: ${refData.label}</strong> · Meta = a dónde queremos llegar. ${cfg.texto}`;
     document.getElementById('growthKpiGrid').innerHTML = actual ? cfg.cards.map(([label, display, val, prev, suffix, color, icon]) => `
         <div class="kpi"><div class="kpi-header"><span class="kpi-label">${label}</span><div class="kpi-icon ${color}"><i class="fas fa-${icon}"></i></div></div><div class="kpi-value">${display}</div><div class="kpi-sub">Contra referencia anterior: ${val === null || !anterior ? '—' : deltaBadge(val, prev, suffix)}</div></div>
-    `).join('') : '<div class="empty" style="grid-column:1/-1">Sin meses cerrados para mostrar.</div>';
+    `).join('') : '<div class="empty" style="grid-column:1/-1">Sin datos para mostrar.</div>';
     const head = document.querySelector('#growthKpiCard thead tr');
     if (head) head.innerHTML = `<th>Mes</th>${cfg.cols.map(c => `<th style="text-align:right">${c}</th>`).join('')}`;
     document.getElementById('growthKpiBody').innerHTML = ultimos.map(r => `<tr><td><strong>${r.mes}</strong></td>${cfg.values(r).map(v => `<td style="text-align:right">${v}</td>`).join('')}</tr>`).join('') || '<tr><td colspan="4" class="empty">Sin datos de meses cerrados</td></tr>';
