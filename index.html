@@ -1909,8 +1909,15 @@ function aplicarLayoutObjetivoLocal() {
     if (objetivoLabel) objetivoLabel.textContent = 'Objetivo';
     const desdeLabel = desdeBox.querySelector('label');
     if (desdeLabel) desdeLabel.textContent = 'Período a analizar';
+    const single = document.createElement('input');
+    single.className = 'search-input range-single';
+    single.id = 'kpiPeriodoRango';
+    single.placeholder = 'dd/mm/aaaa - dd/mm/aaaa';
+    single.style.width = '100%';
+    single.oninput = actualizarPeriodoKpisDesdeTexto;
+    desdeBox.appendChild(single);
     const rango = document.createElement('div');
-    rango.className = 'range-pair';
+    rango.className = 'range-native hidden';
     rango.appendChild(desde);
     rango.appendChild(hasta);
     desdeBox.appendChild(rango);
