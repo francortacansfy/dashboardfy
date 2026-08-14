@@ -1314,6 +1314,19 @@ function normalizarObjetivoTipo(valor) {
     return '';
 }
 
+function normalizarTextoSimple(texto) {
+    return String(texto || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+function categoriaDesdeObjetivo(row) {
+    const texto = normalizarTextoSimple(textoObjetivoSeleccionado());
+    const categorias = Object.keys(row?.categorias || {});
+    return categorias.find(cat => {
+        const c = normalizarTextoSimple(cat);
+        return texto.includes(c) || c.split(/\s+/).some(p => p.length > 4 && texto.includes(p));
+    }) || null;
+}
+
 function actualizarDecisionDesdeObjetivo() {
     const decision = document.getElementById('kpiDecision');
     if (!decision || decision.value.trim()) return;
