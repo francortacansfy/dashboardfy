@@ -1443,7 +1443,7 @@ function valorPlanKpi(kpi, m) {
 
 function mapCombosPlan(rows) {
     const map = {};
-    rows.filter(d => d.completa && d.tipoFila !== 'hija' && COMBOS_REALES.has(d.sku)).forEach(d => {
+    rows.filter(d => d.completa && d.tipoFila !== 'hija').forEach(d => {
         if (!map[d.sku]) map[d.sku] = { sku:d.sku, marca:d.marca, ventas:0, ordenes:new Set(), tiendas:{} };
         map[d.sku].ventas += d.total;
         if (d.num_venta && !d.esPaquete) map[d.sku].ordenes.add(d.num_venta);
@@ -1456,6 +1456,8 @@ function compararCombosPlan(actualRows, baseRows, fallbackRows) {
     const actual = mapCombosPlan(actualRows.length ? actualRows : fallbackRows);
     const base = mapCombosPlan(baseRows);
     const skus = [...new Set([...Object.keys(actual), ...Object.keys(base)])];
+    const search = (document.getElementById('planProductoSearch')?.value || '').trim().toLowerCase();
+    const selected = new Set((leerPlanEstado().skus || []).map(String));
     return skus.map(sku => {
         const a = actual[sku] || { sku, marca:base[sku]?.marca || '', ventas:0, ordenes:new Set(), tiendas:{} };
         const b = base[sku] || { ventas:0 };
@@ -1467,7 +1469,9 @@ function compararCombosPlan(actualRows, baseRows, fallbackRows) {
             ordenesCount:a.ordenes?.size || 0,
             ticket:a.ordenes?.size ? a.ventas / a.ordenes.size : 0,
         };
-    }).sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
+    }).filter(x => selected.has(x.sku) || (search.length >= 2 && `${x.sku} ${x.marca}`.toLowerCase().includes(search)))
+      .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
+      .slice(0, 24);
 }
 
 function renderPlanComercial() {
