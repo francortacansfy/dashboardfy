@@ -990,7 +990,7 @@ function renderGrowthMensual(base) {
 function prepararControlesObjetivoKpis() {
     const mesSel = document.getElementById('kpiObjetivoMes');
     if (mesSel && !mesSel.dataset.ready) {
-        const meses = [...new Set(DATA.map(d => d.fecha?.substring(0,7)).filter(Boolean))].sort();
+        const meses = [...new Set(DATA.map(d => d.fecha?.substring(0,7)).filter(Boolean))].filter(isMesCerrado).sort();
         const guardado = JSON.parse(localStorage.getItem('fyl_kpi_objetivo') || '{}');
         mesSel.innerHTML = meses.map(m => `<option value="${m}">${m}</option>`).join('');
         mesSel.value = guardado.mes || meses[meses.length - 1] || '';
