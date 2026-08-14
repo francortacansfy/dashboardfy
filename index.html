@@ -1100,6 +1100,7 @@ function prepararControlesObjetivoKpis() {
 }
 
 const KPI_DECISIONES_KEY = 'fyl_kpi_decisiones';
+let KPI_DECISION_ACTIVA_ID = null;
 
 function leerDecisionActualKpis() {
     return {
@@ -1128,6 +1129,7 @@ function guardarDecisionKpis() {
     const item = { ...actual, id: Date.now().toString() };
     decisiones.unshift(item);
     localStorage.setItem(KPI_DECISIONES_KEY, JSON.stringify(decisiones.slice(0, 30)));
+    KPI_DECISION_ACTIVA_ID = item.id;
     renderDecisionKpis();
 }
 
@@ -1135,6 +1137,7 @@ function cargarDecisionKpis(id) {
     const decisiones = JSON.parse(localStorage.getItem(KPI_DECISIONES_KEY) || '[]');
     const item = decisiones.find(d => d.id === id);
     if (!item) return;
+    KPI_DECISION_ACTIVA_ID = id;
     const set = (idEl, value) => {
         const el = document.getElementById(idEl);
         if (el) el.value = value || '';
@@ -1158,21 +1161,24 @@ function escapeHtml(str) {
 function renderDecisionKpis() {
     const decisiones = JSON.parse(localStorage.getItem(KPI_DECISIONES_KEY) || '[]');
     const ultima = decisiones[0];
+    const activa = decisiones.find(d => d.id === KPI_DECISION_ACTIVA_ID) || null;
     const updated = ultima?.updatedAt ? new Date(ultima.updatedAt).toLocaleString('es-AR') : 'Sin decisiones guardadas';
     const updatedEl = document.getElementById('kpiDecisionUpdated');
     if (updatedEl) updatedEl.textContent = `Última decisión guardada: ${updated}`;
     const resumenEl = document.getElementById('kpiDecisionResumen');
     if (resumenEl) {
-        resumenEl.innerHTML = ultima
-            ? `<strong>Última guardada:</strong> ${escapeHtml(ultima.decision)}${ultima.responsable ? ` · Responsable: ${escapeHtml(ultima.responsable)}` : ''}${ultima.nota ? `<br>${escapeHtml(ultima.nota)}` : ''}`
-            : 'Todavía no hay decisiones guardadas. Completá la acción y tocá Guardar decisión.';
+        resumenEl.innerHTML = activa
+            ? `<strong>Decisión activa:</strong> ${escapeHtml(activa.decision)}${activa.responsable ? ` · Responsable: ${escapeHtml(activa.responsable)}` : ''}${activa.nota ? `<br>${escapeHtml(activa.nota)}` : ''}`
+            : decisiones.length
+                ? 'Elegí una decisión guardada para cargar el objetivo en toda la pantalla.'
+                : 'Todavía no hay decisiones guardadas. Completá la acción y tocá Guardar decisión.';
     }
     const listaEl = document.getElementById('kpiDecisionLista');
     if (listaEl) {
         listaEl.innerHTML = decisiones.length ? decisiones.map(d => {
             const objetivo = document.querySelector(`#kpiObjetivoTipo option[value="${d.tipo}"]`)?.textContent || d.tipo || 'Objetivo';
             const fecha = d.updatedAt ? new Date(d.updatedAt).toLocaleString('es-AR') : '';
-            return `<button class="decision-item" type="button" onclick="cargarDecisionKpis('${d.id}')">
+            return `<button class="decision-item ${d.id === KPI_DECISION_ACTIVA_ID ? 'active' : ''}" type="button" onclick="cargarDecisionKpis('${d.id}')">
                 <div class="decision-title">${escapeHtml(d.decision)}</div>
                 <div class="decision-meta">${escapeHtml(objetivo)} · Meta: ${escapeHtml(d.meta || '-')} · ${escapeHtml(fecha)}</div>
             </button>`;
