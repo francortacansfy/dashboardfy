@@ -1409,7 +1409,7 @@ function prepararPlanComercial() {
     const baseHastaDefault = sumarDias(desdeDefault, -1);
     const baseDesdeDefault = restarDias(desdeDefault, diasDefault);
     [
-        ['planKpi', estado.kpi || 'ticket'],
+        ['planKpi', estado.kpi || ''],
         ['planMarca', estado.marca || ''],
         ['planTienda', estado.tienda || ''],
         ['planDesde', estado.desde || desdeDefault],
@@ -1426,6 +1426,24 @@ function prepararPlanComercial() {
             el.dataset.planReady = '1';
         }
     });
+    poblarDecisionesPlan();
+}
+
+function poblarDecisionesPlan() {
+    const sel = document.getElementById('planKpi');
+    if (!sel) return;
+    const actual = sel.value;
+    const decisiones = JSON.parse(localStorage.getItem(KPI_DECISIONES_KEY) || '[]');
+    sel.innerHTML = '<option value="">Elegir decisión guardada</option>' + decisiones.map(d =>
+        `<option value="${d.id}">${escapeHtml(d.decision || 'Decisión sin nombre')}</option>`
+    ).join('');
+    sel.value = decisiones.some(d => d.id === actual) ? actual : '';
+}
+
+function decisionPlanActiva() {
+    const id = document.getElementById('planKpi')?.value || '';
+    const decisiones = JSON.parse(localStorage.getItem(KPI_DECISIONES_KEY) || '[]');
+    return decisiones.find(d => d.id === id) || null;
 }
 
 function planFechaEnRango(fecha, desde, hasta) {
