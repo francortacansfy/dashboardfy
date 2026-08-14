@@ -1528,6 +1528,7 @@ function compararCombosPlan(actualRows, baseRows, fallbackRows) {
     const base = mapCombosPlan(baseRows);
     const skus = [...new Set([...Object.keys(actual), ...Object.keys(base)])];
     const search = (document.getElementById('planProductoSearch')?.value || '').trim().toLowerCase();
+    const categoria = document.getElementById('planCategoria')?.value || '';
     const selected = PLAN_SKUS_SELECCIONADOS;
     return skus.map(sku => {
         const a = actual[sku] || { sku, marca:base[sku]?.marca || '', ventas:0, ordenes:new Set(), tiendas:{} };
@@ -1540,7 +1541,11 @@ function compararCombosPlan(actualRows, baseRows, fallbackRows) {
             ordenesCount:a.ordenes?.size || 0,
             ticket:a.ordenes?.size ? a.ventas / a.ordenes.size : 0,
         };
-    }).filter(x => selected.has(x.sku) || (search.length >= 2 && `${x.sku} ${x.marca}`.toLowerCase().includes(search)))
+    }).filter(x => {
+        const catOk = !categoria || categoriaKpi({ sku:x.sku, marca:x.marca }) === categoria;
+        const textOk = selected.has(x.sku) || !search || `${x.sku} ${x.marca}`.toLowerCase().includes(search);
+        return catOk && textOk;
+    })
       .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
       .slice(0, 24);
 }
