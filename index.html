@@ -2223,19 +2223,9 @@ function calcularGrowthRangoKpis(base, desde, hasta, label) {
 }
 
 function elegirReferenciaKpisPorFecha(base) {
-    let actualDesde = document.getElementById('kpiActualDesde')?.value || '';
-    let actualHasta = document.getElementById('kpiActualHasta')?.value || '';
-    if (!actualDesde || !actualHasta) {
-        const visible = parseFechaRangoKpis(document.getElementById('kpiPeriodoRango')?.textContent || '');
-        if (visible) {
-            actualDesde = visible.desde;
-            actualHasta = visible.hasta;
-            const desdeEl = document.getElementById('kpiActualDesde');
-            const hastaEl = document.getElementById('kpiActualHasta');
-            if (desdeEl) desdeEl.value = actualDesde;
-            if (hastaEl) hastaEl.value = actualHasta;
-        }
-    }
+    const rango = rangoObjetivoKpis();
+    let actualDesde = rango.desde;
+    let actualHasta = rango.hasta;
     if (!actualDesde || !actualHasta) {
         return { actual:null, anterior:null, ultimos:[], label:'Elegí desde y hasta para comparar contra el período anterior' };
     }
