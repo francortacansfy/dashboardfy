@@ -1096,7 +1096,7 @@ function prepararControlesObjetivoKpis() {
         tipoSel.dataset.ready = '1';
     }
     const guardado = JSON.parse(localStorage.getItem('fyl_kpi_objetivo') || '{}');
-    ['Meta','MetaTipo','Decision','Responsable','Nota'].forEach(campo => {
+    ['Meta','MetaTipo'].forEach(campo => {
         const el = document.getElementById('kpiObjetivo' + campo) || document.getElementById('kpi' + campo);
         if (el && !el.dataset.ready) {
             el.value = guardado[campo.toLowerCase()] || (campo === 'MetaTipo' ? 'auto' : '');
