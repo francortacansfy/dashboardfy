@@ -2083,6 +2083,7 @@ function transformarObjetivoEnCampoEscribible() {
         input.oninput = cambiarObjetivoKpis;
         select.after(input);
     }
+    if (input.value.trim() && !select.value) select.value = 'nuevo';
     input.style.display = select.value === 'nuevo' ? 'block' : 'none';
     if (select.value === 'nuevo') input.focus();
 }
