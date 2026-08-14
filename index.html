@@ -1657,6 +1657,15 @@ function prepararControlesObjetivoKpis() {
             el.dataset.ready = '1';
         }
     });
+    const desde = document.getElementById('kpiActualDesde');
+    const hasta = document.getElementById('kpiActualHasta');
+    if (desde?.previousElementSibling) desde.previousElementSibling.textContent = 'Desde';
+    if (hasta?.previousElementSibling) hasta.previousElementSibling.textContent = 'Hasta';
+    ['kpiBaseDesde', 'kpiBaseHasta'].forEach(id => {
+        const el = document.getElementById(id);
+        const box = el?.closest('div');
+        if (box) box.style.display = 'none';
+    });
     const tipoSel = document.getElementById('kpiObjetivoTipo');
     if (tipoSel && !tipoSel.dataset.ready) {
         tipoSel.value = 'rutinas';
