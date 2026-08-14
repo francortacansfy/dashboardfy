@@ -785,15 +785,22 @@ function calcularGrowthMensual(base) {
         if (!ym || !isMesCerrado(ym)) return;
         if (!porMes[ym]) {
             porMes[ym] = {
-                total: 0, shopify: 0, shopifyOrdenes: new Set(),
-                combo: 0, comboUds: 0,
+                total: 0, ml: 0, shopify: 0, mlOrdenes: new Set(), shopifyOrdenes: new Set(),
+                combo: 0, comboUds: 0, categorias: {},
             };
         }
         const m = porMes[ym];
         if (d.tipoFila !== 'hija') {
             m.total += d.total;
+            if (d.tienda === 'Mercado Libre') m.ml += d.total;
             if (d.tienda === 'Shopify') m.shopify += d.total;
             if (COMBOS_REALES.has(d.sku)) m.combo += d.total;
+            const cat = categoriaKpi(d);
+            if (!m.categorias[cat]) m.categorias[cat] = 0;
+            m.categorias[cat] += d.total;
+        }
+        if (d.tienda === 'Mercado Libre' && d.tipoFila !== 'padre' && d.num_venta) {
+            m.mlOrdenes.add(d.num_venta);
         }
         if (d.tienda === 'Shopify' && d.tipoFila !== 'padre' && d.num_venta) {
             m.shopifyOrdenes.add(d.num_venta);
@@ -806,12 +813,35 @@ function calcularGrowthMensual(base) {
     return Object.entries(porMes).sort(([a], [b]) => a.localeCompare(b)).map(([ym, v]) => ({
         mes: ym,
         total: v.total,
+        mlShare: v.total ? v.ml / v.total * 100 : 0,
+        mlVentas: v.ml,
+        mlTicket: v.mlOrdenes.size ? v.ml / v.mlOrdenes.size : 0,
         shopifyShare: v.total ? v.shopify / v.total * 100 : 0,
+        shopifyVentas: v.shopify,
         shopifyTicket: v.shopifyOrdenes.size ? v.shopify / v.shopifyOrdenes.size : 0,
         comboShare: v.total ? v.combo / v.total * 100 : 0,
         comboVentas: v.combo,
         comboUds: v.comboUds,
+        topCategoria: Object.entries(v.categorias).sort((a,b) => b[1] - a[1])[0] || ['-', 0],
     }));
+}
+
+function categoriaKpi(d) {
+    const sku = (d.sku || '').toUpperCase();
+    if (COMBOS_REALES.has(d.sku)) return 'Combos';
+    if (d.marca === 'Hairfy') {
+        if (sku.includes('SHA')) return 'Shampoos';
+        if (sku.includes('ACO')) return 'Acondicionadores';
+        if (sku.includes('CMB')) return 'Combos';
+        if (sku.includes('VIT') || sku.includes('COL')) return 'Suplementos';
+        return 'Accesorios';
+    }
+    if (sku.includes('MAG') || sku.includes('POT') || sku.includes('MIN')) return 'Magnesios';
+    if (sku.includes('COL')) return 'Colágeno Hidrolizado';
+    if (sku.includes('OME') || sku.includes('MCT')) return 'Omegas & Grasas Saludables';
+    if (sku.includes('MFY')) return 'Multivitamínico';
+    if (['CUR','MEL','SPI','RES','NAD','B12'].some(x => sku.includes(x))) return 'Veganos';
+    return 'Vitaminas y Minerales';
 }
 
 function calcularCoreMensual(base) {
