@@ -338,6 +338,28 @@
     <div class="page" id="kpis">
         <div class="table-card">
             <div class="table-head">
+                <h3>Objetivo del mes</h3>
+                <span style="font-size:12px;color:var(--text-3)">El tablero elige qué mirar según el foco</span>
+            </div>
+            <div style="padding:18px 22px;display:grid;grid-template-columns:180px minmax(260px,1fr);gap:12px;align-items:end">
+                <div>
+                    <label class="filterbar-label" style="display:block;margin-bottom:6px;padding:0">Mes objetivo</label>
+                    <select class="filter-select" id="kpiObjetivoMes" onchange="guardarObjetivoKpis(); renderKpis()" style="width:100%"></select>
+                </div>
+                <div>
+                    <label class="filterbar-label" style="display:block;margin-bottom:6px;padding:0">Objetivo</label>
+                    <select class="filter-select" id="kpiObjetivoTipo" onchange="guardarObjetivoKpis(); renderKpis()" style="width:100%">
+                        <option value="rutinas">Subir ticket con combos/rutinas</option>
+                        <option value="shopify">Potenciar Shopify</option>
+                        <option value="ml">Defender Mercado Libre</option>
+                        <option value="categorias">Crecer por categorías</option>
+                    </select>
+                </div>
+            </div>
+            <div id="kpiObjetivoLectura" style="padding:0 22px 18px;color:var(--text-3);font-size:13px;line-height:1.6"></div>
+        </div>
+        <div class="table-card">
+            <div class="table-head">
                 <h3>KPIs Core</h3>
                 <span style="font-size:12px;color:var(--text-3)">Salud mensual del negocio</span>
             </div>
