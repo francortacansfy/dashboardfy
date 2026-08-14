@@ -1252,13 +1252,14 @@ let KPI_DECISION_ACTIVA_ID = null;
 
 function guardarEstadoFormularioKpis() {
     const get = id => document.getElementById(id)?.value || '';
+    const periodoEl = document.getElementById('kpiPeriodoRango');
     const estado = {
         objetivo: get('kpiObjetivoTipo'),
         objetivoNuevo: get('kpiObjetivoNuevo'),
         metrica: get('kpiObjetivoMetrica'),
         desde: get('kpiActualDesde'),
         hasta: get('kpiActualHasta'),
-        periodoTexto: document.getElementById('kpiPeriodoRango')?.textContent || '',
+        periodoTexto: periodoEl ? (periodoEl.value || periodoEl.textContent || '') : '',
         metaTipo: get('kpiObjetivoMetaTipo'),
         meta: get('kpiObjetivoMeta'),
         seguimiento: get('kpiSeguimientoPreset'),
