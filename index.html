@@ -1780,7 +1780,19 @@ function elegirReferenciaKpisPorFecha(base) {
 
 function renderGrowthMensual(base) {
     prepararControlesObjetivoKpis();
-    const objetivoTipo = document.getElementById('kpiObjetivoTipo')?.value || 'rutinas';
+    const objetivoTipo = document.getElementById('kpiObjetivoTipo')?.value || '';
+    if (!objetivoTipo) {
+        const lectura = document.getElementById('kpiObjetivoLectura');
+        if (lectura) lectura.innerHTML = 'Elegí un objetivo, rango y meta para empezar.';
+        const growthGrid = document.getElementById('growthKpiGrid');
+        const growthBody = document.getElementById('growthKpiBody');
+        if (growthGrid) growthGrid.innerHTML = '<div class="empty" style="grid-column:1/-1">Sin objetivo elegido.</div>';
+        if (growthBody) growthBody.innerHTML = '<tr><td colspan="4" class="empty">Sin objetivo elegido</td></tr>';
+        renderMetaGapKpis('', null);
+        renderSeguimientoMesActual([], '');
+        renderMirarFinoKpis('');
+        return;
+    }
     const refData = elegirReferenciaKpisPorFecha(base);
     const actual = refData.actual;
     const anterior = refData.anterior;
