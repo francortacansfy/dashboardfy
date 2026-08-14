@@ -1107,16 +1107,81 @@ function limpiarObjetivoKpis() {
     renderKpis();
 }
 
+function promedioRows(rows, label) {
+    if (!rows.length) return null;
+    const avg = campo => rows.reduce((sum, r) => sum + (r[campo] || 0), 0) / rows.length;
+    const categorias = {};
+    rows.forEach(r => {
+        Object.entries(r.categorias || {}).forEach(([cat, venta]) => {
+            categorias[cat] = (categorias[cat] || 0) + venta;
+        });
+    });
+    const topCategoria = Object.entries(categorias).sort((a, b) => b[1] - a[1])[0] || null;
+    return {
+        ...rows[rows.length - 1],
+        mes: label,
+        total: avg('total'),
+        ordenes: avg('ordenes'),
+        ticket: avg('ticket'),
+        ml: avg('ml'),
+        mlShare: avg('mlShare'),
+        mlVentas: avg('mlVentas'),
+        mlTicket: avg('mlTicket'),
+        shopify: avg('shopify'),
+        shopifyShare: avg('shopifyShare'),
+        shopifyVentas: avg('shopifyVentas'),
+        shopifyTicket: avg('shopifyTicket'),
+        combo: avg('combo'),
+        comboShare: avg('comboShare'),
+        comboVentas: avg('comboVentas'),
+        comboUds: avg('comboUds'),
+        topCategoria,
+    };
+}
+
+function elegirReferenciaKpis(rows, tipo, referencia) {
+    const ref = referencia || 'avg3';
+    if (!rows.length) return { actual:null, anterior:null, ultimos:[], label:'Sin referencia' };
+    if (ref.startsWith('month:')) {
+        const mes = ref.replace('month:', '');
+        const idx = rows.findIndex(r => r.mes === mes);
+        const pos = idx >= 0 ? idx : rows.length - 1;
+        return {
+            actual: rows[pos],
+            anterior: pos > 0 ? rows[pos - 1] : null,
+            ultimos: rows.slice(Math.max(0, pos - 5), pos + 1),
+            label: `Mes ${rows[pos]?.mes || mes}`,
+        };
+    }
+    if (ref === 'best') {
+        const conValor = rows.map(r => ({ row:r, principal:valorPrincipalObjetivo(tipo, r).value }));
+        const best = conValor.sort((a, b) => b.principal - a.principal)[0]?.row || rows[rows.length - 1];
+        const idx = rows.findIndex(r => r.mes === best.mes);
+        return {
+            actual: best,
+            anterior: idx > 0 ? rows[idx - 1] : null,
+            ultimos: rows.slice(Math.max(0, idx - 5), idx + 1),
+            label: `Mejor mes cerrado: ${best.mes}`,
+        };
+    }
+    const ultimos3 = rows.slice(-3);
+    return {
+        actual: promedioRows(ultimos3, 'Prom. 3 meses'),
+        anterior: rows.length > 3 ? promedioRows(rows.slice(-6, -3), 'Prom. anterior') : null,
+        ultimos: rows.slice(-6),
+        label: 'Promedio ultimos 3 meses cerrados',
+    };
+}
+
 function renderGrowthMensual(base) {
     prepararControlesObjetivoKpis();
     const rows = calcularGrowthMensual(base);
-    const objetivoMes = document.getElementById('kpiObjetivoMes')?.value || rows[rows.length - 1]?.mes || '';
     const objetivoTipo = document.getElementById('kpiObjetivoTipo')?.value || 'rutinas';
-    const idx = rows.findIndex(r => r.mes === objetivoMes);
-    const pos = idx >= 0 ? idx : rows.length - 1;
-    const actual = rows[pos];
-    const anterior = pos > 0 ? rows[pos - 1] : null;
-    const ultimos = rows.slice(Math.max(0, pos - 5), pos + 1);
+    const referencia = document.getElementById('kpiObjetivoMes')?.value || 'avg3';
+    const refData = elegirReferenciaKpis(rows, objetivoTipo, referencia);
+    const actual = refData.actual;
+    const anterior = refData.anterior;
+    const ultimos = refData.ultimos;
     const cfgs = {
         rutinas: {
             texto: 'Subir ticket vendiendo combinaciones reales, no solo packs del mismo producto.',
@@ -1161,7 +1226,7 @@ function renderGrowthMensual(base) {
     };
     const cfg = cfgs[objetivoTipo] || cfgs.rutinas;
     const lectura = document.getElementById('kpiObjetivoLectura');
-    if (lectura) lectura.innerHTML = `<strong>${objetivoMes || 'Sin mes'}</strong> · ${cfg.texto}`;
+    if (lectura) lectura.innerHTML = `<strong>Referencia: ${refData.label}</strong> · Meta = a donde queremos llegar. ${cfg.texto}`;
     document.getElementById('growthKpiGrid').innerHTML = actual ? cfg.cards.map(([label, display, val, prev, suffix, color, icon]) => `
         <div class="kpi"><div class="kpi-header"><span class="kpi-label">${label}</span><div class="kpi-icon ${color}"><i class="fas fa-${icon}"></i></div></div><div class="kpi-value">${display}</div><div class="kpi-sub">vs ant. ${val === null || !anterior ? '—' : deltaBadge(val, prev, suffix)}</div></div>
     `).join('') : '<div class="empty" style="grid-column:1/-1">Sin meses cerrados para mostrar.</div>';
