@@ -1436,6 +1436,8 @@ function prepararPlanComercial() {
     });
     poblarDecisionesPlan();
     poblarProductosPlan();
+    agruparRangoFechas('planDesde', 'planHasta', 'Período a analizar');
+    agruparRangoFechas('planBaseDesde', 'planBaseHasta', 'Período anterior');
 }
 
 function poblarDecisionesPlan() {
