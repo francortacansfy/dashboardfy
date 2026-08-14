@@ -736,7 +736,16 @@ function populateTiendaFilters() {
 }
 
 function renderAll() {
+    const growthCard = document.getElementById('growthKpiCard');
+    const growthMount = document.getElementById('kpisGrowthMount');
+    if (growthCard && growthMount && growthCard.parentElement !== growthMount) {
+        growthMount.appendChild(growthCard);
+        growthCard.querySelector('.table-head h3').textContent = 'Objetivo activo';
+        const sub = growthCard.querySelector('.table-head span');
+        if (sub) sub.textContent = 'KPIs que pueden cambiar según el foco del mes';
+    }
     renderDashboard();
+    renderKpis();
     renderProductos();
     renderMarcas();
 }
@@ -781,6 +790,81 @@ function calcularGrowthMensual(base) {
         comboVentas: v.combo,
         comboUds: v.comboUds,
     }));
+}
+
+function calcularCoreMensual(base) {
+    const porMes = {};
+    base.filter(d => d.completa).forEach(d => {
+        const ym = d.fecha?.substring(0, 7);
+        if (!ym || !isMesCerrado(ym)) return;
+        if (!porMes[ym]) {
+            porMes[ym] = { total:0, ml:0, shopify:0, ordenes:new Set() };
+        }
+        const m = porMes[ym];
+        if (d.tipoFila !== 'hija') {
+            m.total += d.total;
+            if (d.tienda === 'Mercado Libre') m.ml += d.total;
+            if (d.tienda === 'Shopify') m.shopify += d.total;
+        }
+        if (d.tipoFila !== 'padre' && d.num_venta) m.ordenes.add(d.num_venta);
+    });
+    return Object.entries(porMes).sort(([a], [b]) => a.localeCompare(b)).map(([ym, v]) => ({
+        mes: ym,
+        total: v.total,
+        ticket: v.ordenes.size ? v.total / v.ordenes.size : 0,
+        mlShare: v.total ? v.ml / v.total * 100 : 0,
+        shopifyShare: v.total ? v.shopify / v.total * 100 : 0,
+    }));
+}
+
+function renderKpis() {
+    const tienda = document.getElementById('filterTiendaKpis')?.value || '';
+    const marca  = document.getElementById('filterMarcaKpis')?.value  || '';
+    const anio   = document.getElementById('filterAnioKpis')?.value   || '';
+    const base = DATA.filter(d =>
+        (!tienda || d.tienda === tienda) &&
+        (!marca  || d.marca  === marca) &&
+        (!anio   || d.fecha?.substring(0,4) === anio)
+    );
+    const rows = calcularCoreMensual(base);
+    const ultimos = rows.slice(-12);
+    const actual = ultimos[ultimos.length - 1];
+    const anterior = ultimos[ultimos.length - 2];
+
+    document.getElementById('coreKpiGrid').innerHTML = actual ? `
+        <div class="kpi">
+            <div class="kpi-header"><span class="kpi-label">Ventas mensuales</span><div class="kpi-icon green"><i class="fas fa-dollar-sign"></i></div></div>
+            <div class="kpi-value">${fmt(actual.total)}</div>
+            <div class="kpi-sub">${actual.mes}</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi-header"><span class="kpi-label">Ticket mensual</span><div class="kpi-icon orange"><i class="fas fa-tag"></i></div></div>
+            <div class="kpi-value">${fmt(actual.ticket)}</div>
+            <div class="kpi-sub">Mes cerrado</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi-header"><span class="kpi-label">Mix ML</span><div class="kpi-icon blue"><i class="fas fa-store"></i></div></div>
+            <div class="kpi-value">${fmtPct(actual.mlShare)}</div>
+            <div class="kpi-sub">vs ant. ${anterior ? deltaBadge(actual.mlShare, anterior.mlShare, ' pp') : '—'}</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi-header"><span class="kpi-label">Mix Shopify</span><div class="kpi-icon red"><i class="fas fa-shopping-bag"></i></div></div>
+            <div class="kpi-value">${fmtPct(actual.shopifyShare)}</div>
+            <div class="kpi-sub">vs ant. ${anterior ? deltaBadge(actual.shopifyShare, anterior.shopifyShare, ' pp') : '—'}</div>
+        </div>
+    ` : '<div class="empty" style="grid-column:1/-1">Sin meses cerrados para mostrar.</div>';
+
+    document.getElementById('coreKpiBody').innerHTML = ultimos.map(r => `
+        <tr>
+            <td><strong>${r.mes}</strong></td>
+            <td style="text-align:right"><strong>${fmt(r.total)}</strong></td>
+            <td style="text-align:right">${fmt(r.ticket)}</td>
+            <td style="text-align:right">${fmtPct(r.mlShare)}</td>
+            <td style="text-align:right">${fmtPct(r.shopifyShare)}</td>
+        </tr>
+    `).join('') || '<tr><td colspan="5" class="empty">Sin datos de meses cerrados</td></tr>';
+
+    renderGrowthMensual(base);
 }
 
 function renderGrowthMensual(base) {
