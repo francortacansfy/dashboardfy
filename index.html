@@ -1247,7 +1247,53 @@ function ordenarObjetivoKpis() {
 
 const KPI_DECISIONES_KEY = 'fyl_kpi_decisiones';
 const KPI_OBJETIVOS_CUSTOM_KEY = 'fyl_kpi_objetivos_custom';
+const KPI_FORM_STATE_KEY = 'fyl_kpi_form_state';
 let KPI_DECISION_ACTIVA_ID = null;
+
+function guardarEstadoFormularioKpis() {
+    const get = id => document.getElementById(id)?.value || '';
+    const estado = {
+        objetivo: get('kpiObjetivoTipo'),
+        objetivoNuevo: get('kpiObjetivoNuevo'),
+        metrica: get('kpiObjetivoMetrica'),
+        desde: get('kpiActualDesde'),
+        hasta: get('kpiActualHasta'),
+        periodoTexto: document.getElementById('kpiPeriodoRango')?.textContent || '',
+        metaTipo: get('kpiObjetivoMetaTipo'),
+        meta: get('kpiObjetivoMeta'),
+        seguimiento: get('kpiSeguimientoPreset'),
+        seguimientoDesde: get('kpiSeguimientoDesde'),
+        seguimientoHasta: get('kpiSeguimientoHasta'),
+        decision: get('kpiDecision'),
+        responsable: get('kpiResponsable'),
+        nota: get('kpiNota'),
+    };
+    localStorage.setItem(KPI_FORM_STATE_KEY, JSON.stringify(estado));
+}
+
+function restaurarEstadoFormularioKpis() {
+    let estado = {};
+    try { estado = JSON.parse(localStorage.getItem(KPI_FORM_STATE_KEY) || '{}'); } catch(e) {}
+    const set = (id, value) => {
+        const el = document.getElementById(id);
+        if (el && value !== undefined) el.value = value || '';
+    };
+    set('kpiObjetivoTipo', estado.objetivo);
+    transformarObjetivoEnCampoEscribible();
+    set('kpiObjetivoNuevo', estado.objetivoNuevo);
+    set('kpiObjetivoMetrica', estado.metrica || 'auto');
+    set('kpiActualDesde', estado.desde);
+    set('kpiActualHasta', estado.hasta);
+    set('kpiObjetivoMetaTipo', estado.metaTipo || 'auto');
+    set('kpiObjetivoMeta', estado.meta);
+    set('kpiSeguimientoPreset', estado.seguimiento || 'objetivo');
+    set('kpiSeguimientoDesde', estado.seguimientoDesde);
+    set('kpiSeguimientoHasta', estado.seguimientoHasta);
+    set('kpiDecision', estado.decision);
+    set('kpiResponsable', estado.responsable);
+    set('kpiNota', estado.nota);
+    sincronizarPeriodoKpisTexto();
+}
 
 function leerDecisionActualKpis() {
     const decision = document.getElementById('kpiDecision')?.value || '';
