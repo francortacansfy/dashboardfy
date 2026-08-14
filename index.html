@@ -1275,12 +1275,14 @@ function cambiarObjetivoKpis() {
 function textoObjetivoSeleccionado() {
     const el = document.getElementById('kpiObjetivoTipo');
     if (!el) return '';
-    if (el.tagName === 'SELECT') return el.options[el.selectedIndex]?.textContent || '';
-    return el.value || '';
+    const nuevo = document.getElementById('kpiObjetivoNuevo')?.value || '';
+    if (el.value === 'nuevo') return nuevo;
+    return el.options?.[el.selectedIndex]?.textContent || '';
 }
 
 function normalizarObjetivoTipo(valor) {
     const v = String(valor || '').toLowerCase();
+    if (v === 'nuevo') return 'nuevo';
     if (v === 'rutinas' || v.includes('ticket') || v.includes('combo') || v.includes('rutina')) return 'rutinas';
     if (v === 'shopify' || v.includes('shopify')) return 'shopify';
     if (v === 'ml' || v.includes('mercado libre')) return 'ml';
