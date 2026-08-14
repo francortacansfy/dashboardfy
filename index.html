@@ -1366,6 +1366,7 @@ function guardarPlanEstado() {
         baseHasta: val('planBaseHasta'),
         tema: val('planTema'),
         forma: val('planForma'),
+        search: val('planProductoSearch'),
         skus: checks.length ? checks : prev.skus || [],
         tareas: prev.tareas || [],
     }));
@@ -1389,6 +1390,7 @@ function prepararPlanComercial() {
         ['planBaseHasta', estado.baseHasta || baseHastaDefault],
         ['planTema', estado.tema || ''],
         ['planForma', estado.forma || 'Mixto: ML + Shopify/Klaviyo'],
+        ['planProductoSearch', estado.search || ''],
     ].forEach(([id, value]) => {
         const el = document.getElementById(id);
         if (el && !el.dataset.planReady) {
