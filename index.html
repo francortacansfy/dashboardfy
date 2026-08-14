@@ -1346,6 +1346,13 @@ function limpiarObjetivoKpis() {
 
 const PLAN_KEY = 'fyl_plan_comercial';
 let PLAN_SKUS_SELECCIONADOS = new Set();
+try {
+    const planGuardado = JSON.parse(localStorage.getItem(PLAN_KEY) || '{}');
+    if (planGuardado.skus) {
+        delete planGuardado.skus;
+        localStorage.setItem(PLAN_KEY, JSON.stringify(planGuardado));
+    }
+} catch(e) {}
 
 function leerPlanEstado() {
     try { return JSON.parse(localStorage.getItem(PLAN_KEY) || '{}'); }
