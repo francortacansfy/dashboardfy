@@ -1314,19 +1314,7 @@ function renderMetaGapKpis(tipo, actual) {
             <div class="kpi-sub">Actual / meta</div>
         </div>
     `;
-    const guardado = JSON.parse(localStorage.getItem('fyl_kpi_objetivo') || '{}');
-    const updated = guardado.updatedAt ? new Date(guardado.updatedAt).toLocaleString('es-AR') : 'Sin actualizaciones guardadas';
-    const updatedEl = document.getElementById('kpiDecisionUpdated');
-    if (updatedEl) updatedEl.textContent = `Última actualización: ${updated}`;
-    const resumenEl = document.getElementById('kpiDecisionResumen');
-    if (resumenEl) {
-        const decision = guardado.decision || '';
-        const responsable = guardado.responsable || '';
-        const nota = guardado.nota || '';
-        resumenEl.innerHTML = decision || responsable || nota
-            ? `<strong>Guardado:</strong> ${decision || 'Sin acción cargada'}${responsable ? ` · Responsable: ${responsable}` : ''}${nota ? `<br>${nota}` : ''}`
-            : 'Todavía no hay una decisión guardada.';
-    }
+    renderDecisionKpis();
 }
 
 function renderMirarFinoKpis(tipo) {
