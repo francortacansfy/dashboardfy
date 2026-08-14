@@ -492,9 +492,33 @@ const SUPA_KEY = 'sb_publishable_14OWO27CxU7Cml4rwtvBlg_8RR-6sGm';
 
 let DATA = [];
 let CHARTS = {};
+const COMBOS_REALES = new Set([
+    'CMB-CAL-BIS-060','CMB-COL-BIO-ACI','CMB-COL-OXI-VIT-RES','CMB-COL-SPO-MAG-CIT',
+    'CMB-FIS-BIS-MFY-060','CMB-VIT-B12-CUR','CMB-VIT-CIT-MAG-POT-060','CMB-VIT-C-VIT-E',
+    'CMB-VIT-HAI-COL-HFY','CMB-VIT-HAI-LOC-ANT','CMB-VIT-HAI-VIT-ACI','FN-BIS-CAL-MEL-D3',
+    'FN-BIS-CAL-MEL-MAG-B12-D3','FN-BIS-CUR-OME-MUL-D3-C','FN-BIS-OME-CUR-C','FN-CMB-ACI-COL-P3',
+    'FN-CMB-CUR-OME','FN-COL-BIS-OME-D3-POT','FN-COL-BIS-OME-POT','FN-OME-RES',
+    'FN-OME-RES-K2-ANT-CHI','FN-OME-RES-K2-CHI','FN-RES-ANT','FN-RES-ANT-HIA-BIO',
+    'FN-RES-ANT-HIA-C-BIO','FY-CMB-BIS-OME','HF-CMB-ANT-HOM','HF-CMB-ANT-HOM-4',
+    'HF-CMB-ANT-LOC-SHA-ACO','HF-CMB-ANT-MUJ','HF-CMB-ANT-MUJ-4','HF-CMB-ANT-MUJ-5',
+    'HF-CMB-ANT-SHA-ACO','HF-CMB-ANT-VIT-SHA','HF-CMB-COL-SHA-ACO','HF-CMB-GRA-SHA-ACO',
+    'HF-CMB-REP-SHA-ACO','HF-CMB-REP-SHA-ACO-MASK','HF-CMB-VIT-COL-SHA'
+]);
 
 function fmt(n) {
     return '$' + Math.round(n).toLocaleString('es-AR');
+}
+
+function fmtPct(n) {
+    return (Number.isFinite(n) ? n : 0).toFixed(1).replace('.', ',') + '%';
+}
+
+function deltaBadge(actual, anterior, suffix = '') {
+    if (!anterior && anterior !== 0) return '<span class="mono">—</span>';
+    const delta = actual - anterior;
+    const color = delta >= 0 ? 'var(--green)' : 'var(--red)';
+    const sign = delta >= 0 ? '+' : '';
+    return `<span style="color:${color};font-weight:700;font-size:11px">${sign}${delta.toFixed(1).replace('.', ',')}${suffix}</span>`;
 }
 
 // Clasifica el estado de ML en "cancelada" o "devuelta" para separar los cuadros.
