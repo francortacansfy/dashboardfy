@@ -1901,6 +1901,8 @@ function aplicarLayoutObjetivoLocal() {
     const meta = document.getElementById('kpiObjetivoMeta');
     const limpiar = document.querySelector('button[onclick="limpiarObjetivoKpis()"]');
     if (!objetivo || !desde || !hasta || !tipo || !meta || !limpiar) return;
+    desde.onchange = sincronizarPeriodoKpisTexto;
+    hasta.onchange = sincronizarPeriodoKpisTexto;
 
     const row = objetivo.closest('div')?.parentElement;
     if (!row || row.dataset.objetivoLayout === '1') return;
