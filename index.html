@@ -782,6 +782,7 @@ async function loadData() {
         statusDot.classList.add('ok');
         populateTiendaFilters();
         renderAll();
+        activarTab(localStorage.getItem(LAST_TAB_KEY) || 'dashboard', false);
     } catch(e) {
         console.error(e);
         alert('Error al conectar con Supabase: ' + e.message);
