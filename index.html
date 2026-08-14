@@ -1105,8 +1105,11 @@ function prepararControlesObjetivoKpis() {
     });
 }
 
-function guardarObjetivoKpis() {
-    localStorage.setItem('fyl_kpi_objetivo', JSON.stringify({
+const KPI_DRAFT_KEY = 'fyl_kpi_objetivo';
+const KPI_DECISIONES_KEY = 'fyl_kpi_decisiones';
+
+function leerDecisionActualKpis() {
+    return {
         referencia: document.getElementById('kpiObjetivoMes')?.value || 'avg3',
         tipo: document.getElementById('kpiObjetivoTipo')?.value || 'rutinas',
         meta: document.getElementById('kpiObjetivoMeta')?.value || '',
@@ -1115,23 +1118,77 @@ function guardarObjetivoKpis() {
         responsable: document.getElementById('kpiResponsable')?.value || '',
         nota: document.getElementById('kpiNota')?.value || '',
         updatedAt: new Date().toISOString(),
+    };
+}
+
+function guardarObjetivoKpis() {
+    const actual = leerDecisionActualKpis();
+    localStorage.setItem(KPI_DRAFT_KEY, JSON.stringify({
+        referencia: actual.referencia,
+        tipo: actual.tipo,
+        meta: actual.meta,
+        metatipo: actual.metatipo,
+        updatedAt: actual.updatedAt,
     }));
     renderDecisionKpis();
 }
 
+function guardarDecisionKpis() {
+    const actual = leerDecisionActualKpis();
+    if (!actual.decision.trim()) {
+        alert('Cargá una acción / decisión antes de guardar.');
+        return;
+    }
+    const decisiones = JSON.parse(localStorage.getItem(KPI_DECISIONES_KEY) || '[]');
+    const item = { ...actual, id: Date.now().toString() };
+    decisiones.unshift(item);
+    localStorage.setItem(KPI_DECISIONES_KEY, JSON.stringify(decisiones.slice(0, 30)));
+    localStorage.setItem(KPI_DRAFT_KEY, JSON.stringify(item));
+    renderDecisionKpis();
+}
+
+function cargarDecisionKpis(id) {
+    const decisiones = JSON.parse(localStorage.getItem(KPI_DECISIONES_KEY) || '[]');
+    const item = decisiones.find(d => d.id === id);
+    if (!item) return;
+    const set = (idEl, value) => {
+        const el = document.getElementById(idEl);
+        if (el) el.value = value || '';
+    };
+    set('kpiObjetivoMes', item.referencia || 'avg3');
+    set('kpiObjetivoTipo', item.tipo || 'rutinas');
+    set('kpiObjetivoMeta', item.meta || '');
+    set('kpiObjetivoMetaTipo', item.metatipo || 'auto');
+    set('kpiDecision', item.decision || '');
+    set('kpiResponsable', item.responsable || '');
+    set('kpiNota', item.nota || '');
+    localStorage.setItem(KPI_DRAFT_KEY, JSON.stringify(item));
+    renderKpis();
+}
+
 function renderDecisionKpis() {
-    const guardado = JSON.parse(localStorage.getItem('fyl_kpi_objetivo') || '{}');
-    const updated = guardado.updatedAt ? new Date(guardado.updatedAt).toLocaleString('es-AR') : 'Sin actualizaciones guardadas';
+    const guardado = JSON.parse(localStorage.getItem(KPI_DRAFT_KEY) || '{}');
+    const decisiones = JSON.parse(localStorage.getItem(KPI_DECISIONES_KEY) || '[]');
+    const ultima = decisiones[0];
+    const updated = ultima?.updatedAt ? new Date(ultima.updatedAt).toLocaleString('es-AR') : 'Sin decisiones guardadas';
     const updatedEl = document.getElementById('kpiDecisionUpdated');
-    if (updatedEl) updatedEl.textContent = `Última actualización: ${updated}`;
+    if (updatedEl) updatedEl.textContent = `Última decisión guardada: ${updated}`;
     const resumenEl = document.getElementById('kpiDecisionResumen');
     if (resumenEl) {
-        const decision = guardado.decision || '';
-        const responsable = guardado.responsable || '';
-        const nota = guardado.nota || '';
-        resumenEl.innerHTML = decision || responsable || nota
-            ? `<strong>Guardado:</strong> ${decision || 'Sin acción cargada'}${responsable ? ` · Responsable: ${responsable}` : ''}${nota ? `<br>${nota}` : ''}`
-            : 'Todavía no hay una decisión guardada.';
+        resumenEl.innerHTML = ultima
+            ? `<strong>Última guardada:</strong> ${ultima.decision}${ultima.responsable ? ` · Responsable: ${ultima.responsable}` : ''}${ultima.nota ? `<br>${ultima.nota}` : ''}`
+            : 'Todavía no hay decisiones guardadas. Completá la acción y tocá Guardar decisión.';
+    }
+    const listaEl = document.getElementById('kpiDecisionLista');
+    if (listaEl) {
+        listaEl.innerHTML = decisiones.length ? decisiones.map(d => {
+            const objetivo = document.querySelector(`#kpiObjetivoTipo option[value="${d.tipo}"]`)?.textContent || d.tipo || 'Objetivo';
+            const fecha = d.updatedAt ? new Date(d.updatedAt).toLocaleString('es-AR') : '';
+            return `<button class="decision-item" type="button" onclick="cargarDecisionKpis('${d.id}')">
+                <div class="decision-title">${d.decision}</div>
+                <div class="decision-meta">${objetivo} · Meta: ${d.meta || '-'} · ${fecha}</div>
+            </button>`;
+        }).join('') : '';
     }
 }
 
