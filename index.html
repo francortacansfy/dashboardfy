@@ -1629,12 +1629,102 @@ function elegirReferenciaKpis(rows, tipo, referencia) {
     };
 }
 
+function prepararControlesObjetivoKpis() {
+    const hoy = new Date();
+    const actualHasta = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+    const actualDesde = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-01`;
+    const dias = Math.max(1, Math.round((new Date(`${actualHasta}T00:00:00`) - new Date(`${actualDesde}T00:00:00`)) / 86400000) + 1);
+    const baseHasta = sumarDias(actualDesde, -1);
+    const baseDesde = restarDias(actualDesde, dias);
+    [
+        ['kpiActualDesde', actualDesde],
+        ['kpiActualHasta', actualHasta],
+        ['kpiBaseDesde', baseDesde],
+        ['kpiBaseHasta', baseHasta],
+    ].forEach(([id, value]) => {
+        const el = document.getElementById(id);
+        if (el && !el.dataset.ready) {
+            el.value = value;
+            el.dataset.ready = '1';
+        }
+    });
+    const tipoSel = document.getElementById('kpiObjetivoTipo');
+    if (tipoSel && !tipoSel.dataset.ready) {
+        tipoSel.value = 'rutinas';
+        tipoSel.dataset.ready = '1';
+    }
+    ['Meta','MetaTipo'].forEach(campo => {
+        const el = document.getElementById('kpiObjetivo' + campo) || document.getElementById('kpi' + campo);
+        if (el && !el.dataset.ready) {
+            el.value = campo === 'MetaTipo' ? 'auto' : '';
+            el.dataset.ready = '1';
+        }
+    });
+}
+
+function calcularGrowthRangoKpis(base, desde, hasta, label) {
+    const subset = base.filter(d => planFechaEnRango(d.fecha, desde, hasta));
+    const ordenes = new Set();
+    const mlOrdenes = new Set();
+    const shopifyOrdenes = new Set();
+    const categorias = {};
+    let total = 0, ml = 0, shopify = 0, combo = 0, comboUds = 0;
+    subset.filter(d => d.completa).forEach(d => {
+        if (d.tipoFila !== 'hija') {
+            total += d.total;
+            if (d.tienda === 'Mercado Libre') ml += d.total;
+            if (d.tienda === 'Shopify') shopify += d.total;
+            if (COMBOS_REALES.has(d.sku)) combo += d.total;
+            const cat = categoriaKpi(d);
+            categorias[cat] = (categorias[cat] || 0) + d.total;
+        }
+        if (d.tipoFila !== 'padre') {
+            if (d.num_venta && !d.esPaquete) ordenes.add(d.num_venta);
+            if (d.tienda === 'Mercado Libre' && d.num_venta && !d.esPaquete) mlOrdenes.add(d.num_venta);
+            if (d.tienda === 'Shopify' && d.num_venta && !d.esPaquete) shopifyOrdenes.add(d.num_venta);
+            if (COMBOS_REALES.has(d.sku)) comboUds += d.uds;
+        }
+    });
+    return {
+        mes: label,
+        total,
+        ordenes: ordenes.size,
+        ticket: ordenes.size ? total / ordenes.size : 0,
+        ml,
+        mlShare: total ? ml / total * 100 : 0,
+        mlVentas: mlOrdenes.size,
+        mlTicket: mlOrdenes.size ? ml / mlOrdenes.size : 0,
+        shopify,
+        shopifyShare: total ? shopify / total * 100 : 0,
+        shopifyVentas: shopifyOrdenes.size,
+        shopifyTicket: shopifyOrdenes.size ? shopify / shopifyOrdenes.size : 0,
+        combo,
+        comboShare: total ? combo / total * 100 : 0,
+        comboVentas: combo,
+        comboUds,
+        topCategoria: Object.entries(categorias).sort((a,b) => b[1] - a[1])[0] || ['-', 0],
+    };
+}
+
+function elegirReferenciaKpisPorFecha(base) {
+    const actualDesde = document.getElementById('kpiActualDesde')?.value || '';
+    const actualHasta = document.getElementById('kpiActualHasta')?.value || '';
+    const baseDesde = document.getElementById('kpiBaseDesde')?.value || '';
+    const baseHasta = document.getElementById('kpiBaseHasta')?.value || '';
+    const actual = calcularGrowthRangoKpis(base, actualDesde, actualHasta, 'Actual');
+    const anterior = calcularGrowthRangoKpis(base, baseDesde, baseHasta, 'Base');
+    return {
+        actual,
+        anterior,
+        ultimos: [anterior, actual],
+        label: `Actual ${actualDesde || '-'} a ${actualHasta || '-'} · Base ${baseDesde || '-'} a ${baseHasta || '-'}`,
+    };
+}
+
 function renderGrowthMensual(base) {
     prepararControlesObjetivoKpis();
-    const rows = calcularGrowthMensual(base);
     const objetivoTipo = document.getElementById('kpiObjetivoTipo')?.value || 'rutinas';
-    const referencia = document.getElementById('kpiObjetivoMes')?.value || 'avg3';
-    const refData = elegirReferenciaKpis(rows, objetivoTipo, referencia);
+    const refData = elegirReferenciaKpisPorFecha(base);
     const actual = refData.actual;
     const anterior = refData.anterior;
     const ultimos = refData.ultimos;
