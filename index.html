@@ -368,10 +368,22 @@
                 <h3>Objetivo del mes</h3>
                 <span style="font-size:12px;color:var(--text-3)">Podés probar metas; queda firme cuando cargás la decisión</span>
             </div>
-            <div style="padding:18px 22px;display:grid;grid-template-columns:180px minmax(260px,1fr) 120px 180px 130px;gap:12px;align-items:end">
+            <div style="padding:18px 22px;display:grid;grid-template-columns:150px 150px 150px 150px minmax(260px,1fr) 120px 150px 110px;gap:12px;align-items:end">
                 <div>
-                    <label class="filterbar-label" style="display:block;margin-bottom:6px;padding:0">Comparar contra</label>
-                    <select class="filter-select" id="kpiObjetivoMes" onchange="cambiarObjetivoKpis()" style="width:100%"></select>
+                    <label class="filterbar-label" style="display:block;margin-bottom:6px;padding:0">Actual desde</label>
+                    <input class="search-input" id="kpiActualDesde" type="date" onchange="cambiarObjetivoKpis()" style="width:100%">
+                </div>
+                <div>
+                    <label class="filterbar-label" style="display:block;margin-bottom:6px;padding:0">Actual hasta</label>
+                    <input class="search-input" id="kpiActualHasta" type="date" onchange="cambiarObjetivoKpis()" style="width:100%">
+                </div>
+                <div>
+                    <label class="filterbar-label" style="display:block;margin-bottom:6px;padding:0">Base desde</label>
+                    <input class="search-input" id="kpiBaseDesde" type="date" onchange="cambiarObjetivoKpis()" style="width:100%">
+                </div>
+                <div>
+                    <label class="filterbar-label" style="display:block;margin-bottom:6px;padding:0">Base hasta</label>
+                    <input class="search-input" id="kpiBaseHasta" type="date" onchange="cambiarObjetivoKpis()" style="width:100%">
                 </div>
                 <div>
                     <label class="filterbar-label" style="display:block;margin-bottom:6px;padding:0">Objetivo</label>
