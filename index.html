@@ -1023,7 +1023,6 @@ function prepararControlesObjetivoKpis() {
 }
 
 function guardarObjetivoKpis() {
-    const anterior = JSON.parse(localStorage.getItem('fyl_kpi_objetivo') || '{}');
     localStorage.setItem('fyl_kpi_objetivo', JSON.stringify({
         mes: document.getElementById('kpiObjetivoMes')?.value || '',
         tipo: document.getElementById('kpiObjetivoTipo')?.value || 'rutinas',
