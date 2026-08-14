@@ -1423,11 +1423,13 @@ function renderSeguimientoMesActual(base, tipo) {
     const actual = calcularGrowthPeriodo(base, ym);
     const metaRaw = parseFloat(document.getElementById('kpiObjetivoMeta')?.value || '');
     const principal = valorPrincipalObjetivo(tipo, actual);
+    const doble = valoresObjetivoDineroYPorcentaje(tipo, actual);
     const diasTranscurridos = hoy.getDate();
     const diasMes = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0).getDate();
     const unidad = principal.unidad === '$' ? 'money' : principal.unidad === '%' ? 'pct' : 'number';
     const esPorcentaje = unidad === 'pct';
     const proyeccion = esPorcentaje ? principal.value : (diasTranscurridos > 0 ? principal.value / diasTranscurridos * diasMes : 0);
+    const proyeccionDinero = diasTranscurridos > 0 ? doble.money / diasTranscurridos * diasMes : 0;
     const tieneMeta = Number.isFinite(metaRaw);
     const gapProyectado = tieneMeta ? metaRaw - proyeccion : 0;
     const gapActual = tieneMeta ? metaRaw - principal.value : 0;
@@ -1447,19 +1449,19 @@ function renderSeguimientoMesActual(base, tipo) {
             <div class="kpi-sub">${ym} · día ${diasTranscurridos}/${diasMes}</div>
         </div>
         <div class="kpi">
-            <div class="kpi-header"><span class="kpi-label">Acumulado del mes</span><div class="kpi-icon green"><i class="fas fa-gauge"></i></div></div>
-            <div class="kpi-value">${fmtTipo(principal.value)}</div>
-            <div class="kpi-sub">${principal.label}</div>
+            <div class="kpi-header"><span class="kpi-label">Objetivo en $</span><div class="kpi-icon green"><i class="fas fa-dollar-sign"></i></div></div>
+            <div class="kpi-value">${fmtMoneyCompact(doble.money)}</div>
+            <div class="kpi-sub">${doble.moneyLabel} · ${fmt(doble.money)}</div>
         </div>
         <div class="kpi">
-            <div class="kpi-header"><span class="kpi-label">${cierreLabel}</span><div class="kpi-icon orange"><i class="fas fa-chart-line"></i></div></div>
-            <div class="kpi-value">${fmtTipo(proyeccion)}</div>
-            <div class="kpi-sub">${cierreSub}</div>
+            <div class="kpi-header"><span class="kpi-label">Objetivo en %</span><div class="kpi-icon orange"><i class="fas fa-percent"></i></div></div>
+            <div class="kpi-value">${fmtPct(doble.pct)}</div>
+            <div class="kpi-sub">${doble.pctLabel}${tieneMeta && esPorcentaje ? ` · ${cierreSub}` : ''}</div>
         </div>
         <div class="kpi">
-            <div class="kpi-header"><span class="kpi-label">Ritmo necesario</span><div class="kpi-icon blue"><i class="fas fa-forward"></i></div></div>
-            <div class="kpi-value">${ritmoValue}</div>
-            <div class="kpi-sub">${ritmoSub}</div>
+            <div class="kpi-header"><span class="kpi-label">Cierre estimado $</span><div class="kpi-icon blue"><i class="fas fa-chart-line"></i></div></div>
+            <div class="kpi-value">${fmtMoneyCompact(proyeccionDinero)}</div>
+            <div class="kpi-sub">${fmt(proyeccionDinero)} al ritmo actual</div>
         </div>
     ` : '<div class="empty" style="grid-column:1/-1">Sin datos del mes actual con los filtros elegidos.</div>';
 }
