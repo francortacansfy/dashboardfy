@@ -1210,6 +1210,21 @@ function prepararControlesObjetivoKpis() {
             el.dataset.ready = '1';
         }
     });
+    ordenarObjetivoKpis();
+}
+
+function ordenarObjetivoKpis() {
+    const tipoSel = document.getElementById('kpiObjetivoTipo');
+    const row = tipoSel?.closest('div')?.parentElement;
+    const objetivoBox = tipoSel?.closest('div');
+    if (!row || !objetivoBox) return;
+    row.style.gridTemplateColumns = 'minmax(420px,1fr) 280px 120px 150px 110px';
+    if (row.firstElementChild !== objetivoBox) row.insertBefore(objetivoBox, row.firstElementChild);
+    agruparRangoFechas('kpiActualDesde', 'kpiActualHasta', 'Período a analizar');
+    ['kpiBaseDesde', 'kpiBaseHasta'].forEach(id => {
+        const box = document.getElementById(id)?.closest('div');
+        if (box) box.style.display = 'none';
+    });
 }
 
 const KPI_DECISIONES_KEY = 'fyl_kpi_decisiones';
