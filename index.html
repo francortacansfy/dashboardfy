@@ -2032,22 +2032,21 @@ function fmtFechaRangoKpis(iso) {
     return `${d}/${m}/${y}`;
 }
 
-function actualizarPeriodoKpisDesdeTexto() {
-    const input = document.getElementById('kpiPeriodoRango');
-    const rango = parseFechaRangoKpis(input?.value || '');
-    if (!rango) return;
-    const desde = document.getElementById('kpiActualDesde');
-    const hasta = document.getElementById('kpiActualHasta');
-    if (desde) desde.value = rango.desde;
-    if (hasta) hasta.value = rango.hasta;
-    cambiarObjetivoKpis();
-}
-
 function sincronizarPeriodoKpisTexto() {
     const input = document.getElementById('kpiPeriodoRango');
     const desde = document.getElementById('kpiActualDesde')?.value || '';
     const hasta = document.getElementById('kpiActualHasta')?.value || '';
-    if (input && desde && hasta) input.value = `${fmtFechaRangoKpis(desde)} - ${fmtFechaRangoKpis(hasta)}`;
+    if (input) input.textContent = desde && hasta ? `${fmtFechaRangoKpis(desde)} - ${fmtFechaRangoKpis(hasta)}` : 'Elegir período';
+}
+
+function togglePeriodoKpisPopover() {
+    document.getElementById('kpiPeriodoPopover')?.classList.toggle('show');
+}
+
+function aplicarPeriodoKpisPopover() {
+    document.getElementById('kpiPeriodoPopover')?.classList.remove('show');
+    sincronizarPeriodoKpisTexto();
+    cambiarObjetivoKpis();
 }
 
 function calcularGrowthRangoKpis(base, desde, hasta, label) {
