@@ -1068,7 +1068,7 @@ function prepararControlesObjetivoKpis() {
         const guardado = JSON.parse(localStorage.getItem('fyl_kpi_objetivo') || '{}');
         mesSel.innerHTML = `
             <option value="avg3">Promedio ultimos 3 meses cerrados</option>
-            <option value="best">Mejor mes cerrado del ano</option>
+            <option value="best">Mejor mes cerrado del año</option>
             ${meses.map(m => `<option value="month:${m}">Mes ${m}</option>`).join('')}
         `;
         const valorGuardado = guardado.referencia || (guardado.mes ? `month:${guardado.mes}` : '');
