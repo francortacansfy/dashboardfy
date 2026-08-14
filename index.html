@@ -1844,8 +1844,8 @@ function aplicarLayoutObjetivoLocal() {
     row.appendChild(tipoBox);
     row.appendChild(metaBox);
     row.appendChild(limpiar);
-    row.appendChild(baseDesdeBox);
-    row.appendChild(baseHastaBox);
+    if (baseDesdeBox) row.appendChild(baseDesdeBox);
+    if (baseHastaBox) row.appendChild(baseHastaBox);
 
     const objetivoLabel = objetivoBox.querySelector('label');
     if (objetivoLabel) objetivoLabel.textContent = 'Objetivo';
@@ -1856,6 +1856,7 @@ function aplicarLayoutObjetivoLocal() {
     rango.appendChild(desde);
     rango.appendChild(hasta);
     desdeBox.appendChild(rango);
+    desde.dataset.grouped = '1';
 
     if (!objetivo.querySelector('option[value=""]')) {
         objetivo.insertAdjacentHTML('afterbegin', '<option value="">Elegir objetivo</option>');
