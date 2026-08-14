@@ -1592,15 +1592,22 @@ function renderPlanComercial() {
         const tiendaTxt = Object.entries(c.tiendas).sort((a,b) => b[1]-a[1]).map(([t,v]) => `${t} ${fmtMoneyCompact(v)}`).join(' · ');
         const deltaTxt = `${c.delta >= 0 ? '+' : ''}${fmt(c.delta)}`;
         const deltaColor = c.delta >= 0 ? 'var(--green)' : 'var(--red)';
+        const recomendacion = c.delta >= 0 ? 'Recomendado: reforzar' : 'Recomendado: recuperar';
         return `<label class="focus-item">
             <input type="checkbox" data-plan-sku value="${escapeHtml(c.sku)}" ${checked} onchange="togglePlanSku(this.value,this.checked)">
             <span>
                 <span class="focus-title">${escapeHtml(c.sku)} · ${escapeHtml(c.marca)}</span>
-                <span class="focus-meta">${fmt(c.ventas)} · ${c.ordenesCount} órdenes · Ticket ${fmt(c.ticket)}<br>Anterior ${fmt(c.baseVentas)} · <strong style="color:${deltaColor}">${deltaTxt}</strong>${tiendaTxt ? `<br>${escapeHtml(tiendaTxt)}` : ''}</span>
+                <span class="focus-meta"><strong style="color:${deltaColor}">${recomendacion}</strong><br>${fmt(c.ventas)} · ${c.ordenesCount} órdenes · Ticket ${fmt(c.ticket)}<br>Anterior ${fmt(c.baseVentas)} · <strong style="color:${deltaColor}">${deltaTxt}</strong>${tiendaTxt ? `<br>${escapeHtml(tiendaTxt)}` : ''}</span>
             </span>
         </label>`;
     };
     if (list) {
+        if (!decision) {
+            list.innerHTML = '<div class="empty" style="grid-column:1/-1">Elegí una decisión guardada para ver productos recomendados.</div>';
+            renderTareasPlan();
+            guardarPlanEstado();
+            return;
+        }
         const ganan = combos.filter(c => c.delta >= 0 && c.ventas > 0).sort((a, b) => b.delta - a.delta).slice(0, 6);
         const pierden = combos.filter(c => c.delta < 0 || (c.baseVentas > 0 && c.ventas === 0)).sort((a, b) => a.delta - b.delta).slice(0, 6);
         list.innerHTML = combos.length ? `
