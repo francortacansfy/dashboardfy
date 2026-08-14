@@ -1340,7 +1340,8 @@ function guardarPlanEstado() {
         tienda: val('planTienda'),
         desde: val('planDesde'),
         hasta: val('planHasta'),
-        base: val('planBase'),
+        baseDesde: val('planBaseDesde'),
+        baseHasta: val('planBaseHasta'),
         tema: val('planTema'),
         forma: val('planForma'),
         skus: checks.length ? checks : prev.skus || [],
@@ -1353,13 +1354,17 @@ function prepararPlanComercial() {
     const hoy = new Date();
     const desdeDefault = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-01`;
     const hastaDefault = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+    const diasDefault = Math.max(1, Math.round((new Date(`${hastaDefault}T00:00:00`) - new Date(`${desdeDefault}T00:00:00`)) / 86400000) + 1);
+    const baseHastaDefault = sumarDias(desdeDefault, -1);
+    const baseDesdeDefault = restarDias(desdeDefault, diasDefault);
     [
         ['planKpi', estado.kpi || 'ticket'],
         ['planMarca', estado.marca || ''],
         ['planTienda', estado.tienda || ''],
         ['planDesde', estado.desde || desdeDefault],
         ['planHasta', estado.hasta || hastaDefault],
-        ['planBase', estado.base || 'prev'],
+        ['planBaseDesde', estado.baseDesde || baseDesdeDefault],
+        ['planBaseHasta', estado.baseHasta || baseHastaDefault],
         ['planTema', estado.tema || ''],
         ['planForma', estado.forma || 'Mixto: ML + Shopify/Klaviyo'],
     ].forEach(([id, value]) => {
@@ -1437,19 +1442,13 @@ function renderPlanComercial() {
     const tienda = document.getElementById('planTienda').value || '';
     const desde = document.getElementById('planDesde').value;
     const hasta = document.getElementById('planHasta').value;
-    const baseTipo = document.getElementById('planBase').value || 'prev';
+    const baseDesde = document.getElementById('planBaseDesde').value;
+    const baseHasta = document.getElementById('planBaseHasta').value;
     const filtrado = DATA.filter(d => (!marca || d.marca === marca) && (!tienda || d.tienda === tienda));
     const actualRows = filtrado.filter(d => planFechaEnRango(d.fecha, desde, hasta));
-    const dias = Math.max(1, Math.round((new Date(`${hasta}T00:00:00`) - new Date(`${desde}T00:00:00`)) / 86400000) + 1);
-    const baseRows = baseTipo === 'avg3'
-        ? filtrado.filter(d => {
-            const f = (d.fecha || '').substring(0, 10);
-            return f >= restarDias(desde, 90) && f < desde;
-        })
-        : filtrado.filter(d => planFechaEnRango(d.fecha, restarDias(desde, dias), sumarDias(desde, -1)));
+    const baseRows = filtrado.filter(d => planFechaEnRango(d.fecha, baseDesde, baseHasta));
     const combos = topCombosPlan(actualRows.length ? actualRows : filtrado);
     const selected = new Set(estado.skus || []);
-    if (!selected.size && combos[0]) selected.add(combos[0].sku);
     const selectedSkus = [...selected];
     const actual = calcularPlanMetricas(actualRows, selectedSkus);
     const base = calcularPlanMetricas(baseRows, selectedSkus);
