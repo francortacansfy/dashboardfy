@@ -1321,7 +1321,13 @@ function normalizarTextoSimple(texto) {
 function categoriaDesdeObjetivo(row) {
     const texto = normalizarTextoSimple(textoObjetivoSeleccionado());
     const categorias = Object.keys(row?.categorias || {});
-    return categorias.find(cat => {
+    const detectada = categorias.find(cat => {
+        const c = normalizarTextoSimple(cat);
+        return texto.includes(c) || c.split(/\s+/).some(p => p.length > 4 && texto.includes(p));
+    });
+    if (detectada) return detectada;
+    const conocidas = ['Magnesios', 'Colágeno Hidrolizado', 'Omegas & Grasas Saludables', 'Multivitamínico', 'Vitaminas y Minerales', 'Veganos', 'Shampoos', 'Acondicionadores', 'Suplementos', 'Accesorios', 'Combos'];
+    return conocidas.find(cat => {
         const c = normalizarTextoSimple(cat);
         return texto.includes(c) || c.split(/\s+/).some(p => p.length > 4 && texto.includes(p));
     }) || null;
