@@ -1406,8 +1406,8 @@ function renderMarcas() {
         </div>
         <div class="kpi">
             <div class="kpi-header"><span class="kpi-label">Ingresos Totales</span><div class="kpi-icon orange"><i class="fas fa-dollar-sign"></i></div></div>
-            <div class="kpi-value">${fmt(totalIngresos)}</div>
-            <div class="kpi-sub">${tienda ? tienda : 'Todas las tiendas'}</div>
+            <div class="kpi-value">${fmtMoneyCompact(totalIngresos)}</div>
+            <div class="kpi-sub">${fmt(totalIngresos)} · ${tienda ? tienda : 'Todas las tiendas'}</div>
         </div>
         <div class="kpi">
             <div class="kpi-header"><span class="kpi-label">Unidades Totales</span><div class="kpi-icon red"><i class="fas fa-cubes"></i></div></div>
