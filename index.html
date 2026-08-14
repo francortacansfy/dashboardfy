@@ -1282,6 +1282,7 @@ function guardarDecisionKpis() {
     decisiones.unshift(item);
     localStorage.setItem(KPI_DECISIONES_KEY, JSON.stringify(decisiones.slice(0, 30)));
     KPI_DECISION_ACTIVA_ID = item.id;
+    poblarDecisionesPlan();
     renderDecisionKpis();
 }
 
