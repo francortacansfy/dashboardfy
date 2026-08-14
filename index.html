@@ -463,19 +463,20 @@
                     <select class="filter-select" id="planTienda" onchange="renderPlanComercial()" style="width:100%"><option value="">Todos</option></select>
                 </div>
                 <div>
-                    <label class="filterbar-label" style="display:block;margin-bottom:6px;padding:0">Desde</label>
+                    <label class="filterbar-label" style="display:block;margin-bottom:6px;padding:0">Actual desde</label>
                     <input class="search-input" id="planDesde" type="date" onchange="renderPlanComercial()" style="width:100%">
                 </div>
                 <div>
-                    <label class="filterbar-label" style="display:block;margin-bottom:6px;padding:0">Hasta</label>
+                    <label class="filterbar-label" style="display:block;margin-bottom:6px;padding:0">Actual hasta</label>
                     <input class="search-input" id="planHasta" type="date" onchange="renderPlanComercial()" style="width:100%">
                 </div>
                 <div>
-                    <label class="filterbar-label" style="display:block;margin-bottom:6px;padding:0">Comparar</label>
-                    <select class="filter-select" id="planBase" onchange="renderPlanComercial()" style="width:100%">
-                        <option value="prev">PerÃ­odo anterior</option>
-                        <option value="avg3">Promedio 3 meses</option>
-                    </select>
+                    <label class="filterbar-label" style="display:block;margin-bottom:6px;padding:0">Base desde</label>
+                    <input class="search-input" id="planBaseDesde" type="date" onchange="renderPlanComercial()" style="width:100%">
+                </div>
+                <div>
+                    <label class="filterbar-label" style="display:block;margin-bottom:6px;padding:0">Base hasta</label>
+                    <input class="search-input" id="planBaseHasta" type="date" onchange="renderPlanComercial()" style="width:100%">
                 </div>
                 <div class="wide">
                     <label class="filterbar-label" style="display:block;margin-bottom:6px;padding:0">Tema</label>
@@ -494,7 +495,7 @@
             <div class="kpi-grid" id="planKpiGrid" style="padding:0 22px 6px;margin-bottom:12px"></div>
             <div class="table-head" style="border-top:1px solid var(--border)">
                 <h3>Productos foco</h3>
-                <span style="font-size:12px;color:var(--text-3)">Top combos reales del filtro elegido</span>
+                <span style="font-size:12px;color:var(--text-3)">PodÃ©s dejar todo sin seleccionar y mirar el total del filtro</span>
             </div>
             <div id="planFocusList" class="focus-list"></div>
             <div class="table-head" style="border-top:1px solid var(--border)">
