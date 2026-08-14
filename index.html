@@ -621,6 +621,13 @@ function fmt(n) {
     return '$' + Math.round(n).toLocaleString('es-AR');
 }
 
+function fmtMoneyCompact(n) {
+    const value = Math.abs(n || 0);
+    if (value >= 1000000000) return '$' + (n / 1000000000).toFixed(2).replace('.', ',') + 'MM';
+    if (value >= 1000000) return '$' + (n / 1000000).toFixed(1).replace('.', ',') + 'M';
+    return fmt(n);
+}
+
 function fmtPct(n) {
     return (Number.isFinite(n) ? n : 0).toFixed(1).replace('.', ',') + '%';
 }
