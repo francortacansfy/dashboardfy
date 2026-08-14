@@ -1331,12 +1331,9 @@ function cargarDecisionKpis(id) {
     set('kpiActualHasta', item.actualHasta || '');
     set('kpiBaseDesde', item.baseDesde || '');
     set('kpiBaseHasta', item.baseHasta || '');
-    set('kpiObjetivoTipo', item.objetivoTexto || ({
-        rutinas:'Subir ticket con combos/rutinas',
-        shopify:'Potenciar Shopify',
-        ml:'Defender Mercado Libre',
-        categorias:'Crecer por categorías',
-    }[item.tipo] || ''));
+    set('kpiObjetivoTipo', item.tipo || 'rutinas');
+    transformarObjetivoEnCampoEscribible();
+    set('kpiObjetivoNuevo', item.objetivoNuevo || (item.tipo === 'nuevo' ? item.objetivoTexto : ''));
     set('kpiObjetivoMetaTipo', item.metatipo || 'auto');
     set('kpiObjetivoMeta', metaEfectivaDecision(item));
     set('kpiDecision', item.decision || '');
