@@ -1527,7 +1527,7 @@ function renderPlanComercial() {
             ${ganan.length ? ganan.map(renderCombo).join('') : '<div class="empty">Sin ganadores en este período.</div>'}
             <div style="grid-column:1/-1" class="section-title">Pierden / recuperar</div>
             ${pierden.length ? pierden.map(renderCombo).join('') : '<div class="empty">Sin caídas contra la base.</div>'}
-        ` : '<div class="empty" style="grid-column:1/-1">Sin combos reales para el filtro elegido.</div>';
+        ` : '<div class="empty" style="grid-column:1/-1">Buscá un SKU o producto para elegir foco. Si no marcás ninguno, las cards miden el total del filtro.</div>';
     }
     renderTareasPlan();
     guardarPlanEstado();
