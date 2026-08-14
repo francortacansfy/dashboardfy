@@ -2179,6 +2179,13 @@ function valorPrincipalObjetivo(tipo, row) {
 
 function valoresObjetivoDineroYPorcentaje(tipo, row) {
     if (!row) return { moneyLabel:'Ventas objetivo', money:0, pctLabel:'% objetivo', pct:0 };
+    const metrica = document.getElementById('kpiObjetivoMetrica')?.value || 'auto';
+    if (metrica === 'ventas') return { moneyLabel:'Ventas $', money:row.total || 0, pctLabel:'% de ventas', pct:100 };
+    if (metrica === 'ticket') return { moneyLabel:'Ticket promedio', money:row.ticket || 0, pctLabel:'% combos reales', pct:row.comboShare || 0 };
+    if (metrica === 'combos') return { moneyLabel:'Ventas combos reales', money:row.comboVentas || 0, pctLabel:'% combos reales', pct:row.comboShare || 0 };
+    if (metrica === 'shopify') return { moneyLabel:'Ventas Shopify', money:row.shopifyVentas || 0, pctLabel:'% Shopify', pct:row.shopifyShare || 0 };
+    if (metrica === 'ml') return { moneyLabel:'Ventas Mercado Libre', money:row.mlVentas || 0, pctLabel:'% Mercado Libre', pct:row.mlShare || 0 };
+    if (metrica === 'unidades') return { moneyLabel:'Ventas objetivo', money:row.total || 0, pctLabel:'Unidades', pct:row.comboUds || 0 };
     if (tipo === 'shopify') return { moneyLabel:'Ventas Shopify', money:row.shopifyVentas || 0, pctLabel:'% Shopify', pct:row.shopifyShare || 0 };
     if (tipo === 'ml') return { moneyLabel:'Ventas Mercado Libre', money:row.mlVentas || 0, pctLabel:'% Mercado Libre', pct:row.mlShare || 0 };
     if (tipo === 'categorias') {
