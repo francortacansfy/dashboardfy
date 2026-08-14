@@ -1275,6 +1275,7 @@ function guardarEstadoFormularioKpis() {
 function restaurarEstadoFormularioKpis() {
     let estado = {};
     try { estado = JSON.parse(localStorage.getItem(KPI_FORM_STATE_KEY) || '{}'); } catch(e) {}
+    const rangoGuardado = parseFechaRangoKpis(estado.periodoTexto || '');
     const set = (id, value) => {
         const el = document.getElementById(id);
         if (el && value !== undefined) el.value = value || '';
@@ -1285,8 +1286,8 @@ function restaurarEstadoFormularioKpis() {
     if (estado.objetivoNuevo && !document.getElementById('kpiObjetivoTipo')?.value) set('kpiObjetivoTipo', 'nuevo');
     transformarObjetivoEnCampoEscribible();
     set('kpiObjetivoMetrica', estado.metrica || 'auto');
-    set('kpiActualDesde', estado.desde);
-    set('kpiActualHasta', estado.hasta);
+    set('kpiActualDesde', estado.desde || rangoGuardado?.desde || '');
+    set('kpiActualHasta', estado.hasta || rangoGuardado?.hasta || '');
     set('kpiObjetivoMetaTipo', estado.metaTipo || 'auto');
     set('kpiObjetivoMeta', estado.meta);
     set('kpiSeguimientoPreset', estado.seguimiento || 'objetivo');
