@@ -1889,6 +1889,11 @@ function renderMetaGapKpis(tipo, actual) {
         {label:'En riesgo', color:'red', sub:'Falta bastante para llegar'};
     const fmtMeta = n => metaTipo === 'money' ? fmt(n) : metaTipo === 'pct' ? fmtPct(n) : n.toLocaleString('es-AR');
     const gapDisplay = !tieneMeta ? 'Sin meta' : metaTipo === 'money' ? fmt(gap) : metaTipo === 'pct' ? `${gap >= 0 ? '+' : ''}${gap.toFixed(1).replace('.', ',')} pp` : `${gap >= 0 ? '+' : ''}${gap.toLocaleString('es-AR')}`;
+    if (!tipo || !actual) {
+        document.getElementById('metaKpiGrid').innerHTML = '<div class="empty" style="grid-column:1/-1">Elegí objetivo y período para ver el avance.</div>';
+        renderDecisionKpis();
+        return;
+    }
     document.getElementById('metaKpiGrid').innerHTML = `
         <div class="kpi">
             <div class="kpi-header"><span class="kpi-label">Estado</span><div class="kpi-icon ${estado.color}"><i class="fas fa-signal"></i></div></div>
