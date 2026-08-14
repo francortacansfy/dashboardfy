@@ -2004,6 +2004,10 @@ function renderMirarFinoKpis(tipo) {
 }
 
 function renderSeguimientoMesActual(base, tipo) {
+    if (!tipo) {
+        document.getElementById('kpiMesActualGrid').innerHTML = '<div class="empty" style="grid-column:1/-1">Sin objetivo elegido.</div>';
+        return;
+    }
     const hoy = new Date();
     const ym = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}`;
     const actual = calcularGrowthPeriodo(base, ym);
