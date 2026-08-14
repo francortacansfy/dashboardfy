@@ -506,9 +506,16 @@
                         <option value="Mixto: ML + Shopify/Klaviyo">Mixto: ML + Shopify/Klaviyo</option>
                     </select>
                 </div>
+                <div>
+                    <label class="filterbar-label" style="display:block;margin-bottom:6px;padding:0">Categoría</label>
+                    <select class="filter-select" id="planCategoria" onchange="renderPlanComercial()" style="width:100%">
+                        <option value="">Todas</option>
+                    </select>
+                </div>
                 <div class="wide">
                     <label class="filterbar-label" style="display:block;margin-bottom:6px;padding:0">Buscar producto foco</label>
-                    <input class="search-input" id="planProductoSearch" placeholder="SKU o nombre" oninput="renderPlanComercial()" style="width:100%">
+                    <input class="search-input" id="planProductoSearch" list="planProductosList" placeholder="SKU o nombre" oninput="renderPlanComercial()" style="width:100%">
+                    <datalist id="planProductosList"></datalist>
                 </div>
             </div>
             <div class="kpi-grid" id="planKpiGrid" style="padding:0 22px 6px;margin-bottom:12px"></div>
