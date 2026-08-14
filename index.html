@@ -1239,7 +1239,8 @@ function leerDecisionActualKpis() {
         actualHasta: document.getElementById('kpiActualHasta')?.value || '',
         baseDesde: document.getElementById('kpiBaseDesde')?.value || '',
         baseHasta: document.getElementById('kpiBaseHasta')?.value || '',
-        tipo: document.getElementById('kpiObjetivoTipo')?.value || 'rutinas',
+        tipo: normalizarObjetivoTipo(document.getElementById('kpiObjetivoTipo')?.value || ''),
+        objetivoTexto: textoObjetivoSeleccionado(),
         meta: metaTexto || document.getElementById('kpiObjetivoMeta')?.value || '',
         metatipo,
         decision,
@@ -1326,7 +1327,12 @@ function cargarDecisionKpis(id) {
     set('kpiActualHasta', item.actualHasta || '');
     set('kpiBaseDesde', item.baseDesde || '');
     set('kpiBaseHasta', item.baseHasta || '');
-    set('kpiObjetivoTipo', item.tipo || 'rutinas');
+    set('kpiObjetivoTipo', item.objetivoTexto || ({
+        rutinas:'Subir ticket con combos/rutinas',
+        shopify:'Potenciar Shopify',
+        ml:'Defender Mercado Libre',
+        categorias:'Crecer por categorías',
+    }[item.tipo] || ''));
     set('kpiObjetivoMetaTipo', item.metatipo || 'auto');
     set('kpiObjetivoMeta', metaEfectivaDecision(item));
     set('kpiDecision', item.decision || '');
