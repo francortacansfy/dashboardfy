@@ -703,6 +703,84 @@ function renderAll() {
     renderMarcas();
 }
 
+function isMesCerrado(ym) {
+    const hoy = new Date();
+    const actual = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}`;
+    return ym < actual;
+}
+
+function calcularGrowthMensual(base) {
+    const porMes = {};
+    base.filter(d => d.completa).forEach(d => {
+        const ym = d.fecha?.substring(0, 7);
+        if (!ym || !isMesCerrado(ym)) return;
+        if (!porMes[ym]) {
+            porMes[ym] = {
+                total: 0, shopify: 0, shopifyOrdenes: new Set(),
+                combo: 0, comboUds: 0,
+            };
+        }
+        const m = porMes[ym];
+        if (d.tipoFila !== 'hija') {
+            m.total += d.total;
+            if (d.tienda === 'Shopify') m.shopify += d.total;
+            if (COMBOS_REALES.has(d.sku)) m.combo += d.total;
+        }
+        if (d.tienda === 'Shopify' && d.tipoFila !== 'padre' && d.num_venta) {
+            m.shopifyOrdenes.add(d.num_venta);
+        }
+        if (COMBOS_REALES.has(d.sku) && d.tipoFila !== 'padre') {
+            m.comboUds += d.uds;
+        }
+    });
+
+    return Object.entries(porMes).sort(([a], [b]) => a.localeCompare(b)).map(([ym, v]) => ({
+        mes: ym,
+        total: v.total,
+        shopifyShare: v.total ? v.shopify / v.total * 100 : 0,
+        shopifyTicket: v.shopifyOrdenes.size ? v.shopify / v.shopifyOrdenes.size : 0,
+        comboShare: v.total ? v.combo / v.total * 100 : 0,
+        comboVentas: v.combo,
+        comboUds: v.comboUds,
+    }));
+}
+
+function renderGrowthMensual(base) {
+    const rows = calcularGrowthMensual(base);
+    const ultimos = rows.slice(-6);
+    const actual = ultimos[ultimos.length - 1];
+    const anterior = ultimos[ultimos.length - 2];
+
+    document.getElementById('growthKpiGrid').innerHTML = actual ? `
+        <div class="kpi">
+            <div class="kpi-header"><span class="kpi-label">% Shopify</span><div class="kpi-icon green"><i class="fas fa-store"></i></div></div>
+            <div class="kpi-value">${fmtPct(actual.shopifyShare)}</div>
+            <div class="kpi-sub">vs mes anterior ${anterior ? deltaBadge(actual.shopifyShare, anterior.shopifyShare, ' pp') : '—'}</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi-header"><span class="kpi-label">Ticket Shopify</span><div class="kpi-icon orange"><i class="fas fa-tag"></i></div></div>
+            <div class="kpi-value">${fmt(actual.shopifyTicket)}</div>
+            <div class="kpi-sub">Mes cerrado ${actual.mes}</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi-header"><span class="kpi-label">% Combos reales</span><div class="kpi-icon blue"><i class="fas fa-layer-group"></i></div></div>
+            <div class="kpi-value">${fmtPct(actual.comboShare)}</div>
+            <div class="kpi-sub">${fmt(actual.comboVentas)} · ${actual.comboUds.toLocaleString('es-AR')} u</div>
+        </div>
+    ` : '<div class="empty" style="grid-column:1/-1">Sin meses cerrados para mostrar.</div>';
+
+    document.getElementById('growthKpiBody').innerHTML = ultimos.map((r, i) => {
+        const prev = i > 0 ? ultimos[i - 1] : null;
+        return `<tr>
+            <td><strong>${r.mes}</strong></td>
+            <td style="text-align:right">${fmtPct(r.shopifyShare)} <span style="margin-left:6px">${prev ? deltaBadge(r.shopifyShare, prev.shopifyShare, ' pp') : ''}</span></td>
+            <td style="text-align:right">${fmt(r.shopifyTicket)}</td>
+            <td style="text-align:right">${fmtPct(r.comboShare)} <span style="margin-left:6px">${prev ? deltaBadge(r.comboShare, prev.comboShare, ' pp') : ''}</span></td>
+            <td style="text-align:right"><strong>${fmt(r.comboVentas)}</strong> <span class="mono">${r.comboUds.toLocaleString('es-AR')} u</span></td>
+        </tr>`;
+    }).join('') || '<tr><td colspan="5" class="empty">Sin datos de meses cerrados</td></tr>';
+}
+
 function renderMarcas() {
     const tienda = document.getElementById('filterTiendaMarcas')?.value || '';
     const anio   = document.getElementById('filterAnioMarcas')?.value  || '';
