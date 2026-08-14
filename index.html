@@ -1203,7 +1203,10 @@ function leerDecisionActualKpis() {
     const metatipo = document.getElementById('kpiObjetivoMetaTipo')?.value || 'auto';
     const metaTexto = extraerMetaDesdeDecision(decision, metatipo);
     return {
-        referencia: document.getElementById('kpiObjetivoMes')?.value || 'avg3',
+        actualDesde: document.getElementById('kpiActualDesde')?.value || '',
+        actualHasta: document.getElementById('kpiActualHasta')?.value || '',
+        baseDesde: document.getElementById('kpiBaseDesde')?.value || '',
+        baseHasta: document.getElementById('kpiBaseHasta')?.value || '',
         tipo: document.getElementById('kpiObjetivoTipo')?.value || 'rutinas',
         meta: metaTexto || document.getElementById('kpiObjetivoMeta')?.value || '',
         metatipo,
