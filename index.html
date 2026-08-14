@@ -2213,7 +2213,7 @@ function elegirReferenciaKpisPorFecha(base) {
 
 function renderGrowthMensual(base) {
     prepararControlesObjetivoKpis();
-    const objetivoTipo = normalizarObjetivoTipo(document.getElementById('kpiObjetivoTipo')?.value || '');
+    const objetivoTipo = objetivoTipoActualKpis();
     if (!objetivoTipo) {
         const lectura = document.getElementById('kpiObjetivoLectura');
         if (lectura) lectura.innerHTML = 'Elegí un objetivo, rango y meta para empezar.';
