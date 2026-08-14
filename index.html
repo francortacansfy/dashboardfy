@@ -1433,7 +1433,7 @@ function renderAnalisis() {
     }).join('') || '<tr><td colspan="10" class="empty">Sin resultados</td></tr>';
 }
 
-const TITLES = { dashboard:'Dashboard', productos:'Productos', marcas:'Marcas', stock:'Stock', analisis:'Análisis SKUs', mayorista:'Mayorista' };
+const TITLES = { dashboard:'Dashboard', kpis:'KPIs', productos:'Productos', marcas:'Marcas', stock:'Stock', analisis:'Análisis SKUs', mayorista:'Mayorista' };
 document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -1445,6 +1445,7 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
         document.getElementById('pageTitle').textContent = TITLES[tab] || '';
         const fb = document.getElementById('fb-' + tab);
         if (fb) fb.classList.add('active');
+        if (tab === 'kpis') renderKpis();
         if (tab === 'stock') { renderStock(); renderStockMl(); }
         if (tab === 'marcas') renderMarcas();
         if (tab === 'analisis') renderAnalisis();
