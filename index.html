@@ -1079,27 +1079,23 @@ function prepararControlesObjetivoKpis() {
     const mesSel = document.getElementById('kpiObjetivoMes');
     if (mesSel && !mesSel.dataset.ready) {
         const meses = [...new Set(DATA.map(d => d.fecha?.substring(0,7)).filter(Boolean))].filter(isMesCerrado).sort();
-        const guardado = JSON.parse(localStorage.getItem('fyl_kpi_objetivo') || '{}');
         mesSel.innerHTML = `
             <option value="avg3">Promedio ultimos 3 meses cerrados</option>
             <option value="best">Mejor mes cerrado del año</option>
             ${meses.map(m => `<option value="month:${m}">Mes ${m}</option>`).join('')}
         `;
-        const valorGuardado = guardado.referencia || (guardado.mes ? `month:${guardado.mes}` : '');
-        mesSel.value = valorGuardado || 'avg3';
+        mesSel.value = 'avg3';
         mesSel.dataset.ready = '1';
     }
     const tipoSel = document.getElementById('kpiObjetivoTipo');
     if (tipoSel && !tipoSel.dataset.ready) {
-        const guardado = JSON.parse(localStorage.getItem('fyl_kpi_objetivo') || '{}');
-        tipoSel.value = guardado.tipo || 'rutinas';
+        tipoSel.value = 'rutinas';
         tipoSel.dataset.ready = '1';
     }
-    const guardado = JSON.parse(localStorage.getItem('fyl_kpi_objetivo') || '{}');
     ['Meta','MetaTipo'].forEach(campo => {
         const el = document.getElementById('kpiObjetivo' + campo) || document.getElementById('kpi' + campo);
         if (el && !el.dataset.ready) {
-            el.value = guardado[campo.toLowerCase()] || (campo === 'MetaTipo' ? 'auto' : '');
+            el.value = campo === 'MetaTipo' ? 'auto' : '';
             el.dataset.ready = '1';
         }
     });
