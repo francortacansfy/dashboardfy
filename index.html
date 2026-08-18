@@ -3331,6 +3331,26 @@ function renderProductos() {
 
 
 let PRODUCTOS = [];
+let PRODUCTOS_BY_SKU = new Map();
+let PRODUCTOS_SEARCH = [];
+let CATEGORIA_SKU_CACHE = new Map();
+
+function indexarProductosKpis() {
+    PRODUCTOS_BY_SKU = new Map();
+    PRODUCTOS_SEARCH = [];
+    CATEGORIA_SKU_CACHE = new Map();
+    PRODUCTOS.forEach(p => {
+        const sku = String(p.sku || '').trim().toUpperCase();
+        if (sku) PRODUCTOS_BY_SKU.set(sku, p);
+        if (sku || p.nombre) {
+            PRODUCTOS_SEARCH.push({
+                producto: p,
+                sku,
+                tokens: [...new Set(palabrasClaveKpis(`${p.nombre || ''} ${p.terminos_match || ''}`))],
+            });
+        }
+    });
+}
 
 async function loadProductos() {
     let res = await fetch(
@@ -3360,6 +3380,7 @@ async function loadProductos() {
     }
     if (!res.ok) throw new Error(`Supabase productos error: ${res.status}`);
     PRODUCTOS = await res.json();
+    indexarProductosKpis();
 }
 
 function renderStock() {
