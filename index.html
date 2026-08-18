@@ -1319,7 +1319,7 @@ function restaurarEstadoFormularioKpis() {
     set('kpiActualHasta', estado.hasta || rangoGuardado?.hasta || '');
     set('kpiObjetivoMetaTipo', estado.metaTipo || 'auto');
     set('kpiObjetivoMeta', estado.meta);
-    set('kpiSeguimientoPreset', estado.seguimiento || 'objetivo');
+    set('kpiSeguimientoPreset', estado.seguimiento || 'mes_actual');
     set('kpiSeguimientoDesde', estado.seguimientoDesde);
     set('kpiSeguimientoHasta', estado.seguimientoHasta);
     set('kpiDecision', estado.decision);
@@ -2594,7 +2594,7 @@ function isoDate(d) {
 }
 
 function obtenerRangoSeguimientoKpis() {
-    const preset = document.getElementById('kpiSeguimientoPreset')?.value || 'objetivo';
+    const preset = document.getElementById('kpiSeguimientoPreset')?.value || 'mes_actual';
     const desdeInput = document.getElementById('kpiSeguimientoDesde');
     const hastaInput = document.getElementById('kpiSeguimientoHasta');
     const custom = preset === 'personalizado';
@@ -2631,7 +2631,7 @@ function renderSeguimientoMesActual(base, tipo) {
     }
     const rango = obtenerRangoSeguimientoKpis();
     if (!rango.desde || !rango.hasta) {
-        document.getElementById('kpiMesActualGrid').innerHTML = '<div class="empty" style="grid-column:1/-1">Elegí el período del objetivo para ver seguimiento.</div>';
+        document.getElementById('kpiMesActualGrid').innerHTML = '<div class="empty" style="grid-column:1/-1">Elegí un período para ver seguimiento.</div>';
         return;
     }
     const actual = calcularGrowthRangoKpis(base, rango.desde, rango.hasta, 'Seguimiento');
@@ -2663,12 +2663,12 @@ function renderSeguimientoMesActual(base, tipo) {
             <div class="kpi-sub">${rango.desde} a ${rango.hasta}</div>
         </div>
         <div class="kpi">
-            <div class="kpi-header"><span class="kpi-label">Objetivo en $</span><div class="kpi-icon green"><i class="fas fa-dollar-sign"></i></div></div>
+            <div class="kpi-header"><span class="kpi-label">Valor seguido $</span><div class="kpi-icon green"><i class="fas fa-dollar-sign"></i></div></div>
             <div class="kpi-value">${fmtMoneyCompact(doble.money)}</div>
             <div class="kpi-sub">${doble.moneyLabel} · ${fmt(doble.money)}</div>
         </div>
         <div class="kpi">
-            <div class="kpi-header"><span class="kpi-label">Objetivo en %</span><div class="kpi-icon orange"><i class="fas fa-percent"></i></div></div>
+            <div class="kpi-header"><span class="kpi-label">Peso seguido</span><div class="kpi-icon orange"><i class="fas fa-percent"></i></div></div>
             <div class="kpi-value">${fmtPct(doble.pct)}</div>
             <div class="kpi-sub">${doble.pctLabel}${tieneMeta && esPorcentaje ? ` · ${cierreSub}` : ''}</div>
         </div>
