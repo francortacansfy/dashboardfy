@@ -1000,9 +1000,9 @@ function renderAll() {
     const growthMount = document.getElementById('kpisGrowthMount');
     if (growthCard && growthMount && growthCard.parentElement !== growthMount) {
         growthMount.appendChild(growthCard);
-        growthCard.querySelector('.table-head h3').textContent = 'Objetivo activo';
+        growthCard.querySelector('.table-head h3').textContent = 'KPI completo';
         const sub = growthCard.querySelector('.table-head span');
-        if (sub) sub.textContent = 'KPIs que pueden cambiar según el foco del mes';
+        if (sub) sub.textContent = 'Mide todo el filtro elegido, no solo productos foco';
     }
     renderDashboard();
     renderKpis();
