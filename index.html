@@ -2596,35 +2596,64 @@ function isoDate(d) {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-function obtenerRangoSeguimientoKpis() {
+function fechaLocalDesdeIsoKpis(value) {
+    if (!value) return null;
+    const [year, month, day] = value.split('-').map(Number);
+    if (!year || !month || !day) return null;
+    return new Date(year, month - 1, day);
+}
+
+function diasInclusivosKpis(desde, hasta) {
+    const d = fechaLocalDesdeIsoKpis(desde);
+    const h = fechaLocalDesdeIsoKpis(hasta);
+    if (!d || !h) return 0;
+    return Math.max(1, Math.round((h - d) / 86400000) + 1);
+}
+
+function diasDelMesKpis(fechaIso) {
+    const d = fechaLocalDesdeIsoKpis(fechaIso);
+    if (!d) return 0;
+    return new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+}
+
+function ultimaFechaConDatosKpis(base) {
+    return (base || [])
+        .map(d => d.fecha)
+        .filter(Boolean)
+        .sort((a, b) => a.localeCompare(b))
+        .pop() || isoDate(new Date());
+}
+
+function obtenerRangoSeguimientoKpis(base = []) {
     const preset = document.getElementById('kpiSeguimientoPreset')?.value || 'mes_actual';
     const desdeInput = document.getElementById('kpiSeguimientoDesde');
     const hastaInput = document.getElementById('kpiSeguimientoHasta');
     const custom = preset === 'personalizado';
     if (desdeInput) desdeInput.style.display = custom ? 'block' : 'none';
     if (hastaInput) hastaInput.style.display = custom ? 'block' : 'none';
-    const hoy = new Date();
-    let desde = new Date(hoy);
-    let hasta = new Date(hoy);
+    const ultimaFecha = ultimaFechaConDatosKpis(base);
+    const referencia = fechaLocalDesdeIsoKpis(ultimaFecha) || new Date();
+    let desde = new Date(referencia);
+    let hasta = new Date(referencia);
     if (preset === 'objetivo') {
         const objetivo = rangoObjetivoKpis();
         const desdeObj = objetivo.desde;
         const hastaObj = objetivo.hasta;
-        return { desde: desdeObj, hasta: hastaObj, label:'Objetivo' };
+        return { desde: desdeObj, hasta: hastaObj, label:'Mismo período base', preset };
     } else if (preset === 'mes_actual') {
-        desde = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+        desde = new Date(referencia.getFullYear(), referencia.getMonth(), 1);
     } else if (preset === 'ultimo_mes') {
-        desde = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1);
-        hasta = new Date(hoy.getFullYear(), hoy.getMonth(), 0);
+        desde = new Date(referencia.getFullYear(), referencia.getMonth() - 1, 1);
+        hasta = new Date(referencia.getFullYear(), referencia.getMonth(), 0);
     } else if (preset === 'ultimos_2_meses') {
-        desde = new Date(hoy.getFullYear(), hoy.getMonth() - 2, 1);
-        hasta = new Date(hoy.getFullYear(), hoy.getMonth(), 0);
+        desde = new Date(referencia.getFullYear(), referencia.getMonth() - 2, 1);
+        hasta = new Date(referencia.getFullYear(), referencia.getMonth(), 0);
     } else if (preset === 'ultimos_7_dias') {
-        desde.setDate(hoy.getDate() - 6);
+        desde.setDate(referencia.getDate() - 6);
     } else if (custom) {
-        return { desde: desdeInput?.value || '', hasta: hastaInput?.value || '', label:'Personalizado' };
+        return { desde: desdeInput?.value || '', hasta: hastaInput?.value || '', label:'Personalizado', preset };
     }
-    return { desde: isoDate(desde), hasta: isoDate(hasta), label:preset };
+    return { desde: isoDate(desde), hasta: isoDate(hasta), label:preset, preset };
 }
 
 function renderSeguimientoMesActual(base, tipo) {
@@ -2632,7 +2661,7 @@ function renderSeguimientoMesActual(base, tipo) {
         document.getElementById('kpiMesActualGrid').innerHTML = '<div class="empty" style="grid-column:1/-1">Sin objetivo elegido.</div>';
         return;
     }
-    const rango = obtenerRangoSeguimientoKpis();
+    const rango = obtenerRangoSeguimientoKpis(base);
     if (!rango.desde || !rango.hasta) {
         document.getElementById('kpiMesActualGrid').innerHTML = '<div class="empty" style="grid-column:1/-1">Elegí un período para ver seguimiento.</div>';
         return;
@@ -2641,8 +2670,8 @@ function renderSeguimientoMesActual(base, tipo) {
     const metaRaw = parseFloat(document.getElementById('kpiObjetivoMeta')?.value || '');
     const principal = valorPrincipalObjetivo(tipo, actual);
     const doble = valoresObjetivoDineroYPorcentaje(tipo, actual);
-    const diasTranscurridos = Math.max(1, Math.round((new Date(`${rango.hasta}T00:00:00`) - new Date(`${rango.desde}T00:00:00`)) / 86400000) + 1);
-    const diasMes = diasTranscurridos;
+    const diasTranscurridos = diasInclusivosKpis(rango.desde, rango.hasta);
+    const diasMes = rango.preset === 'mes_actual' ? diasDelMesKpis(rango.hasta) : diasTranscurridos;
     const unidad = principal.unidad === '$' ? 'money' : principal.unidad === '%' ? 'pct' : 'number';
     const esPorcentaje = unidad === 'pct';
     const proyeccion = esPorcentaje ? principal.value : (diasTranscurridos > 0 ? principal.value / diasTranscurridos * diasMes : 0);
@@ -2653,17 +2682,19 @@ function renderSeguimientoMesActual(base, tipo) {
     const diasRestantes = Math.max(0, diasMes - diasTranscurridos);
     const ritmoNecesario = !esPorcentaje && tieneMeta && diasRestantes > 0 ? Math.max(0, (metaRaw - principal.value) / diasRestantes) : 0;
     const fmtTipo = n => unidad === 'money' ? fmt(n) : unidad === 'pct' ? fmtPct(n) : Math.round(n).toLocaleString('es-AR');
-    const estado = !tieneMeta ? 'Sin meta' : proyeccion >= metaRaw ? 'En camino' : 'En riesgo';
-    const color = !tieneMeta ? 'blue' : proyeccion >= metaRaw ? 'green' : 'red';
+    const objetivoAlcanzado = tieneMeta && principal.value >= metaRaw;
+    const llegaria = tieneMeta && (esPorcentaje ? principal.value >= metaRaw : proyeccion >= metaRaw);
+    const estado = !tieneMeta ? 'Sin meta' : objetivoAlcanzado ? 'Alcanzado' : llegaria ? 'En camino' : 'En riesgo';
+    const color = !tieneMeta ? 'blue' : objetivoAlcanzado || llegaria ? 'green' : 'red';
     const cierreLabel = esPorcentaje ? 'Lectura del mes' : 'Cierre estimado';
-    const cierreSub = !tieneMeta ? 'Cargá meta para comparar' : esPorcentaje ? `Diferencia actual: ${gapActual >= 0 ? '+' : ''}${gapActual.toFixed(1).replace('.', ',')} pp` : `Diferencia estimada: ${fmtTipo(gapProyectado)}`;
-    const ritmoValue = !tieneMeta ? '-' : esPorcentaje ? '-' : fmtTipo(ritmoNecesario);
-    const ritmoSub = esPorcentaje ? 'No aplica para porcentajes' : 'Por día restante';
+    const estadoSub = !tieneMeta ? 'Cargá meta para comparar' : objetivoAlcanzado ? 'La meta ya está alcanzada' : llegaria ? 'Al ritmo actual llegaría' : 'Al ritmo actual no llegaría';
+    const cierreSub = !tieneMeta ? 'Cargá meta para comparar' : esPorcentaje ? `Diferencia actual: ${gapActual >= 0 ? '+' : ''}${gapActual.toFixed(1).replace('.', ',')} pp` : `${diasTranscurridos}/${diasMes} días · faltan ${fmtTipo(Math.max(0, gapProyectado))}`;
+    const ritmoSub = !tieneMeta || esPorcentaje || !diasRestantes ? 'Ritmo actual' : `Necesita ${fmtTipo(ritmoNecesario)} por día`;
     document.getElementById('kpiMesActualGrid').innerHTML = actual ? `
         <div class="kpi">
             <div class="kpi-header"><span class="kpi-label">Período</span><div class="kpi-icon ${color}"><i class="fas fa-calendar-day"></i></div></div>
             <div class="kpi-value">${estado}</div>
-            <div class="kpi-sub">${rango.desde} a ${rango.hasta}</div>
+            <div class="kpi-sub">${rango.desde} a ${rango.hasta} · ${estadoSub}</div>
         </div>
         <div class="kpi">
             <div class="kpi-header"><span class="kpi-label">Valor seguido $</span><div class="kpi-icon green"><i class="fas fa-dollar-sign"></i></div></div>
@@ -2676,9 +2707,9 @@ function renderSeguimientoMesActual(base, tipo) {
             <div class="kpi-sub">${doble.pctLabel}${tieneMeta && esPorcentaje ? ` · ${cierreSub}` : ''}</div>
         </div>
         <div class="kpi">
-            <div class="kpi-header"><span class="kpi-label">Cierre estimado $</span><div class="kpi-icon blue"><i class="fas fa-chart-line"></i></div></div>
+            <div class="kpi-header"><span class="kpi-label">${cierreLabel}</span><div class="kpi-icon blue"><i class="fas fa-chart-line"></i></div></div>
             <div class="kpi-value">${fmtMoneyCompact(proyeccionDinero)}</div>
-            <div class="kpi-sub">${fmt(proyeccionDinero)} al ritmo actual</div>
+            <div class="kpi-sub">${cierreSub} · ${ritmoSub}</div>
         </div>
     ` : '<div class="empty" style="grid-column:1/-1">Sin datos del período con los filtros elegidos.</div>';
 }
