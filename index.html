@@ -2274,13 +2274,15 @@ function poblarScopeObjetivoKpis() {
 function productoPorSkuKpis(sku) {
     const key = String(sku || '').trim().toUpperCase();
     if (!key) return null;
-    return PRODUCTOS.find(p => String(p.sku || '').trim().toUpperCase() === key) || null;
+    if (!PRODUCTOS_BY_SKU.size && PRODUCTOS.length) indexarProductosKpis();
+    return PRODUCTOS_BY_SKU.get(key) || null;
 }
 
 function categoriasKpisDisponibles() {
+    const conocidas = ['Magnesios', 'Colágeno Hidrolizado', 'Omegas & Grasas Saludables', 'Multivitamínico', 'Vitaminas y Minerales', 'Veganos', 'Shampoos', 'Acondicionadores', 'Suplementos', 'Accesorios', 'Combos'];
     return [...new Set([
         ...PRODUCTOS.map(p => p.categoria),
-        ...DATA.map(categoriaKpi),
+        ...conocidas,
     ].filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b), 'es'));
 }
 
@@ -2314,18 +2316,23 @@ function detectarProductoDesdeTextoKpis(texto) {
     const textoOriginal = String(texto || '');
     const upper = textoOriginal.toUpperCase();
     const textoNormalizado = normalizarTextoSimple(textoOriginal);
-    const productos = PRODUCTOS.filter(p => p.sku || p.nombre);
+    if (!PRODUCTOS_SEARCH.length && PRODUCTOS.length) indexarProductosKpis();
+    const productos = PRODUCTOS_SEARCH.length ? PRODUCTOS_SEARCH : PRODUCTOS.filter(p => p.sku || p.nombre).map(p => ({
+        producto: p,
+        sku: String(p.sku || '').trim().toUpperCase(),
+        tokens: [...new Set(palabrasClaveKpis(`${p.nombre || ''} ${p.terminos_match || ''}`))],
+    }));
     const porSku = productos.find(p => {
-        const sku = String(p.sku || '').trim().toUpperCase();
-        return sku.length >= 4 && upper.includes(sku);
+        return p.sku.length >= 4 && upper.includes(p.sku);
     });
-    if (porSku) return porSku;
-    return productos.find(p => {
-        const tokens = [...new Set(palabrasClaveKpis(`${p.nombre || ''} ${p.terminos_match || ''}`))];
+    if (porSku) return porSku.producto;
+    const match = productos.find(p => {
+        const tokens = p.tokens;
         if (tokens.length < 2) return false;
         const coincidencias = tokens.filter(t => textoNormalizado.includes(t)).length;
         return coincidencias >= Math.min(2, tokens.length);
-    }) || null;
+    });
+    return match?.producto || null;
 }
 
 function detectarCategoriaDesdeTextoKpis(textoNormalizado, productoDetectado = null) {
