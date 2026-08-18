@@ -2039,10 +2039,10 @@ function renderPlanComercial() {
     const combosMedidos = selectedSkus.length ? combos.filter(c => selected.has(c.sku)) : recomendadosAuto;
     const gananMedidos = combosMedidos.filter(c => c.delta >= 0 && c.ventas > 0);
     const pierdenMedidos = combosMedidos.filter(c => c.delta < 0 || (c.baseVentas > 0 && c.ventas === 0));
-    const actualGanan = calcularPlanMetricas(actualRows, gananMedidos.map(c => c.sku));
-    const baseGanan = calcularPlanMetricas(baseRows, gananMedidos.map(c => c.sku));
-    const actualPierden = calcularPlanMetricas(actualRows, pierdenMedidos.map(c => c.sku));
-    const basePierden = calcularPlanMetricas(baseRows, pierdenMedidos.map(c => c.sku));
+    const actualGanan = calcularPlanMetricasSkus(actualRows, gananMedidos.map(c => c.sku));
+    const baseGanan = calcularPlanMetricasSkus(baseRows, gananMedidos.map(c => c.sku));
+    const actualPierden = calcularPlanMetricasSkus(actualRows, pierdenMedidos.map(c => c.sku));
+    const basePierden = calcularPlanMetricasSkus(baseRows, pierdenMedidos.map(c => c.sku));
     const actual = calcularPlanMetricas(actualRows, skusMedidos);
     const base = calcularPlanMetricas(baseRows, skusMedidos);
     const principal = valorPlanKpi(kpi, actual);
