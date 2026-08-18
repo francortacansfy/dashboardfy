@@ -1424,14 +1424,51 @@ function categoriaDesdeObjetivo(row) {
     }) || null;
 }
 
+function formatearMetaDecisionKpis(meta, tipo) {
+    if (!meta) return '';
+    const n = parseFloat(meta);
+    if (!Number.isFinite(n)) return meta;
+    if (tipo === 'money') return fmt(n);
+    if (tipo === 'pct') return fmtPct(n);
+    return n.toLocaleString('es-AR');
+}
+
+function construirDecisionSugeridaKpis() {
+    const objetivo = textoObjetivoSeleccionado().trim();
+    if (!objetivo) return '';
+    const meta = document.getElementById('kpiObjetivoMeta')?.value || '';
+    const tipoMeta = document.getElementById('kpiObjetivoMetaTipo')?.value || 'auto';
+    const periodo = document.getElementById('kpiPeriodoRango')?.value || '';
+    const marca = document.getElementById('kpiScopeMarca')?.value || '';
+    const canal = document.getElementById('kpiScopeTienda')?.value || '';
+    const categoria = document.getElementById('kpiScopeCategoria')?.value || '';
+    const producto = document.getElementById('kpiScopeProducto')?.value || '';
+    const foco = [marca, canal, categoria, producto].filter(Boolean).join(' / ');
+    const partes = [objetivo];
+    const metaTxt = formatearMetaDecisionKpis(meta, tipoMeta);
+    if (metaTxt) partes.push(`Meta ${metaTxt}`);
+    if (periodo) partes.push(`Base ${periodo}`);
+    if (foco) partes.push(`Foco ${foco}`);
+    return partes.join(' · ');
+}
+
+function marcarDecisionManualKpis() {
+    const decision = document.getElementById('kpiDecision');
+    if (!decision) return;
+    decision.dataset.manual = decision.value.trim() ? '1' : '0';
+}
+
 function actualizarDecisionDesdeObjetivo() {
     const decision = document.getElementById('kpiDecision');
-    if (!decision || decision.value.trim()) return;
-    const objetivo = textoObjetivoSeleccionado();
-    const meta = document.getElementById('kpiObjetivoMeta')?.value || '';
-    const tipo = document.getElementById('kpiObjetivoMetaTipo')?.value || 'auto';
-    const unidad = tipo === 'money' ? '$' : tipo === 'pct' ? '%' : '';
-    decision.value = meta ? `${objetivo} a ${unidad}${meta}` : objetivo;
+    if (!decision) return;
+    const sugerida = construirDecisionSugeridaKpis();
+    if (!sugerida) return;
+    const anteriorAuto = decision.dataset.autoText || '';
+    const puedeAutocompletar = !decision.value.trim() || decision.dataset.manual !== '1' || decision.value === anteriorAuto;
+    if (!puedeAutocompletar) return;
+    decision.value = sugerida;
+    decision.dataset.autoText = sugerida;
+    decision.dataset.manual = '0';
 }
 
 function guardarDecisionKpis() {
