@@ -2107,9 +2107,9 @@ function crearSelectorMetricaObjetivo() {
     box = document.createElement('div');
     box.id = 'kpiMetricaBox';
     box.innerHTML = `
-        <label class="filterbar-label" style="display:block;margin-bottom:6px;padding:0">Métrica a medir</label>
+        <label class="filterbar-label" style="display:block;margin-bottom:6px;padding:0">Qué medir</label>
         <select class="filter-select" id="kpiObjetivoMetrica" onchange="cambiarObjetivoKpis()" style="width:100%">
-            <option value="auto">Auto según objetivo</option>
+            <option value="auto">Auto sugerido</option>
             <option value="ticket">Ticket promedio</option>
             <option value="combos">% combos reales</option>
             <option value="shopify">% Shopify</option>
