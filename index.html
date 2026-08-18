@@ -2139,7 +2139,6 @@ function aplicarLayoutObjetivoLocal() {
     row.appendChild(crearSelectorScopeKpis('kpiScopeMarca', 'Marca', 'Todas'));
     row.appendChild(crearSelectorScopeKpis('kpiScopeTienda', 'Canal', 'Todos'));
     row.appendChild(crearSelectorScopeKpis('kpiScopeCategoria', 'Categoría', 'Todas'));
-    row.appendChild(crearInputProductoScopeKpis());
     if (baseDesdeBox) row.appendChild(baseDesdeBox);
     if (baseHastaBox) row.appendChild(baseHastaBox);
 
@@ -2228,21 +2227,6 @@ function crearSelectorScopeKpis(id, label, emptyText) {
     return box;
 }
 
-function crearInputProductoScopeKpis() {
-    let box = document.getElementById('kpiScopeProductoBox');
-    if (box) return box;
-    box = document.createElement('div');
-    box.id = 'kpiScopeProductoBox';
-    box.className = 'wide';
-    box.innerHTML = `
-        <label class="filterbar-label" style="display:block;margin-bottom:6px;padding:0">Producto opcional</label>
-        <select class="filter-select control-full" id="kpiScopeProducto" onchange="cambiarObjetivoKpis()">
-            <option value="">Todos los productos</option>
-        </select>
-    `;
-    return box;
-}
-
 function poblarScopeObjetivoKpis() {
     const setOptions = (id, values, emptyText) => {
         const el = document.getElementById(id);
@@ -2253,20 +2237,7 @@ function poblarScopeObjetivoKpis() {
     };
     setOptions('kpiScopeMarca', ['FYnutrition', 'Hairfy'], 'Todas');
     setOptions('kpiScopeTienda', ['Mercado Libre', 'Shopify'], 'Todos');
-    setOptions('kpiScopeCategoria', [...new Set(DATA.map(categoriaKpi).filter(Boolean))].sort(), 'Todas');
-    const productos = PRODUCTOS
-        .filter(p => p.sku)
-        .slice()
-        .sort((a, b) => String(a.sku).localeCompare(String(b.sku)));
-    const prod = document.getElementById('kpiScopeProducto');
-    if (prod) {
-        const actual = prod.value;
-        prod.innerHTML = '<option value="">Todos los productos</option>' + productos.map(p => {
-            const label = `${p.sku}${p.nombre ? ' - ' + p.nombre : ''}`;
-            return `<option value="${escapeHtml(p.sku)}">${escapeHtml(label)}</option>`;
-        }).join('');
-        if (productos.some(p => p.sku === actual)) prod.value = actual;
-    }
+    setOptions('kpiScopeCategoria', categoriasKpisDisponibles(), 'Todas');
 }
 
 function productoPorSkuKpis(sku) {
@@ -2275,16 +2246,124 @@ function productoPorSkuKpis(sku) {
     return PRODUCTOS.find(p => String(p.sku || '').trim().toUpperCase() === key) || null;
 }
 
+function categoriasKpisDisponibles() {
+    return [...new Set([
+        ...PRODUCTOS.map(p => p.categoria),
+        ...DATA.map(categoriaKpi),
+    ].filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b), 'es'));
+}
+
+function palabrasClaveKpis(texto) {
+    return normalizarTextoSimple(texto)
+        .replace(/[^a-z0-9\s]/g, ' ')
+        .split(/\s+/)
+        .filter(p => p.length > 3 && !['pack', 'combo', 'caps', 'capsulas', 'fynutrition', 'hairfy', 'nutrition'].includes(p));
+}
+
+function textoCoincideKpis(textoNormalizado, valor) {
+    const normalizado = normalizarTextoSimple(valor).replace(/[^a-z0-9\s]/g, ' ').trim();
+    if (!normalizado) return false;
+    if (textoNormalizado.includes(normalizado)) return true;
+    return palabrasClaveKpis(normalizado).some(p => textoNormalizado.includes(p) || textoNormalizado.includes(p.replace(/s$/, '')));
+}
+
+function detectarMarcaDesdeTextoKpis(textoNormalizado) {
+    if (textoNormalizado.includes('hairfy')) return 'Hairfy';
+    if (textoNormalizado.includes('fynutrition') || textoNormalizado.includes('fy nutrition')) return 'FYnutrition';
+    return '';
+}
+
+function detectarTiendaDesdeTextoKpis(textoNormalizado) {
+    if (textoNormalizado.includes('shopify') || textoNormalizado.includes('tienda propia') || textoNormalizado.includes('web')) return 'Shopify';
+    if (textoNormalizado.includes('mercado libre') || /\bml\b/.test(textoNormalizado)) return 'Mercado Libre';
+    return '';
+}
+
+function detectarProductoDesdeTextoKpis(texto) {
+    const textoOriginal = String(texto || '');
+    const upper = textoOriginal.toUpperCase();
+    const textoNormalizado = normalizarTextoSimple(textoOriginal);
+    const productos = PRODUCTOS.filter(p => p.sku || p.nombre);
+    const porSku = productos.find(p => {
+        const sku = String(p.sku || '').trim().toUpperCase();
+        return sku.length >= 4 && upper.includes(sku);
+    });
+    if (porSku) return porSku;
+    return productos.find(p => {
+        const tokens = palabrasClaveKpis(`${p.nombre || ''} ${p.terminos_match || ''}`);
+        if (tokens.length < 2) return false;
+        const coincidencias = tokens.filter(t => textoNormalizado.includes(t)).length;
+        return coincidencias >= Math.min(2, tokens.length);
+    }) || null;
+}
+
+function detectarCategoriaDesdeTextoKpis(textoNormalizado, productoDetectado = null) {
+    if (productoDetectado?.categoria) return productoDetectado.categoria;
+    return categoriasKpisDisponibles().find(cat => textoCoincideKpis(textoNormalizado, cat)) || '';
+}
+
+function asegurarOpcionSelectKpis(id, value) {
+    const el = document.getElementById(id);
+    if (!el || !value) return;
+    if (![...el.options].some(opt => opt.value === value)) {
+        el.insertAdjacentHTML('beforeend', `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`);
+    }
+}
+
+function setScopeDetectadoKpis(id, value) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const previoAuto = el.dataset.autoValue || '';
+    if (!value) {
+        if (el.value === previoAuto) el.value = '';
+        el.dataset.autoValue = '';
+        return;
+    }
+    asegurarOpcionSelectKpis(id, value);
+    if (!el.value || el.value === previoAuto) {
+        el.value = value;
+        el.dataset.autoValue = value;
+    }
+}
+
+function scopeObjetivoDetectadoKpis() {
+    const texto = textoObjetivoSeleccionado();
+    const textoNormalizado = normalizarTextoSimple(texto);
+    const producto = detectarProductoDesdeTextoKpis(texto);
+    return {
+        marca: detectarMarcaDesdeTextoKpis(textoNormalizado),
+        tienda: detectarTiendaDesdeTextoKpis(textoNormalizado),
+        categoria: detectarCategoriaDesdeTextoKpis(textoNormalizado, producto),
+        producto: producto?.sku || '',
+    };
+}
+
+function sincronizarScopeDetectadoKpis() {
+    const detectado = scopeObjetivoDetectadoKpis();
+    setScopeDetectadoKpis('kpiScopeMarca', detectado.marca);
+    setScopeDetectadoKpis('kpiScopeTienda', detectado.tienda);
+    setScopeDetectadoKpis('kpiScopeCategoria', detectado.categoria);
+}
+
+function scopeObjetivoEfectivoKpis() {
+    const detectado = scopeObjetivoDetectadoKpis();
+    return {
+        marca: document.getElementById('kpiScopeMarca')?.value || detectado.marca,
+        tienda: document.getElementById('kpiScopeTienda')?.value || detectado.tienda,
+        categoria: document.getElementById('kpiScopeCategoria')?.value || detectado.categoria,
+        producto: detectado.producto,
+    };
+}
+
 function filtrarBaseObjetivoKpis(base) {
-    const marca = document.getElementById('kpiScopeMarca')?.value || '';
-    const tienda = document.getElementById('kpiScopeTienda')?.value || '';
-    const categoria = document.getElementById('kpiScopeCategoria')?.value || '';
-    const producto = document.getElementById('kpiScopeProducto')?.value || '';
+    const { marca, tienda, categoria, producto } = scopeObjetivoEfectivoKpis();
     return base.filter(d => {
+        const sku = String(d.sku || '').trim().toUpperCase();
+        const skuProducto = String(producto || '').trim().toUpperCase();
         return (!marca || d.marca === marca) &&
             (!tienda || d.tienda === tienda) &&
             (!categoria || categoriaKpi(d) === categoria) &&
-            (!producto || d.sku === producto);
+            (!producto || sku === skuProducto);
     });
 }
 
