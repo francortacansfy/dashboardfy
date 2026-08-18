@@ -2247,7 +2247,7 @@ function sincronizarPeriodoKpisTexto() {
     const desde = document.getElementById('kpiActualDesde')?.value || '';
     const hasta = document.getElementById('kpiActualHasta')?.value || '';
     if (input) {
-        const texto = desde && hasta ? `${fmtFechaRangoKpis(desde)} - ${fmtFechaRangoKpis(hasta)}` : 'Elegir período';
+        const texto = desde && hasta ? `${fmtFechaRangoKpis(desde)} - ${fmtFechaRangoKpis(hasta)}` : 'Elegir período base';
         if ('value' in input) input.value = texto;
         input.textContent = texto;
     }
