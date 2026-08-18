@@ -2774,12 +2774,8 @@ function renderMirarFinoKpis(tipo) {
 function focoComercialKpis() {
     const objetivo = textoObjetivoSeleccionado().trim();
     const texto = normalizarTextoSimple(objetivo);
-    const marca = document.getElementById('kpiScopeMarca')?.value || '';
-    const canal = document.getElementById('kpiScopeTienda')?.value || '';
-    const categoria = document.getElementById('kpiScopeCategoria')?.value || '';
-    const producto = document.getElementById('kpiScopeProducto')?.value || '';
-    const categoriaDetectada = categoria || (texto.includes('magnes') ? 'Magnesios' : texto.includes('colageno') ? 'Colágeno Hidrolizado' : '');
-    return { objetivo, texto, marca, canal, categoria: categoriaDetectada, producto };
+    const scope = scopeObjetivoEfectivoKpis();
+    return { objetivo, texto, marca: scope.marca, canal: scope.tienda, categoria: scope.categoria, producto: scope.producto };
 }
 
 function accionComercialKpis(tipo) {
