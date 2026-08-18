@@ -916,7 +916,7 @@ async function loadData() {
                 tipoAnulacion: anulacion !== 0 ? clasificarAnulacion(r.estado) : null,
                 sku:         r.sku      || 'S/D',
                 tienda,
-                marca:       normalizeMarca(r.tienda_oficial) || r.tienda || 'S/D',
+                marca:       inferirMarcaVenta(r.tienda_oficial, r.tienda, r.sku),
                 dni:         resolveClienteId(r.dni, r.email) || 'S/D', // DNI, o email como fallback
                 dniReal:     r.dni      || '', // DNI crudo, solo para mostrar
                 // 'padre'/'hija' = cabecera/desglose de un paquete ML (mismo
@@ -2154,8 +2154,9 @@ function crearInputProductoScopeKpis() {
     box.className = 'wide';
     box.innerHTML = `
         <label class="filterbar-label" style="display:block;margin-bottom:6px;padding:0">Producto opcional</label>
-        <input class="search-input control-full" id="kpiScopeProducto" list="kpiScopeProductoList" placeholder="SKU o nombre, si querés enfocar uno" oninput="cambiarObjetivoKpis()">
-        <datalist id="kpiScopeProductoList"></datalist>
+        <select class="filter-select control-full" id="kpiScopeProducto" onchange="cambiarObjetivoKpis()">
+            <option value="">Todos los productos</option>
+        </select>
     `;
     return box;
 }
@@ -2168,13 +2169,21 @@ function poblarScopeObjetivoKpis() {
         el.innerHTML = `<option value="">${emptyText}</option>` + values.map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('');
         if (values.includes(actual)) el.value = actual;
     };
-    setOptions('kpiScopeMarca', [...new Set(DATA.map(d => d.marca).filter(x => x && x !== 'S/D'))].sort(), 'Todas');
-    setOptions('kpiScopeTienda', [...new Set(DATA.map(d => d.tienda).filter(Boolean))].sort(), 'Todos');
+    setOptions('kpiScopeMarca', ['FYnutrition', 'Hairfy'], 'Todas');
+    setOptions('kpiScopeTienda', ['Mercado Libre', 'Shopify'], 'Todos');
     setOptions('kpiScopeCategoria', [...new Set(DATA.map(categoriaKpi).filter(Boolean))].sort(), 'Todas');
-    const list = document.getElementById('kpiScopeProductoList');
-    if (list) {
-        const skus = [...new Set(DATA.map(d => d.sku).filter(Boolean))].sort();
-        list.innerHTML = skus.map(s => `<option value="${escapeHtml(s)}"></option>`).join('');
+    const productos = PRODUCTOS
+        .filter(p => p.sku)
+        .slice()
+        .sort((a, b) => String(a.sku).localeCompare(String(b.sku)));
+    const prod = document.getElementById('kpiScopeProducto');
+    if (prod) {
+        const actual = prod.value;
+        prod.innerHTML = '<option value="">Todos los productos</option>' + productos.map(p => {
+            const label = `${p.sku}${p.nombre ? ' - ' + p.nombre : ''}`;
+            return `<option value="${escapeHtml(p.sku)}">${escapeHtml(label)}</option>`;
+        }).join('');
+        if (productos.some(p => p.sku === actual)) prod.value = actual;
     }
 }
 
@@ -2182,13 +2191,12 @@ function filtrarBaseObjetivoKpis(base) {
     const marca = document.getElementById('kpiScopeMarca')?.value || '';
     const tienda = document.getElementById('kpiScopeTienda')?.value || '';
     const categoria = document.getElementById('kpiScopeCategoria')?.value || '';
-    const producto = normalizarTextoSimple(document.getElementById('kpiScopeProducto')?.value || '');
+    const producto = document.getElementById('kpiScopeProducto')?.value || '';
     return base.filter(d => {
-        const productoTexto = normalizarTextoSimple(`${d.sku || ''} ${d.nombre || ''}`);
         return (!marca || d.marca === marca) &&
             (!tienda || d.tienda === tienda) &&
             (!categoria || categoriaKpi(d) === categoria) &&
-            (!producto || productoTexto.includes(producto));
+            (!producto || d.sku === producto);
     });
 }
 
