@@ -1973,6 +1973,22 @@ function productosRecomendadosPlan(combos) {
     return [...ganan, ...pierden];
 }
 
+function resumenProductoFocoPlan(c) {
+    const canales = [...new Set([...Object.keys(c.tiendas || {}), ...Object.keys(c.baseTiendas || {})])];
+    const principal = canales.map(canal => ({
+        canal,
+        delta:(c.tiendas?.[canal] || 0) - (c.baseTiendas?.[canal] || 0),
+    })).sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))[0];
+    const caeVentas = c.delta < 0;
+    const caeTicket = c.baseTicket && c.ticket < c.baseTicket;
+    if (!caeVentas && !caeTicket) return 'Viene mejor que la base. Reforzar visibilidad y sostener stock.';
+    const partes = [];
+    if (caeVentas) partes.push(`vende ${fmt(Math.abs(c.delta))} menos que la base`);
+    if (caeTicket) partes.push(`ticket baja de ${fmt(c.baseTicket)} a ${fmt(c.ticket)}`);
+    if (principal?.delta < 0) partes.push(`mayor caída en ${principal.canal}`);
+    return partes.length ? partes.join(' · ') : 'Revisar ficha, precio y visibilidad.';
+}
+
 function renderPlanComercial() {
     if (!DATA.length || !document.getElementById('planKpi')) return;
     prepararPlanComercial();
@@ -2034,11 +2050,13 @@ function renderPlanComercial() {
         const deltaTxt = `${c.delta >= 0 ? '+' : ''}${fmt(c.delta)}`;
         const deltaColor = c.delta >= 0 ? 'var(--green)' : 'var(--red)';
         const recomendacion = c.delta >= 0 ? 'Recomendado: reforzar' : 'Recomendado: recuperar';
+        const razon = resumenProductoFocoPlan(c);
         return `<label class="focus-item">
             <input type="checkbox" data-plan-sku value="${escapeHtml(c.sku)}" ${checked} onchange="togglePlanSku(this.value,this.checked)">
             <span>
                 <span class="focus-title">${escapeHtml(c.sku)} · ${escapeHtml(c.marca)}${escapeHtml(nombre)}</span>
-                <span class="focus-meta"><strong style="color:${deltaColor}">${recomendacion}</strong><br>${fmt(c.ventas)} · ${c.ordenesCount} órdenes · Ticket ${fmt(c.ticket)}<br>Anterior ${fmt(c.baseVentas)} · <strong style="color:${deltaColor}">${deltaTxt}</strong>${tiendaTxt ? `<br>${escapeHtml(tiendaTxt)}` : ''}</span>
+                <span class="focus-meta"><strong style="color:${deltaColor}">${recomendacion}</strong><br>Actual ${fmt(c.ventas)} · Base ${fmt(c.baseVentas)} · <strong style="color:${deltaColor}">${deltaTxt}</strong><br>Ticket ${fmt(c.ticket)} · Base ${fmt(c.baseTicket)}${tiendaTxt ? `<br>${escapeHtml(tiendaTxt)}` : ''}</span>
+                <span class="focus-reason"><b>Lectura:</b> ${escapeHtml(razon)}</span>
             </span>
         </label>`;
     };
