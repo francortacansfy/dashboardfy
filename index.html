@@ -498,17 +498,34 @@
         <div class="table-card">
             <div class="table-head">
                 <h3>Plan comercial</h3>
-                <span style="font-size:12px;color:var(--text-3)">Elegí foco, fechas y acciones para medir avance</span>
+                <span style="font-size:12px;color:var(--text-3)">De KPI a ejecución</span>
             </div>
             <div class="plan-grid" style="padding:18px 22px">
-                <div>
-                    <label class="filterbar-label" style="display:block;margin-bottom:6px;padding:0">KPI</label>
+                <div class="xl">
+                    <label class="filterbar-label" style="display:block;margin-bottom:6px;padding:0">Decisión / KPI</label>
                     <select class="filter-select" id="planKpi" onchange="renderPlanComercial()" style="width:100%">
                         <option value="ticket">Ticket promedio</option>
                         <option value="combos">Combos reales</option>
                         <option value="shopify">Shopify %</option>
                     </select>
                 </div>
+                <div class="wide">
+                    <label class="filterbar-label" style="display:block;margin-bottom:6px;padding:0">Período del plan</label>
+                    <input class="search-input" id="planDesde" type="date" onchange="renderPlanComercial()" style="width:100%">
+                </div>
+                <div>
+                    <label class="filterbar-label" style="display:block;margin-bottom:6px;padding:0">Hasta</label>
+                    <input class="search-input" id="planHasta" type="date" onchange="renderPlanComercial()" style="width:100%">
+                </div>
+                <div class="wide">
+                    <label class="filterbar-label" style="display:block;margin-bottom:6px;padding:0">Comparar contra</label>
+                    <input class="search-input" id="planBaseDesde" type="date" onchange="renderPlanComercial()" style="width:100%">
+                </div>
+                <div>
+                    <label class="filterbar-label" style="display:block;margin-bottom:6px;padding:0">Hasta</label>
+                    <input class="search-input" id="planBaseHasta" type="date" onchange="renderPlanComercial()" style="width:100%">
+                </div>
+                <div class="plan-divider"></div>
                 <div>
                     <label class="filterbar-label" style="display:block;margin-bottom:6px;padding:0">Marca</label>
                     <select class="filter-select" id="planMarca" onchange="renderPlanComercial()" style="width:100%"><option value="">Todas</option></select>
@@ -518,23 +535,19 @@
                     <select class="filter-select" id="planTienda" onchange="renderPlanComercial()" style="width:100%"><option value="">Todos</option></select>
                 </div>
                 <div>
-                    <label class="filterbar-label" style="display:block;margin-bottom:6px;padding:0">Período a analizar desde</label>
-                    <input class="search-input" id="planDesde" type="date" onchange="renderPlanComercial()" style="width:100%">
+                    <label class="filterbar-label" style="display:block;margin-bottom:6px;padding:0">Categoría</label>
+                    <select class="filter-select" id="planCategoria" onchange="renderPlanComercial()" style="width:100%">
+                        <option value="">Todas</option>
+                    </select>
                 </div>
-                <div>
-                    <label class="filterbar-label" style="display:block;margin-bottom:6px;padding:0">Período a analizar hasta</label>
-                    <input class="search-input" id="planHasta" type="date" onchange="renderPlanComercial()" style="width:100%">
-                </div>
-                <div>
-                    <label class="filterbar-label" style="display:block;margin-bottom:6px;padding:0">Período anterior desde</label>
-                    <input class="search-input" id="planBaseDesde" type="date" onchange="renderPlanComercial()" style="width:100%">
-                </div>
-                <div>
-                    <label class="filterbar-label" style="display:block;margin-bottom:6px;padding:0">Período anterior hasta</label>
-                    <input class="search-input" id="planBaseHasta" type="date" onchange="renderPlanComercial()" style="width:100%">
+                <div class="xl">
+                    <label class="filterbar-label" style="display:block;margin-bottom:6px;padding:0">Producto foco</label>
+                    <select class="filter-select" id="planProductoSearch" onchange="renderPlanComercial()" style="width:100%">
+                        <option value="">Recomendados automáticamente</option>
+                    </select>
                 </div>
                 <div class="wide">
-                    <label class="filterbar-label" style="display:block;margin-bottom:6px;padding:0">Tema</label>
+                    <label class="filterbar-label" style="display:block;margin-bottom:6px;padding:0">Acción</label>
                     <input class="search-input" id="planTema" placeholder="Ej: Rutinas anticaída / descanso" oninput="guardarPlanEstado()" style="width:100%">
                 </div>
                 <div class="wide">
@@ -546,22 +559,11 @@
                         <option value="Mixto: ML + Shopify/Klaviyo">Mixto: ML + Shopify/Klaviyo</option>
                     </select>
                 </div>
-                <div>
-                    <label class="filterbar-label" style="display:block;margin-bottom:6px;padding:0">Categoría</label>
-                    <select class="filter-select" id="planCategoria" onchange="renderPlanComercial()" style="width:100%">
-                        <option value="">Todas</option>
-                    </select>
-                </div>
-                <div class="wide">
-                    <label class="filterbar-label" style="display:block;margin-bottom:6px;padding:0">Buscar producto foco</label>
-                    <input class="search-input" id="planProductoSearch" list="planProductosList" placeholder="SKU o nombre" oninput="renderPlanComercial()" style="width:100%">
-                    <datalist id="planProductosList"></datalist>
-                </div>
             </div>
             <div class="kpi-grid" id="planKpiGrid" style="padding:0 22px 6px;margin-bottom:12px"></div>
             <div class="table-head" style="border-top:1px solid var(--border)">
                 <h3>Productos foco</h3>
-                <span style="font-size:12px;color:var(--text-3)">Podés dejar todo sin seleccionar y mirar el total del filtro</span>
+                <span style="font-size:12px;color:var(--text-3)">Sugeridos por variación de ventas</span>
             </div>
             <div id="planFocusList" class="focus-list"></div>
             <div class="table-head" style="border-top:1px solid var(--border)">
