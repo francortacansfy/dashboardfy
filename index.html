@@ -2289,7 +2289,7 @@ function detectarProductoDesdeTextoKpis(texto) {
     });
     if (porSku) return porSku;
     return productos.find(p => {
-        const tokens = palabrasClaveKpis(`${p.nombre || ''} ${p.terminos_match || ''}`);
+        const tokens = [...new Set(palabrasClaveKpis(`${p.nombre || ''} ${p.terminos_match || ''}`))];
         if (tokens.length < 2) return false;
         const coincidencias = tokens.filter(t => textoNormalizado.includes(t)).length;
         return coincidencias >= Math.min(2, tokens.length);
