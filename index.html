@@ -2900,7 +2900,9 @@ function renderAccionComercialKpis(tipo) {
         </div>
         <div class="action-box">
             <strong>Dónde aplicarlo</strong>
-            <p>${canales.map(b => `<b>${escapeHtml(b.titulo)}:</b> ${escapeHtml(b.texto)}`).join('<br>') || 'Definir canal según el foco elegido.'}</p>
+            ${canales.length
+                ? canales.map(b => `<div class="action-channel"><b>${escapeHtml(b.titulo)}:</b> ${escapeHtml(b.texto)}</div>`).join('')
+                : '<p>Definir canal según el foco elegido.</p>'}
         </div>
         <div class="action-box">
             <strong>Cómo medirlo</strong>
