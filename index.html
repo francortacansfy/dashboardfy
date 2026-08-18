@@ -1944,14 +1944,17 @@ function compararCombosPlan(actualRows, baseRows, fallbackRows) {
     const selected = PLAN_SKUS_SELECCIONADOS;
     return skus.map(sku => {
         const a = actual[sku] || { sku, marca:base[sku]?.marca || '', ventas:0, ordenes:new Set(), tiendas:{} };
-        const b = base[sku] || { ventas:0 };
+        const b = base[sku] || { ventas:0, ordenes:new Set(), tiendas:{} };
         const delta = a.ventas - b.ventas;
         return {
             ...a,
             baseVentas:b.ventas || 0,
+            baseTiendas:b.tiendas || {},
             delta,
             ordenesCount:a.ordenes?.size || 0,
+            baseOrdenesCount:b.ordenes?.size || 0,
             ticket:a.ordenes?.size ? a.ventas / a.ordenes.size : 0,
+            baseTicket:b.ordenes?.size ? b.ventas / b.ordenes.size : 0,
         };
     }).filter(x => {
         const producto = productoPorSkuKpis(x.sku);
