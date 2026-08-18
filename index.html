@@ -1104,6 +1104,8 @@ function calcularGrowthMensualSinFiltroCierre(base, mesUnico = '') {
 
 function categoriaKpi(d) {
     const sku = (d.sku || '').toUpperCase();
+    const producto = productoPorSkuKpis(d.sku);
+    if (producto?.categoria) return producto.categoria;
     if (COMBOS_REALES.has(d.sku)) return 'Combos';
     if (d.marca === 'Hairfy') {
         if (sku.includes('SHA')) return 'Shampoos';
@@ -2266,6 +2268,12 @@ function poblarScopeObjetivoKpis() {
         }).join('');
         if (productos.some(p => p.sku === actual)) prod.value = actual;
     }
+}
+
+function productoPorSkuKpis(sku) {
+    const key = String(sku || '').trim().toUpperCase();
+    if (!key) return null;
+    return PRODUCTOS.find(p => String(p.sku || '').trim().toUpperCase() === key) || null;
 }
 
 function filtrarBaseObjetivoKpis(base) {
