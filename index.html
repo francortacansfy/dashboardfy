@@ -3207,6 +3207,12 @@ async function loadProductos() {
             { headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` } }
         );
     }
+    if (!res.ok) {
+        res = await fetch(
+            `${SUPA_URL}/rest/v1/productos?select=sku,nombre,stock_actual,stock_minimo,stock_critico&order=sku.asc&limit=1000`,
+            { headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` } }
+        );
+    }
     if (!res.ok) throw new Error(`Supabase productos error: ${res.status}`);
     PRODUCTOS = await res.json();
 }
