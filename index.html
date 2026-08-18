@@ -2345,7 +2345,7 @@ function elegirReferenciaKpisPorFecha(base) {
     let actualDesde = rango.desde;
     let actualHasta = rango.hasta;
     if (!actualDesde || !actualHasta) {
-        return { actual:null, anterior:null, ultimos:[], label:'Elegí desde y hasta para comparar contra el período anterior' };
+        return { actual:null, anterior:null, ultimos:[], label:'Elegí un período base' };
     }
     const dias = Math.max(1, Math.round((new Date(`${actualHasta}T00:00:00`) - new Date(`${actualDesde}T00:00:00`)) / 86400000) + 1);
     const baseHasta = sumarDias(actualDesde, -1);
@@ -2362,7 +2362,7 @@ function elegirReferenciaKpisPorFecha(base) {
         actual,
         anterior,
         ultimos: [anterior, actual],
-        label: `Analizado: ${actualDesde || '-'} a ${actualHasta || '-'} · Período anterior automático: ${baseDesde || '-'} a ${baseHasta || '-'}`,
+        label: `Período base: ${actualDesde || '-'} a ${actualHasta || '-'} · Referencia anterior: ${baseDesde || '-'} a ${baseHasta || '-'}`,
     };
 }
 
