@@ -2024,6 +2024,13 @@ function renderPlanComercial() {
     const selectedSkus = [...selected];
     const recomendadosAuto = productosRecomendadosPlan(combos);
     const skusMedidos = selectedSkus.length ? selectedSkus : recomendadosAuto.map(c => c.sku);
+    const combosMedidos = selectedSkus.length ? combos.filter(c => selected.has(c.sku)) : recomendadosAuto;
+    const gananMedidos = combosMedidos.filter(c => c.delta >= 0 && c.ventas > 0);
+    const pierdenMedidos = combosMedidos.filter(c => c.delta < 0 || (c.baseVentas > 0 && c.ventas === 0));
+    const actualGanan = calcularPlanMetricas(actualRows, gananMedidos.map(c => c.sku));
+    const baseGanan = calcularPlanMetricas(baseRows, gananMedidos.map(c => c.sku));
+    const actualPierden = calcularPlanMetricas(actualRows, pierdenMedidos.map(c => c.sku));
+    const basePierden = calcularPlanMetricas(baseRows, pierdenMedidos.map(c => c.sku));
     const actual = calcularPlanMetricas(actualRows, skusMedidos);
     const base = calcularPlanMetricas(baseRows, skusMedidos);
     const principal = valorPlanKpi(kpi, actual);
@@ -2031,6 +2038,8 @@ function renderPlanComercial() {
     const delta = principal.value - principalBase.value;
     const deltaTxt = kpi === 'ticket' ? fmt(delta) : `${delta >= 0 ? '+' : ''}${delta.toFixed(1).replace('.', ',')} pp`;
     const avance = base.ventas ? (actual.ventas / base.ventas * 100) : 0;
+    const ventasGananDelta = actualGanan.ventas - baseGanan.ventas;
+    const ventasPierdenDelta = actualPierden.ventas - basePierden.ventas;
     const grid = document.getElementById('planKpiGrid');
     if (!decision) {
         if (grid) grid.innerHTML = '<div class="empty" style="grid-column:1/-1">Elegí una decisión guardada para medir el plan.</div>';
@@ -2042,6 +2051,8 @@ function renderPlanComercial() {
         <div class="kpi"><div class="kpi-header"><span class="kpi-label">Ventas foco</span><div class="kpi-icon blue"><i class="fas fa-dollar-sign"></i></div></div><div class="kpi-value">${fmtMoneyCompact(actual.ventas)}</div><div class="kpi-sub">${fmt(actual.ventas)} · ${actual.ordenes} órdenes</div></div>
         <div class="kpi"><div class="kpi-header"><span class="kpi-label">Diferencia</span><div class="kpi-icon ${delta >= 0 ? 'green' : 'red'}"><i class="fas fa-chart-line"></i></div></div><div class="kpi-value">${deltaTxt}</div><div class="kpi-sub">Anterior: ${principalBase.display}</div></div>
         <div class="kpi"><div class="kpi-header"><span class="kpi-label">Ventas vs base</span><div class="kpi-icon orange"><i class="fas fa-gauge-high"></i></div></div><div class="kpi-value">${base.ventas ? fmtPct(avance) : '-'}</div><div class="kpi-sub">${baseDesde} a ${baseHasta}</div></div>
+        <div class="kpi"><div class="kpi-header"><span class="kpi-label">Vienen bien</span><div class="kpi-icon green"><i class="fas fa-arrow-trend-up"></i></div></div><div class="kpi-value">${fmtMoneyCompact(actualGanan.ventas)}</div><div class="kpi-sub">${gananMedidos.length} productos · ${ventasGananDelta >= 0 ? '+' : ''}${fmt(ventasGananDelta)} vs base</div></div>
+        <div class="kpi"><div class="kpi-header"><span class="kpi-label">Van mal</span><div class="kpi-icon red"><i class="fas fa-arrow-trend-down"></i></div></div><div class="kpi-value">${fmtMoneyCompact(actualPierden.ventas)}</div><div class="kpi-sub">${pierdenMedidos.length} productos · ${ventasPierdenDelta >= 0 ? '+' : ''}${fmt(ventasPierdenDelta)} vs base</div></div>
     `;
     const list = document.getElementById('planFocusList');
     const renderCombo = c => {
@@ -2053,11 +2064,11 @@ function renderPlanComercial() {
         const deltaColor = c.delta >= 0 ? 'var(--green)' : 'var(--red)';
         const recomendacion = c.delta >= 0 ? 'Recomendado: reforzar' : 'Recomendado: recuperar';
         const razon = resumenProductoFocoPlan(c);
-        return `<label class="focus-item">
+        return `<label class="focus-item ${checked ? 'selected' : ''}">
             <input type="checkbox" data-plan-sku value="${escapeHtml(c.sku)}" ${checked} onchange="togglePlanSku(this.value,this.checked)">
             <span>
                 <span class="focus-title">${escapeHtml(c.sku)} · ${escapeHtml(c.marca)}${escapeHtml(nombre)}</span>
-                <span class="focus-meta"><strong style="color:${deltaColor}">${recomendacion}</strong><br>Actual ${fmt(c.ventas)} · Base ${fmt(c.baseVentas)} · <strong style="color:${deltaColor}">${deltaTxt}</strong><br>Ticket ${fmt(c.ticket)} · Base ${fmt(c.baseTicket)}${tiendaTxt ? `<br>${escapeHtml(tiendaTxt)}` : ''}</span>
+                <span class="focus-meta"><strong style="color:${deltaColor}">${recomendacion}</strong><br>Venta actual ${fmt(c.ventas)} · Base ${fmt(c.baseVentas)} · <strong style="color:${deltaColor}">${deltaTxt}</strong><br>Ticket actual ${fmt(c.ticket)} · Base ${fmt(c.baseTicket)}${tiendaTxt ? `<br>${escapeHtml(tiendaTxt)}` : ''}</span>
                 <span class="focus-reason"><b>Lectura:</b> ${escapeHtml(razon)}</span>
             </span>
         </label>`;
