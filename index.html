@@ -2205,7 +2205,6 @@ function transformarObjetivoEnCampoEscribible() {
     }
     if (input.value.trim() && !select.value) select.value = 'nuevo';
     input.style.display = select.value === 'nuevo' ? 'block' : 'none';
-    if (select.value === 'nuevo') input.focus();
 }
 
 function parseFechaRangoKpis(valor) {
