@@ -2536,6 +2536,7 @@ function elegirReferenciaKpisPorFecha(base) {
 function renderGrowthMensual(base) {
     prepararControlesObjetivoKpis();
     poblarScopeObjetivoKpis();
+    sincronizarScopeDetectadoKpis();
     aplicarPeriodoVisibleAInputsKpis();
     const baseObjetivo = filtrarBaseObjetivoKpis(base);
     const nuevoTexto = textoObjetivoNuevoKpis();
