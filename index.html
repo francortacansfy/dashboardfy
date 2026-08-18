@@ -1274,6 +1274,7 @@ const KPI_OBJETIVOS_CUSTOM_KEY = 'fyl_kpi_objetivos_custom';
 const KPI_FORM_STATE_KEY = 'fyl_kpi_form_state';
 const KPI_FORM_STATE_VERSION = 2;
 let KPI_DECISION_ACTIVA_ID = null;
+let KPI_ACCION_COMERCIAL_ACTUAL = null;
 
 function guardarEstadoFormularioKpis() {
     const get = id => document.getElementById(id)?.value || '';
@@ -2641,6 +2642,102 @@ function renderMirarFinoKpis(tipo) {
         'Stock de los productos foco',
     ] : []);
     document.getElementById('kpiMirarFino').innerHTML = `<ul style="margin:0;padding-left:18px;font-size:13px;color:var(--text-2);line-height:1.9">${items.map(x => `<li>${x}</li>`).join('')}</ul>`;
+}
+
+function focoComercialKpis() {
+    const objetivo = textoObjetivoSeleccionado().trim();
+    const texto = normalizarTextoSimple(objetivo);
+    const marca = document.getElementById('kpiScopeMarca')?.value || '';
+    const canal = document.getElementById('kpiScopeTienda')?.value || '';
+    const categoria = document.getElementById('kpiScopeCategoria')?.value || '';
+    const producto = document.getElementById('kpiScopeProducto')?.value || '';
+    const categoriaDetectada = categoria || (texto.includes('magnes') ? 'Magnesios' : texto.includes('colageno') ? 'Colágeno Hidrolizado' : '');
+    return { objetivo, texto, marca, canal, categoria: categoriaDetectada, producto };
+}
+
+function accionComercialKpis(tipo) {
+    const foco = focoComercialKpis();
+    if (!foco.objetivo) return null;
+    const alcance = [foco.marca, foco.canal, foco.categoria, foco.producto].filter(Boolean).join(' / ') || 'todas las marcas y canales';
+    if (foco.categoria === 'Magnesios') {
+        return {
+            decision: `Lanzar campaña de rutinas de Magnesios · Foco ${alcance}`,
+            bloques: [
+                ['Prioridad', 'Empujar rutina de magnesios como compra de solución, no SKU suelto.'],
+                ['Mercado Libre', 'Reforzar combos/publicaciones de magnesio con mejor venta, precio competitivo y ficha clara.'],
+                ['Shopify + Klaviyo', 'Enviar comunicación a compradores de magnesio, sueño/estrés y bienestar con rutina mensual.'],
+                ['Medición', 'Ventas Magnesios, ticket promedio, peso Shopify y cierre estimado del mes.'],
+            ],
+        };
+    }
+    if (tipo === 'rutinas' || foco.texto.includes('combo') || foco.texto.includes('rutina') || foco.texto.includes('ticket')) {
+        return {
+            decision: `Subir ticket con rutinas reales · Foco ${alcance}`,
+            bloques: [
+                ['Prioridad', 'Armar packs con productos distintos y sentido de uso, no solo pack del mismo SKU.'],
+                ['Mercado Libre', 'Potenciar combos ganadores y recuperar los que caen con pauta, precio y ficha.'],
+                ['Shopify + Klaviyo', 'Cross-sell post compra y emails por rutina: complemento, recompra y winback.'],
+                ['Medición', 'Ticket promedio, % combos reales, ventas foco y stock disponible.'],
+            ],
+        };
+    }
+    if (tipo === 'shopify' || foco.texto.includes('shopify')) {
+        return {
+            decision: `Potenciar Shopify con comunicación Klaviyo · Foco ${alcance}`,
+            bloques: [
+                ['Prioridad', 'Llevar tráfico y recompra a tienda propia con rutina y beneficio claro.'],
+                ['Mercado Libre', 'Usarlo como volumen y vidriera, manteniendo publicaciones fuertes.'],
+                ['Shopify + Klaviyo', 'Campaña segmentada por compradores, recompra y productos complementarios.'],
+                ['Medición', 'Peso Shopify, ventas Shopify, ticket Shopify y recompra.'],
+            ],
+        };
+    }
+    if (tipo === 'ml' || foco.texto.includes('mercado libre') || /\bml\b/.test(foco.texto)) {
+        return {
+            decision: `Defender Mercado Libre · Foco ${alcance}`,
+            bloques: [
+                ['Prioridad', 'Proteger ventas principales con precio, ficha, stock y pauta donde haya competencia.'],
+                ['Mercado Libre', 'Revisar ganadores, caídas, competidores y combos con mejor tracción.'],
+                ['Shopify + Klaviyo', 'Acompañar con comunicación propia solo donde ayude al ticket o recompra.'],
+                ['Medición', 'Ventas ML, ticket ML, ranking de SKUs y stock crítico.'],
+            ],
+        };
+    }
+    return {
+        decision: `Crecer el foco elegido · Foco ${alcance}`,
+        bloques: [
+            ['Prioridad', 'Elegir una categoría o producto y empujarlo durante el mes, sin abrir demasiados frentes.'],
+            ['Mercado Libre', 'Buscar ganadores y perdedores para decidir pauta, precio o mejora de publicación.'],
+            ['Shopify + Klaviyo', 'Comunicar rutina, recompra o complemento según el producto foco.'],
+            ['Medición', 'Ventas del foco, peso sobre total, avance vs meta y cierre estimado.'],
+        ],
+    };
+}
+
+function renderAccionComercialKpis(tipo) {
+    const el = document.getElementById('kpiAccionComercial');
+    if (!el) return;
+    KPI_ACCION_COMERCIAL_ACTUAL = accionComercialKpis(tipo);
+    if (!KPI_ACCION_COMERCIAL_ACTUAL) {
+        el.innerHTML = '<div class="empty" style="grid-column:1/-1">Elegí un objetivo para ver una acción comercial sugerida.</div>';
+        return;
+    }
+    el.innerHTML = KPI_ACCION_COMERCIAL_ACTUAL.bloques.map((b, i) => `
+        <div class="action-box ${i === 0 ? 'main' : ''}">
+            <strong>${escapeHtml(b[0])}</strong>
+            <p>${escapeHtml(b[1])}</p>
+        </div>
+    `).join('');
+}
+
+function usarAccionComercialKpis() {
+    if (!KPI_ACCION_COMERCIAL_ACTUAL) return;
+    const decision = document.getElementById('kpiDecision');
+    if (!decision) return;
+    decision.value = KPI_ACCION_COMERCIAL_ACTUAL.decision;
+    decision.dataset.manual = '1';
+    guardarEstadoFormularioKpis();
+    renderDecisionKpis();
 }
 
 function isoDate(d) {
