@@ -1283,6 +1283,7 @@ const KPI_FORM_STATE_KEY = 'fyl_kpi_form_state';
 const KPI_FORM_STATE_VERSION = 2;
 let KPI_DECISION_ACTIVA_ID = null;
 let KPI_ACCION_COMERCIAL_ACTUAL = null;
+let KPI_ACCION_COMERCIAL_ELEGIDA = 0;
 
 function guardarEstadoFormularioKpis() {
     const get = id => document.getElementById(id)?.value || '';
