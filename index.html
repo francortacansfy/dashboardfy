@@ -1288,6 +1288,7 @@ let KPI_ACCION_COMERCIAL_ELEGIDA = 0;
 function guardarEstadoFormularioKpis() {
     const get = id => document.getElementById(id)?.value || '';
     const periodoEl = document.getElementById('kpiPeriodoRango');
+    const scope = scopeObjetivoEfectivoKpis();
     let previo = {};
     try { previo = JSON.parse(localStorage.getItem(KPI_FORM_STATE_KEY) || '{}'); } catch(e) {}
     const estado = {
@@ -1295,10 +1296,10 @@ function guardarEstadoFormularioKpis() {
         objetivo: get('kpiObjetivoTipo'),
         objetivoNuevo: get('kpiObjetivoNuevo'),
         metrica: get('kpiObjetivoMetrica'),
-        scopeMarca: get('kpiScopeMarca'),
-        scopeTienda: get('kpiScopeTienda'),
-        scopeCategoria: get('kpiScopeCategoria'),
-        scopeProducto: get('kpiScopeProducto'),
+        scopeMarca: get('kpiScopeMarca') || scope.marca,
+        scopeTienda: get('kpiScopeTienda') || scope.tienda,
+        scopeCategoria: get('kpiScopeCategoria') || scope.categoria,
+        scopeProducto: scope.producto,
         desde: get('kpiActualDesde'),
         hasta: get('kpiActualHasta'),
         periodoTexto: periodoEl ? (periodoEl.value || periodoEl.textContent || '') : '',
@@ -1380,6 +1381,7 @@ function leerDecisionActualKpis() {
     const decision = document.getElementById('kpiDecision')?.value || '';
     const metatipo = document.getElementById('kpiObjetivoMetaTipo')?.value || 'auto';
     const metaTexto = extraerMetaDesdeDecision(decision, metatipo);
+    const scope = scopeObjetivoEfectivoKpis();
     return {
         actualDesde: document.getElementById('kpiActualDesde')?.value || '',
         actualHasta: document.getElementById('kpiActualHasta')?.value || '',
@@ -1389,10 +1391,10 @@ function leerDecisionActualKpis() {
         objetivoTexto: textoObjetivoSeleccionado(),
         objetivoNuevo: objetivoTipoActualKpis() === 'nuevo' ? textoObjetivoSeleccionado() : '',
         metrica: document.getElementById('kpiObjetivoMetrica')?.value || 'auto',
-        scopeMarca: document.getElementById('kpiScopeMarca')?.value || '',
-        scopeTienda: document.getElementById('kpiScopeTienda')?.value || '',
-        scopeCategoria: document.getElementById('kpiScopeCategoria')?.value || '',
-        scopeProducto: document.getElementById('kpiScopeProducto')?.value || '',
+        scopeMarca: scope.marca,
+        scopeTienda: scope.tienda,
+        scopeCategoria: scope.categoria,
+        scopeProducto: scope.producto,
         meta: metaTexto || document.getElementById('kpiObjetivoMeta')?.value || '',
         metatipo,
         decision,
@@ -1470,7 +1472,7 @@ function textoObjetivoNuevoKpis() {
 }
 
 function categoriaDesdeObjetivo(row) {
-    const scopeCategoria = document.getElementById('kpiScopeCategoria')?.value || '';
+    const scopeCategoria = scopeObjetivoEfectivoKpis().categoria || '';
     if (scopeCategoria) return scopeCategoria;
     const texto = normalizarTextoSimple(textoObjetivoSeleccionado());
     const categorias = Object.keys(row?.categorias || {});
@@ -1501,11 +1503,8 @@ function construirDecisionSugeridaKpis() {
     const meta = document.getElementById('kpiObjetivoMeta')?.value || '';
     const tipoMeta = document.getElementById('kpiObjetivoMetaTipo')?.value || 'auto';
     const periodo = document.getElementById('kpiPeriodoRango')?.value || '';
-    const marca = document.getElementById('kpiScopeMarca')?.value || '';
-    const canal = document.getElementById('kpiScopeTienda')?.value || '';
-    const categoria = document.getElementById('kpiScopeCategoria')?.value || '';
-    const producto = document.getElementById('kpiScopeProducto')?.value || '';
-    const foco = [marca, canal, categoria, producto].filter(Boolean).join(' / ');
+    const scope = scopeObjetivoEfectivoKpis();
+    const foco = [scope.marca, scope.tienda, scope.categoria, scope.producto].filter(Boolean).join(' / ');
     const partes = [objetivo];
     const metaTxt = formatearMetaDecisionKpis(meta, tipoMeta);
     if (metaTxt) partes.push(`Meta ${metaTxt}`);
@@ -1596,7 +1595,6 @@ function cargarDecisionKpis(id) {
     set('kpiScopeMarca', item.scopeMarca || '');
     set('kpiScopeTienda', item.scopeTienda || '');
     set('kpiScopeCategoria', item.scopeCategoria || '');
-    set('kpiScopeProducto', item.scopeProducto || '');
     set('kpiObjetivoMetaTipo', item.metatipo || 'auto');
     set('kpiObjetivoMeta', metaEfectivaDecision(item));
     set('kpiDecision', item.decision || '');
@@ -1668,7 +1666,7 @@ function renderDecisionKpis() {
 
 function limpiarObjetivoKpis() {
     KPI_DECISION_ACTIVA_ID = null;
-    ['kpiActualDesde', 'kpiActualHasta', 'kpiBaseDesde', 'kpiBaseHasta', 'kpiObjetivoMeta', 'kpiDecision', 'kpiNota', 'kpiScopeMarca', 'kpiScopeTienda', 'kpiScopeCategoria', 'kpiScopeProducto'].forEach(id => {
+    ['kpiActualDesde', 'kpiActualHasta', 'kpiBaseDesde', 'kpiBaseHasta', 'kpiObjetivoMeta', 'kpiDecision', 'kpiNota', 'kpiScopeMarca', 'kpiScopeTienda', 'kpiScopeCategoria'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = '';
     });
