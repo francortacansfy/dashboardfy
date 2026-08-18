@@ -2646,7 +2646,7 @@ function valorPrincipalObjetivo(tipo, row) {
     const catObjetivo = categoriaDesdeObjetivo(row);
     const textoObj = normalizarTextoSimple(textoObjetivoSeleccionado());
     const scope = scopeObjetivoEfectivoKpis();
-    const pideVentas = textoObj.includes('venta') || textoObj.includes('ingreso') || textoObj.includes('facturacion') || textoObj.includes('crecer');
+    const pideVentas = textoObj.includes('venta') || textoObj.includes('ingreso') || textoObj.includes('facturacion') || textoObj.includes('crecer') || textoObj.includes('subir');
     if (metrica === 'auto') {
         if (textoObj.includes('ticket')) return { label:'Ticket promedio', value:row.ticket, display:fmt(row.ticket), unidad:'$' };
         if ((catObjetivo || scope.producto || scope.marca || scope.tienda) && pideVentas) {
@@ -2677,7 +2677,7 @@ function valoresObjetivoDineroYPorcentaje(tipo, row) {
     const catObjetivo = categoriaDesdeObjetivo(row);
     const textoObj = normalizarTextoSimple(textoObjetivoSeleccionado());
     const scope = scopeObjetivoEfectivoKpis();
-    const pideVentas = textoObj.includes('venta') || textoObj.includes('ingreso') || textoObj.includes('facturacion') || textoObj.includes('crecer');
+    const pideVentas = textoObj.includes('venta') || textoObj.includes('ingreso') || textoObj.includes('facturacion') || textoObj.includes('crecer') || textoObj.includes('subir');
     if (metrica === 'auto') {
         if (textoObj.includes('ticket')) return { moneyLabel:'Ticket promedio', money:row.ticket || 0, pctLabel:'% combos reales', pct:row.comboShare || 0 };
         if ((catObjetivo || scope.producto || scope.marca || scope.tienda) && pideVentas) {
