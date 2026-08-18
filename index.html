@@ -800,16 +800,26 @@ function clasificarAnulacion(estado) {
 function normalizeMarca(valor) {
     const v = (valor || '').trim();
     const low = v.toLowerCase();
-    if (low === 'fynutrition') return 'FYnutrition';
-    if (low === 'hairfy') return 'Hairfy';
-    return v;
+    if (low.includes('fynutrition') || low.includes('fy nutrition')) return 'FYnutrition';
+    if (low.includes('hairfy')) return 'Hairfy';
+    return '';
+}
+
+function inferirMarcaVenta(tiendaOficial, tienda, sku) {
+    const porTexto = normalizeMarca(tiendaOficial) || normalizeMarca(tienda);
+    if (porTexto) return porTexto;
+    const s = (sku || '').toUpperCase();
+    if (s.startsWith('HF-') || s.includes('-HFY') || s.includes('HAI-') || s.includes('LOC-') || s.includes('SHAM') || s.includes('ACO-')) return 'Hairfy';
+    return 'FYnutrition';
 }
 
 // Algunas ventas de Mercado Libre llegan sin la columna 'tienda' cargada.
 // Se reconocen igual por el formato de num_venta: ML usa 16 dígitos, Shopify 13.
 function normalizeTienda(tienda, numVenta) {
     const v = (tienda || '').trim();
-    if (v) return v;
+    const low = v.toLowerCase();
+    if (low.includes('mercado libre') || low === 'ml') return 'Mercado Libre';
+    if (low.includes('shopify')) return 'Shopify';
     const len = (numVenta || '').length;
     if (len === 16) return 'Mercado Libre';
     if (len === 13) return 'Shopify';
