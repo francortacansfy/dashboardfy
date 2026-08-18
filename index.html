@@ -2231,8 +2231,9 @@ function poblarScopeObjetivoKpis() {
         const el = document.getElementById(id);
         if (!el) return;
         const actual = el.value;
-        el.innerHTML = `<option value="">${emptyText}</option>` + values.map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('');
-        if (values.includes(actual)) el.value = actual;
+        const opciones = actual && !values.includes(actual) ? [actual, ...values] : values;
+        el.innerHTML = `<option value="">${emptyText}</option>` + opciones.map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('');
+        if (opciones.includes(actual)) el.value = actual;
     };
     setOptions('kpiScopeMarca', ['FYnutrition', 'Hairfy'], 'Todas');
     setOptions('kpiScopeTienda', ['Mercado Libre', 'Shopify'], 'Todos');
