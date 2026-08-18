@@ -2379,7 +2379,7 @@ function renderGrowthMensual(base) {
     const objetivoTipo = objetivoTipoActualKpis();
     if (!objetivoTipo) {
         const lectura = document.getElementById('kpiObjetivoLectura');
-        if (lectura) lectura.innerHTML = 'Elegí un objetivo, rango y meta para empezar.';
+        if (lectura) lectura.innerHTML = 'Elegí objetivo, período base y meta futura para empezar.';
         const growthGrid = document.getElementById('growthKpiGrid');
         const growthBody = document.getElementById('growthKpiBody');
         if (growthGrid) growthGrid.innerHTML = '<div class="empty" style="grid-column:1/-1">Sin objetivo elegido.</div>';
@@ -2451,7 +2451,7 @@ function renderGrowthMensual(base) {
     }
     const cfg = cfgs[objetivoTipo] || cfgs.rutinas;
     const lectura = document.getElementById('kpiObjetivoLectura');
-    if (lectura) lectura.innerHTML = `<strong>Comparación: ${refData.label}</strong> · Meta = a dónde queremos llegar. ${cfg.texto}`;
+    if (lectura) lectura.innerHTML = `<strong>${refData.label}</strong> · La meta es futura; esta base sirve para decidir si es razonable.`;
     document.getElementById('growthKpiGrid').innerHTML = actual ? cfg.cards.map(([label, display, val, prev, suffix, color, icon]) => `
         <div class="kpi"><div class="kpi-header"><span class="kpi-label">${label}</span><div class="kpi-icon ${color}"><i class="fas fa-${icon}"></i></div></div><div class="kpi-value">${display}</div><div class="kpi-sub">Analizado vs anterior: ${val === null || !anterior ? '—' : deltaBadge(val, prev, suffix)}</div></div>
     `).join('') : '<div class="empty" style="grid-column:1/-1">Sin datos para mostrar.</div>';
