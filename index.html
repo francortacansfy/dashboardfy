@@ -2645,14 +2645,16 @@ function valorPrincipalObjetivo(tipo, row) {
     const metrica = document.getElementById('kpiObjetivoMetrica')?.value || 'auto';
     const catObjetivo = categoriaDesdeObjetivo(row);
     const textoObj = normalizarTextoSimple(textoObjetivoSeleccionado());
+    const scope = scopeObjetivoEfectivoKpis();
+    const pideVentas = textoObj.includes('venta') || textoObj.includes('ingreso') || textoObj.includes('facturacion') || textoObj.includes('crecer');
     if (metrica === 'auto') {
         if (textoObj.includes('ticket')) return { label:'Ticket promedio', value:row.ticket, display:fmt(row.ticket), unidad:'$' };
-        if (catObjetivo && (textoObj.includes('venta') || textoObj.includes('crecer') || textoObj.includes('subir') || document.getElementById('kpiScopeCategoria')?.value)) {
-            const value = row.categorias?.[catObjetivo] || 0;
-            return { label:`Ventas ${catObjetivo}`, value, display:fmt(value), unidad:'$' };
+        if ((catObjetivo || scope.producto || scope.marca || scope.tienda) && pideVentas) {
+            const label = scope.producto ? 'Ventas producto' : catObjetivo ? `Ventas ${catObjetivo}` : 'Ventas foco';
+            return { label, value:row.total || 0, display:fmt(row.total || 0), unidad:'$' };
         }
-        if (textoObj.includes('shopify')) return { label:'% Shopify', value:row.shopifyShare, display:fmtPct(row.shopifyShare), unidad:'%' };
-        if (textoObj.includes('mercado libre') || /\bml\b/.test(textoObj)) return { label:'% Mercado Libre', value:row.mlShare, display:fmtPct(row.mlShare), unidad:'%' };
+        if (textoObj.includes('shopify') && !pideVentas) return { label:'% Shopify', value:row.shopifyShare, display:fmtPct(row.shopifyShare), unidad:'%' };
+        if ((textoObj.includes('mercado libre') || /\bml\b/.test(textoObj)) && !pideVentas) return { label:'% Mercado Libre', value:row.mlShare, display:fmtPct(row.mlShare), unidad:'%' };
         if (textoObj.includes('combo') || textoObj.includes('rutina') || textoObj.includes('pack')) return { label:'% combos reales', value:row.comboShare, display:fmtPct(row.comboShare), unidad:'%' };
         if (textoObj.includes('unidad') || /\buds\b/.test(textoObj)) return { label:'Unidades', value:row.uds || 0, display:(row.uds || 0).toLocaleString('es-AR'), unidad:'nro' };
         if (textoObj.includes('venta') || textoObj.includes('ingreso') || textoObj.includes('facturacion')) return { label:'Ventas $', value:row.total, display:fmt(row.total), unidad:'$' };
@@ -2674,14 +2676,16 @@ function valoresObjetivoDineroYPorcentaje(tipo, row) {
     const metrica = document.getElementById('kpiObjetivoMetrica')?.value || 'auto';
     const catObjetivo = categoriaDesdeObjetivo(row);
     const textoObj = normalizarTextoSimple(textoObjetivoSeleccionado());
+    const scope = scopeObjetivoEfectivoKpis();
+    const pideVentas = textoObj.includes('venta') || textoObj.includes('ingreso') || textoObj.includes('facturacion') || textoObj.includes('crecer');
     if (metrica === 'auto') {
         if (textoObj.includes('ticket')) return { moneyLabel:'Ticket promedio', money:row.ticket || 0, pctLabel:'% combos reales', pct:row.comboShare || 0 };
-        if (catObjetivo && (textoObj.includes('venta') || textoObj.includes('crecer') || textoObj.includes('subir') || document.getElementById('kpiScopeCategoria')?.value)) {
-            const money = row.categorias?.[catObjetivo] || 0;
-            return { moneyLabel:`Ventas ${catObjetivo}`, money, pctLabel:`% ${catObjetivo}`, pct:row.total ? money / row.total * 100 : 0 };
+        if ((catObjetivo || scope.producto || scope.marca || scope.tienda) && pideVentas) {
+            const moneyLabel = scope.producto ? 'Ventas producto' : catObjetivo ? `Ventas ${catObjetivo}` : 'Ventas foco';
+            return { moneyLabel, money:row.total || 0, pctLabel:'Peso del foco', pct:100 };
         }
-        if (textoObj.includes('shopify')) return { moneyLabel:'Ventas Shopify', money:row.shopify || 0, pctLabel:'% Shopify', pct:row.shopifyShare || 0 };
-        if (textoObj.includes('mercado libre') || /\bml\b/.test(textoObj)) return { moneyLabel:'Ventas Mercado Libre', money:row.ml || 0, pctLabel:'% Mercado Libre', pct:row.mlShare || 0 };
+        if (textoObj.includes('shopify') && !pideVentas) return { moneyLabel:'Ventas Shopify', money:row.shopify || 0, pctLabel:'% Shopify', pct:row.shopifyShare || 0 };
+        if ((textoObj.includes('mercado libre') || /\bml\b/.test(textoObj)) && !pideVentas) return { moneyLabel:'Ventas Mercado Libre', money:row.ml || 0, pctLabel:'% Mercado Libre', pct:row.mlShare || 0 };
         if (textoObj.includes('combo') || textoObj.includes('rutina') || textoObj.includes('pack')) return { moneyLabel:'Ventas combos reales', money:row.comboVentas || 0, pctLabel:'% combos reales', pct:row.comboShare || 0 };
         if (textoObj.includes('unidad') || /\buds\b/.test(textoObj)) return { moneyLabel:'Ventas objetivo', money:row.total || 0, pctLabel:'Unidades', pct:row.uds || 0 };
         if (textoObj.includes('venta') || textoObj.includes('ingreso') || textoObj.includes('facturacion')) return { moneyLabel:'Ventas $', money:row.total || 0, pctLabel:'% de ventas', pct:100 };
