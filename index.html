@@ -1779,8 +1779,8 @@ function prepararPlanComercial() {
     });
     poblarDecisionesPlan();
     poblarProductosPlan();
-    agruparRangoFechas('planDesde', 'planHasta', 'Período a analizar');
-    agruparRangoFechas('planBaseDesde', 'planBaseHasta', 'Período anterior');
+    agruparRangoFechas('planDesde', 'planHasta', 'Período del plan');
+    agruparRangoFechas('planBaseDesde', 'planBaseHasta', 'Comparar contra');
 }
 
 function poblarDecisionesPlan() {
@@ -1939,6 +1939,7 @@ function renderPlanComercial() {
     prepararPlanComercial();
     const estado = leerPlanEstado();
     const decision = decisionPlanActiva();
+    aplicarDecisionAlPlan(decision);
     const tipoDecision = decision?.tipo || '';
     const kpi = tipoDecision === 'shopify' ? 'shopify' : tipoDecision === 'rutinas' ? 'combos' : tipoDecision === 'ml' ? 'ticket' : 'ticket';
     const marca = document.getElementById('planMarca').value || '';
