@@ -1268,6 +1268,10 @@ function guardarEstadoFormularioKpis() {
         objetivo: get('kpiObjetivoTipo'),
         objetivoNuevo: get('kpiObjetivoNuevo'),
         metrica: get('kpiObjetivoMetrica'),
+        scopeMarca: get('kpiScopeMarca'),
+        scopeTienda: get('kpiScopeTienda'),
+        scopeCategoria: get('kpiScopeCategoria'),
+        scopeProducto: get('kpiScopeProducto'),
         desde: get('kpiActualDesde'),
         hasta: get('kpiActualHasta'),
         periodoTexto: periodoEl ? (periodoEl.value || periodoEl.textContent || '') : '',
@@ -1297,6 +1301,10 @@ function restaurarEstadoFormularioKpis() {
     if (estado.objetivoNuevo && !document.getElementById('kpiObjetivoTipo')?.value) set('kpiObjetivoTipo', 'nuevo');
     transformarObjetivoEnCampoEscribible();
     set('kpiObjetivoMetrica', estado.metrica || 'auto');
+    set('kpiScopeMarca', estado.scopeMarca);
+    set('kpiScopeTienda', estado.scopeTienda);
+    set('kpiScopeCategoria', estado.scopeCategoria);
+    set('kpiScopeProducto', estado.scopeProducto);
     set('kpiActualDesde', estado.desde || rangoGuardado?.desde || '');
     set('kpiActualHasta', estado.hasta || rangoGuardado?.hasta || '');
     set('kpiObjetivoMetaTipo', estado.metaTipo || 'auto');
@@ -1323,6 +1331,10 @@ function leerDecisionActualKpis() {
         objetivoTexto: textoObjetivoSeleccionado(),
         objetivoNuevo: objetivoTipoActualKpis() === 'nuevo' ? textoObjetivoSeleccionado() : '',
         metrica: document.getElementById('kpiObjetivoMetrica')?.value || 'auto',
+        scopeMarca: document.getElementById('kpiScopeMarca')?.value || '',
+        scopeTienda: document.getElementById('kpiScopeTienda')?.value || '',
+        scopeCategoria: document.getElementById('kpiScopeCategoria')?.value || '',
+        scopeProducto: document.getElementById('kpiScopeProducto')?.value || '',
         meta: metaTexto || document.getElementById('kpiObjetivoMeta')?.value || '',
         metatipo,
         decision,
