@@ -1284,6 +1284,7 @@ const KPI_FORM_STATE_VERSION = 2;
 let KPI_DECISION_ACTIVA_ID = null;
 let KPI_ACCION_COMERCIAL_ACTUAL = null;
 let KPI_ACCION_COMERCIAL_ELEGIDA = 0;
+let KPI_CAMBIO_TIMER = null;
 
 function guardarEstadoFormularioKpis() {
     const get = id => document.getElementById(id)?.value || '';
@@ -1420,10 +1421,26 @@ function guardarObjetivoKpis() {
 
 function cambiarObjetivoKpis() {
     KPI_DECISION_ACTIVA_ID = null;
+    if (KPI_CAMBIO_TIMER) {
+        clearTimeout(KPI_CAMBIO_TIMER);
+        KPI_CAMBIO_TIMER = null;
+    }
     transformarObjetivoEnCampoEscribible();
     actualizarDecisionDesdeObjetivo();
     guardarEstadoFormularioKpis();
     renderKpis();
+}
+
+function programarCambioObjetivoKpis() {
+    KPI_DECISION_ACTIVA_ID = null;
+    guardarEstadoFormularioKpis();
+    if (KPI_CAMBIO_TIMER) clearTimeout(KPI_CAMBIO_TIMER);
+    KPI_CAMBIO_TIMER = setTimeout(() => {
+        KPI_CAMBIO_TIMER = null;
+        actualizarDecisionDesdeObjetivo();
+        guardarEstadoFormularioKpis();
+        renderKpis();
+    }, 450);
 }
 
 function textoObjetivoSeleccionado() {
@@ -2269,7 +2286,7 @@ function textoCoincideKpis(textoNormalizado, valor) {
 
 function detectarMarcaDesdeTextoKpis(textoNormalizado) {
     if (textoNormalizado.includes('hairfy')) return 'Hairfy';
-    if (textoNormalizado.includes('fynutrition') || textoNormalizado.includes('fy nutrition')) return 'FYnutrition';
+    if (textoNormalizado.includes('fynutrition') || textoNormalizado.includes('fy nutrition') || /\bfy\b/.test(textoNormalizado)) return 'FYnutrition';
     return '';
 }
 
@@ -2384,7 +2401,7 @@ function transformarObjetivoEnCampoEscribible() {
         input.oninput = () => {
             const sel = document.getElementById('kpiObjetivoTipo');
             if (sel) sel.value = 'nuevo';
-            cambiarObjetivoKpis();
+            programarCambioObjetivoKpis();
         };
         select.after(input);
     }
