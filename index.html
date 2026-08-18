@@ -1278,7 +1278,6 @@ function guardarEstadoFormularioKpis() {
         seguimientoDesde: get('kpiSeguimientoDesde'),
         seguimientoHasta: get('kpiSeguimientoHasta'),
         decision: get('kpiDecision'),
-        responsable: get('kpiResponsable'),
         nota: get('kpiNota'),
     };
     localStorage.setItem(KPI_FORM_STATE_KEY, JSON.stringify(estado));
@@ -1311,7 +1310,6 @@ function restaurarEstadoFormularioKpis() {
     set('kpiSeguimientoDesde', estado.seguimientoDesde);
     set('kpiSeguimientoHasta', estado.seguimientoHasta);
     set('kpiDecision', estado.decision);
-    set('kpiResponsable', estado.responsable);
     set('kpiNota', estado.nota);
     sincronizarPeriodoKpisTexto();
 }
@@ -1336,7 +1334,6 @@ function leerDecisionActualKpis() {
         meta: metaTexto || document.getElementById('kpiObjetivoMeta')?.value || '',
         metatipo,
         decision,
-        responsable: document.getElementById('kpiResponsable')?.value || '',
         nota: document.getElementById('kpiNota')?.value || '',
         updatedAt: new Date().toISOString(),
     };
