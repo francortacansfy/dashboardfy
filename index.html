@@ -2572,12 +2572,25 @@ function renderMetaGapKpis(tipo, actual) {
 }
 
 function renderMirarFinoKpis(tipo) {
+    const metrica = valorPrincipalObjetivo(tipo, {});
+    const objetivo = textoObjetivoSeleccionado();
     const items = {
         rutinas: ['Top combos reales por ventas', 'Combos que bajaron contra el mes anterior', 'Ticket Shopify por marca', 'Stock armado y componentes limitantes'],
         shopify: ['Ventas Shopify por marca', 'Ticket Shopify por marca', 'SKUs top de Shopify', 'Categorías que empujan Shopify'],
         ml: ['Ventas ML por marca', 'SKUs que más caen en ML', 'Ticket ML por marca', 'Stock crítico en publicaciones principales'],
         categorias: ['Categoría líder por marca', 'Categorías que más suben y bajan', 'Top SKUs dentro de la categoría', 'Stock de productos que frenan crecimiento'],
-    }[tipo] || [];
+        nuevo: [
+            `${metrica.label || 'Métrica elegida'} del foco seleccionado`,
+            'Canal y marca que más explican el avance',
+            'SKUs que suben o frenan el resultado',
+            'Stock de los productos foco',
+        ],
+    }[tipo] || (objetivo ? [
+        'Valor del foco seleccionado',
+        'Canal y marca que más explican el avance',
+        'SKUs que suben o frenan el resultado',
+        'Stock de los productos foco',
+    ] : []);
     document.getElementById('kpiMirarFino').innerHTML = `<ul style="margin:0;padding-left:18px;font-size:13px;color:var(--text-2);line-height:1.9">${items.map(x => `<li>${x}</li>`).join('')}</ul>`;
 }
 
@@ -2614,35 +2627,11 @@ function ultimaFechaConDatosKpis(base) {
 }
 
 function obtenerRangoSeguimientoKpis(base = []) {
-    const preset = document.getElementById('kpiSeguimientoPreset')?.value || 'mes_actual';
-    const desdeInput = document.getElementById('kpiSeguimientoDesde');
-    const hastaInput = document.getElementById('kpiSeguimientoHasta');
-    const custom = preset === 'personalizado';
-    if (desdeInput) desdeInput.style.display = custom ? 'block' : 'none';
-    if (hastaInput) hastaInput.style.display = custom ? 'block' : 'none';
     const ultimaFecha = ultimaFechaConDatosKpis(base);
     const referencia = fechaLocalDesdeIsoKpis(ultimaFecha) || new Date();
-    let desde = new Date(referencia);
     let hasta = new Date(referencia);
-    if (preset === 'objetivo') {
-        const objetivo = rangoObjetivoKpis();
-        const desdeObj = objetivo.desde;
-        const hastaObj = objetivo.hasta;
-        return { desde: desdeObj, hasta: hastaObj, label:'Mismo período base', preset };
-    } else if (preset === 'mes_actual') {
-        desde = new Date(referencia.getFullYear(), referencia.getMonth(), 1);
-    } else if (preset === 'ultimo_mes') {
-        desde = new Date(referencia.getFullYear(), referencia.getMonth() - 1, 1);
-        hasta = new Date(referencia.getFullYear(), referencia.getMonth(), 0);
-    } else if (preset === 'ultimos_2_meses') {
-        desde = new Date(referencia.getFullYear(), referencia.getMonth() - 2, 1);
-        hasta = new Date(referencia.getFullYear(), referencia.getMonth(), 0);
-    } else if (preset === 'ultimos_7_dias') {
-        desde.setDate(referencia.getDate() - 6);
-    } else if (custom) {
-        return { desde: desdeInput?.value || '', hasta: hastaInput?.value || '', label:'Personalizado', preset };
-    }
-    return { desde: isoDate(desde), hasta: isoDate(hasta), label:preset, preset };
+    let desde = new Date(referencia.getFullYear(), referencia.getMonth(), 1);
+    return { desde: isoDate(desde), hasta: isoDate(hasta), label:'Mes actual', preset:'mes_actual' };
 }
 
 function renderSeguimientoMesActual(base, tipo) {
