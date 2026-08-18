@@ -1269,12 +1269,14 @@ function ordenarObjetivoKpis() {
 const KPI_DECISIONES_KEY = 'fyl_kpi_decisiones';
 const KPI_OBJETIVOS_CUSTOM_KEY = 'fyl_kpi_objetivos_custom';
 const KPI_FORM_STATE_KEY = 'fyl_kpi_form_state';
+const KPI_FORM_STATE_VERSION = 2;
 let KPI_DECISION_ACTIVA_ID = null;
 
 function guardarEstadoFormularioKpis() {
     const get = id => document.getElementById(id)?.value || '';
     const periodoEl = document.getElementById('kpiPeriodoRango');
     const estado = {
+        version: KPI_FORM_STATE_VERSION,
         objetivo: get('kpiObjetivoTipo'),
         objetivoNuevo: get('kpiObjetivoNuevo'),
         metrica: get('kpiObjetivoMetrica'),
@@ -1319,7 +1321,8 @@ function restaurarEstadoFormularioKpis() {
     set('kpiActualHasta', estado.hasta || rangoGuardado?.hasta || '');
     set('kpiObjetivoMetaTipo', estado.metaTipo || 'auto');
     set('kpiObjetivoMeta', estado.meta);
-    set('kpiSeguimientoPreset', estado.seguimiento || 'mes_actual');
+    const seguimientoGuardado = Number(estado.version || 0) >= KPI_FORM_STATE_VERSION ? estado.seguimiento : '';
+    set('kpiSeguimientoPreset', seguimientoGuardado || 'mes_actual');
     set('kpiSeguimientoDesde', estado.seguimientoDesde);
     set('kpiSeguimientoHasta', estado.seguimientoHasta);
     set('kpiDecision', estado.decision);
