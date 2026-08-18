@@ -1497,6 +1497,10 @@ function cargarDecisionKpis(id) {
     transformarObjetivoEnCampoEscribible();
     set('kpiObjetivoNuevo', item.objetivoNuevo || (item.tipo === 'nuevo' ? item.objetivoTexto : ''));
     set('kpiObjetivoMetrica', item.metrica || 'auto');
+    set('kpiScopeMarca', item.scopeMarca || '');
+    set('kpiScopeTienda', item.scopeTienda || '');
+    set('kpiScopeCategoria', item.scopeCategoria || '');
+    set('kpiScopeProducto', item.scopeProducto || '');
     set('kpiObjetivoMetaTipo', item.metatipo || 'auto');
     set('kpiObjetivoMeta', metaEfectivaDecision(item));
     set('kpiDecision', item.decision || '');
@@ -1567,7 +1571,7 @@ function renderDecisionKpis() {
 
 function limpiarObjetivoKpis() {
     KPI_DECISION_ACTIVA_ID = null;
-    ['kpiActualDesde', 'kpiActualHasta', 'kpiBaseDesde', 'kpiBaseHasta', 'kpiObjetivoMeta', 'kpiDecision', 'kpiResponsable', 'kpiNota'].forEach(id => {
+    ['kpiActualDesde', 'kpiActualHasta', 'kpiBaseDesde', 'kpiBaseHasta', 'kpiObjetivoMeta', 'kpiDecision', 'kpiResponsable', 'kpiNota', 'kpiScopeMarca', 'kpiScopeTienda', 'kpiScopeCategoria', 'kpiScopeProducto'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = '';
     });
