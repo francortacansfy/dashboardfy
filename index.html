@@ -1340,7 +1340,11 @@ function restaurarEstadoFormularioKpis() {
     const rangoGuardado = parseFechaRangoKpis(estado.periodoTexto || '');
     const set = (id, value) => {
         const el = document.getElementById(id);
-        if (el && value !== undefined) el.value = value || '';
+        if (!el || value === undefined) return;
+        if (el.tagName === 'SELECT' && value && ![...el.options].some(opt => opt.value === value)) {
+            el.insertAdjacentHTML('beforeend', `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`);
+        }
+        el.value = value || '';
     };
     set('kpiObjetivoTipo', estado.objetivo || (estado.objetivoNuevo ? 'nuevo' : ''));
     transformarObjetivoEnCampoEscribible();
