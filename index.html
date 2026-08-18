@@ -1470,7 +1470,11 @@ function normalizarObjetivoTipo(valor) {
 }
 
 function normalizarTextoSimple(texto) {
-    return String(texto || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    return String(texto || '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/\bmagensio(s)?\b/g, 'magnesio$1');
 }
 
 function objetivoTipoActualKpis() {
