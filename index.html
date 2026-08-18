@@ -2767,23 +2767,45 @@ function renderAccionComercialKpis(tipo) {
     const el = document.getElementById('kpiAccionComercial');
     if (!el) return;
     KPI_ACCION_COMERCIAL_ACTUAL = accionComercialKpis(tipo);
+    KPI_ACCION_COMERCIAL_ELEGIDA = 0;
     if (!KPI_ACCION_COMERCIAL_ACTUAL) {
         el.innerHTML = '<div class="empty" style="grid-column:1/-1">Elegí un objetivo para ver una acción comercial sugerida.</div>';
         return;
     }
-    el.innerHTML = KPI_ACCION_COMERCIAL_ACTUAL.bloques.map((b, i) => `
-        <div class="action-box ${i === 0 ? 'main' : ''}">
-            <strong>${escapeHtml(b[0])}</strong>
-            <p>${escapeHtml(b[1])}</p>
-        </div>
-    `).join('');
+    el.innerHTML = KPI_ACCION_COMERCIAL_ACTUAL.bloques.map((raw, i) => {
+        const b = Array.isArray(raw) ? { titulo:raw[0], texto:raw[1], decision:`${raw[0]}: ${raw[1]}` } : raw;
+        return `
+        <label class="action-box selectable ${i === 0 ? 'main selected' : ''}">
+            <input type="radio" name="kpiAccionComercialOpcion" value="${i}" ${i === 0 ? 'checked' : ''} onchange="seleccionarAccionComercialKpis(${i})">
+            <span>
+                <strong>${escapeHtml(b.titulo)}</strong>
+                <p>${escapeHtml(b.texto)}</p>
+            </span>
+        </label>
+    `}).join('');
+}
+
+function seleccionarAccionComercialKpis(index) {
+    KPI_ACCION_COMERCIAL_ELEGIDA = Number(index) || 0;
+    document.querySelectorAll('#kpiAccionComercial .action-box').forEach((el, i) => {
+        el.classList.toggle('selected', i === KPI_ACCION_COMERCIAL_ELEGIDA);
+        const input = el.querySelector('input[type="radio"]');
+        if (input) input.checked = i === KPI_ACCION_COMERCIAL_ELEGIDA;
+    });
+}
+
+function accionComercialElegidaKpis() {
+    const raw = KPI_ACCION_COMERCIAL_ACTUAL?.bloques?.[KPI_ACCION_COMERCIAL_ELEGIDA];
+    if (!raw) return KPI_ACCION_COMERCIAL_ACTUAL?.decision || '';
+    const b = Array.isArray(raw) ? { titulo:raw[0], texto:raw[1], decision:`${raw[0]}: ${raw[1]}` } : raw;
+    return b.decision || `${b.titulo}: ${b.texto}`;
 }
 
 function usarAccionComercialKpis() {
     if (!KPI_ACCION_COMERCIAL_ACTUAL) return;
     const decision = document.getElementById('kpiDecision');
     if (!decision) return;
-    decision.value = KPI_ACCION_COMERCIAL_ACTUAL.decision;
+    decision.value = accionComercialElegidaKpis();
     decision.dataset.manual = '1';
     guardarEstadoFormularioKpis();
     renderDecisionKpis();
