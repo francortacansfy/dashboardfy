@@ -1281,6 +1281,8 @@ let KPI_ACCION_COMERCIAL_ACTUAL = null;
 function guardarEstadoFormularioKpis() {
     const get = id => document.getElementById(id)?.value || '';
     const periodoEl = document.getElementById('kpiPeriodoRango');
+    let previo = {};
+    try { previo = JSON.parse(localStorage.getItem(KPI_FORM_STATE_KEY) || '{}'); } catch(e) {}
     const estado = {
         version: KPI_FORM_STATE_VERSION,
         objetivo: get('kpiObjetivoTipo'),
@@ -1301,7 +1303,35 @@ function guardarEstadoFormularioKpis() {
         decision: get('kpiDecision'),
         nota: get('kpiNota'),
     };
-    localStorage.setItem(KPI_FORM_STATE_KEY, JSON.stringify(estado));
+    const tieneDatosActuales = [
+        estado.objetivo,
+        estado.objetivoNuevo,
+        estado.metrica && estado.metrica !== 'auto' ? estado.metrica : '',
+        estado.scopeMarca,
+        estado.scopeTienda,
+        estado.scopeCategoria,
+        estado.scopeProducto,
+        estado.desde,
+        estado.hasta,
+        estado.meta,
+        estado.decision,
+        estado.nota,
+    ].some(Boolean);
+    const habiaDatos = [
+        previo.objetivo,
+        previo.objetivoNuevo,
+        previo.scopeMarca,
+        previo.scopeTienda,
+        previo.scopeCategoria,
+        previo.scopeProducto,
+        previo.desde,
+        previo.hasta,
+        previo.meta,
+        previo.decision,
+        previo.nota,
+    ].some(Boolean);
+    if (!tieneDatosActuales && habiaDatos) return;
+    localStorage.setItem(KPI_FORM_STATE_KEY, JSON.stringify({ ...previo, ...estado }));
 }
 
 function restaurarEstadoFormularioKpis() {
