@@ -84,6 +84,10 @@
         .decision-meta { font-size:12px; color:var(--text-3); line-height:1.5; }
         .action-grid { display:grid; grid-template-columns:1.2fr repeat(3,1fr); gap:12px; padding:18px 22px; }
         .action-box { border:1px solid var(--border); background:var(--surface-2); border-radius:10px; padding:14px 16px; min-width:0; }
+        .action-box.selectable { display:grid; grid-template-columns:auto 1fr; gap:10px; cursor:pointer; }
+        .action-box.selectable input { margin-top:2px; }
+        .action-box.selectable:hover { border-color:var(--green); background:var(--green-light); }
+        .action-box.selectable.selected { border-color:var(--green); background:var(--green-light); box-shadow:inset 3px 0 0 var(--green); }
         .action-box strong { display:block; color:var(--text-1); font-size:13px; margin-bottom:7px; }
         .action-box p { color:var(--text-2); font-size:13px; line-height:1.45; margin:0; }
         .action-box.main { background:var(--green-light); border-color:rgba(22,169,126,.35); }
