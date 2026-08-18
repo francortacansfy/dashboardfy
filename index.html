@@ -3711,6 +3711,7 @@ function renderMayoristaClientes() {
 }
 
 aplicarLayoutObjetivoLocal();
+window.addEventListener('beforeunload', guardarEstadoFormularioKpis);
 restaurarEstadoFormularioKpis();
 loadData();
 loadMayorista();
