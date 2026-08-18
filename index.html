@@ -3016,6 +3016,14 @@ function renderSeguimientoMesActual(base, tipo) {
     const estadoSub = !tieneMeta ? 'Cargá meta para comparar' : objetivoAlcanzado ? 'La meta ya está alcanzada' : llegaria ? 'Al ritmo actual llegaría' : 'Al ritmo actual no llegaría';
     const cierreSub = !tieneMeta ? 'Cargá meta para comparar' : esPorcentaje ? `Diferencia actual: ${gapActual >= 0 ? '+' : ''}${gapActual.toFixed(1).replace('.', ',')} pp` : `${diasTranscurridos}/${diasMes} días · faltan ${fmtTipo(Math.max(0, gapProyectado))}`;
     const ritmoSub = !tieneMeta || esPorcentaje || !diasRestantes ? 'Ritmo actual' : `Necesita ${fmtTipo(ritmoNecesario)} por día`;
+    const mostrarPeso = esPorcentaje || (doble.pct > 0 && doble.pct < 99.95);
+    const pesoCard = mostrarPeso ? `
+        <div class="kpi">
+            <div class="kpi-header"><span class="kpi-label">Peso sobre total</span><div class="kpi-icon orange"><i class="fas fa-percent"></i></div></div>
+            <div class="kpi-value">${fmtPct(doble.pct)}</div>
+            <div class="kpi-sub">${doble.pctLabel}${tieneMeta && esPorcentaje ? ` · ${cierreSub}` : ''}</div>
+        </div>
+    ` : '';
     document.getElementById('kpiMesActualGrid').innerHTML = actual ? `
         <div class="kpi">
             <div class="kpi-header"><span class="kpi-label">Período</span><div class="kpi-icon ${color}"><i class="fas fa-calendar-day"></i></div></div>
@@ -3027,11 +3035,7 @@ function renderSeguimientoMesActual(base, tipo) {
             <div class="kpi-value">${fmtMoneyCompact(doble.money)}</div>
             <div class="kpi-sub">${doble.moneyLabel} · ${fmt(doble.money)}</div>
         </div>
-        <div class="kpi">
-            <div class="kpi-header"><span class="kpi-label">Peso seguido</span><div class="kpi-icon orange"><i class="fas fa-percent"></i></div></div>
-            <div class="kpi-value">${fmtPct(doble.pct)}</div>
-            <div class="kpi-sub">${doble.pctLabel}${tieneMeta && esPorcentaje ? ` · ${cierreSub}` : ''}</div>
-        </div>
+        ${pesoCard}
         <div class="kpi">
             <div class="kpi-header"><span class="kpi-label">${cierreLabel}</span><div class="kpi-icon blue"><i class="fas fa-chart-line"></i></div></div>
             <div class="kpi-value">${fmtMoneyCompact(proyeccionDinero)}</div>
