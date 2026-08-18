@@ -1538,8 +1538,9 @@ function cargarDecisionKpis(id) {
     set('kpiObjetivoMetaTipo', item.metatipo || 'auto');
     set('kpiObjetivoMeta', metaEfectivaDecision(item));
     set('kpiDecision', item.decision || '');
-    set('kpiResponsable', item.responsable || '');
     set('kpiNota', item.nota || '');
+    const decisionEl = document.getElementById('kpiDecision');
+    if (decisionEl) decisionEl.dataset.manual = '1';
     sincronizarPeriodoKpisTexto();
     renderKpis();
 }
@@ -1553,7 +1554,7 @@ function borrarDecisionKpis(id) {
     localStorage.setItem(KPI_DECISIONES_KEY, JSON.stringify(nuevas));
     if (KPI_DECISION_ACTIVA_ID === id) {
         KPI_DECISION_ACTIVA_ID = null;
-        ['kpiDecision', 'kpiResponsable', 'kpiNota'].forEach(idEl => {
+        ['kpiDecision', 'kpiNota'].forEach(idEl => {
             const el = document.getElementById(idEl);
             if (el) el.value = '';
         });
@@ -1577,7 +1578,7 @@ function renderDecisionKpis() {
     const resumenEl = document.getElementById('kpiDecisionResumen');
     if (resumenEl) {
         resumenEl.innerHTML = activa
-            ? `<strong>Decisión activa:</strong> ${escapeHtml(activa.decision)}${activa.responsable ? ` · Responsable: ${escapeHtml(activa.responsable)}` : ''}${activa.nota ? `<br>${escapeHtml(activa.nota)}` : ''}`
+            ? `<strong>Decisión activa:</strong> ${escapeHtml(activa.decision)}${activa.nota ? `<br>${escapeHtml(activa.nota)}` : ''}`
             : decisiones.length
                 ? 'Elegí una decisión guardada para cargar el objetivo en toda la pantalla.'
                 : 'Todavía no hay decisiones guardadas. Completá la acción y tocá Guardar decisión.';
@@ -1605,7 +1606,7 @@ function renderDecisionKpis() {
 
 function limpiarObjetivoKpis() {
     KPI_DECISION_ACTIVA_ID = null;
-    ['kpiActualDesde', 'kpiActualHasta', 'kpiBaseDesde', 'kpiBaseHasta', 'kpiObjetivoMeta', 'kpiDecision', 'kpiResponsable', 'kpiNota', 'kpiScopeMarca', 'kpiScopeTienda', 'kpiScopeCategoria', 'kpiScopeProducto'].forEach(id => {
+    ['kpiActualDesde', 'kpiActualHasta', 'kpiBaseDesde', 'kpiBaseHasta', 'kpiObjetivoMeta', 'kpiDecision', 'kpiNota', 'kpiScopeMarca', 'kpiScopeTienda', 'kpiScopeCategoria', 'kpiScopeProducto'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = '';
     });
