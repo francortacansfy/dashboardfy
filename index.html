@@ -82,15 +82,11 @@
         .decision-delete:hover { border-color:var(--red); background:var(--red-light); }
         .decision-title { font-size:13px; font-weight:700; color:var(--text-1); margin-bottom:4px; }
         .decision-meta { font-size:12px; color:var(--text-3); line-height:1.5; }
-        .action-grid { display:grid; grid-template-columns:1.2fr repeat(3,1fr); gap:12px; padding:18px 22px; }
+        .action-grid { display:grid; grid-template-columns:1.15fr 1fr 1fr; gap:12px; padding:18px 22px; }
         .action-box { border:1px solid var(--border); background:var(--surface-2); border-radius:10px; padding:14px 16px; min-width:0; }
-        .action-box.selectable { display:grid; grid-template-columns:auto 1fr; gap:10px; cursor:pointer; }
-        .action-box.selectable input { margin-top:2px; }
-        .action-box.selectable:hover { border-color:var(--green); background:var(--green-light); }
-        .action-box.selectable.selected { border-color:var(--green); background:var(--green-light); box-shadow:inset 3px 0 0 var(--green); }
         .action-box strong { display:block; color:var(--text-1); font-size:13px; margin-bottom:7px; }
         .action-box p { color:var(--text-2); font-size:13px; line-height:1.45; margin:0; }
-        .action-box.main { background:var(--green-light); border-color:rgba(22,169,126,.35); }
+        .action-box.main { background:var(--green-light); border-color:rgba(22,169,126,.35); box-shadow:inset 3px 0 0 var(--green); }
         .action-footer { display:flex; justify-content:flex-end; padding:0 22px 18px; }
         .plan-grid { display:grid; grid-template-columns:repeat(6,minmax(130px,1fr)); gap:12px; align-items:end; }
         .plan-grid .wide { grid-column:span 2; }
@@ -120,7 +116,7 @@
             .objective-builder .wide { grid-column:span 2; }
             .plan-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
             .plan-grid .wide { grid-column:span 2; }
-            .action-grid { grid-template-columns:1fr 1fr; }
+            .action-grid { grid-template-columns:1fr; }
             .task-row { grid-template-columns:1fr; }
         }
         @media (max-width:700px) {
