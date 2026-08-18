@@ -937,6 +937,8 @@ async function loadData() {
         statusDot.classList.add('ok');
         populateTiendaFilters();
         renderAll();
+        restaurarEstadoFormularioKpis();
+        renderKpis();
         activarTab(localStorage.getItem(LAST_TAB_KEY) || 'dashboard', false);
     } catch(e) {
         console.error(e);
