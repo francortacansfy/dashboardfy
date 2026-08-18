@@ -1800,6 +1800,29 @@ function decisionPlanActiva() {
     return decisiones.find(d => d.id === id) || null;
 }
 
+function setPlanSiVacio(id, value) {
+    const el = document.getElementById(id);
+    if (!el || !value || el.value) return;
+    if (el.tagName === 'SELECT' && ![...el.options].some(opt => opt.value === value)) {
+        el.insertAdjacentHTML('beforeend', `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`);
+    }
+    el.value = value;
+}
+
+function aplicarDecisionAlPlan(decision) {
+    if (!decision) return;
+    setPlanSiVacio('planMarca', decision.scopeMarca);
+    setPlanSiVacio('planTienda', decision.scopeTienda);
+    setPlanSiVacio('planCategoria', decision.scopeCategoria);
+    setPlanSiVacio('planProductoSearch', decision.scopeProducto);
+    setPlanSiVacio('planDesde', decision.actualDesde);
+    setPlanSiVacio('planHasta', decision.actualHasta);
+    setPlanSiVacio('planBaseDesde', decision.baseDesde);
+    setPlanSiVacio('planBaseHasta', decision.baseHasta);
+    setPlanSiVacio('planTema', decision.decision);
+    sincronizarPeriodoKpisTexto();
+}
+
 function poblarProductosPlan() {
     const estado = leerPlanEstado();
     const catSel = document.getElementById('planCategoria');
