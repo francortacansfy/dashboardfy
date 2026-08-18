@@ -2459,16 +2459,24 @@ function valorPrincipalObjetivo(tipo, row) {
     const metrica = document.getElementById('kpiObjetivoMetrica')?.value || 'auto';
     const catObjetivo = categoriaDesdeObjetivo(row);
     const textoObj = normalizarTextoSimple(textoObjetivoSeleccionado());
-    if (metrica === 'auto' && catObjetivo && (textoObj.includes('venta') || textoObj.includes('crecer') || textoObj.includes('subir'))) {
-        const value = row.categorias?.[catObjetivo] || 0;
-        return { label:`Ventas ${catObjetivo}`, value, display:fmt(value), unidad:'$' };
+    if (metrica === 'auto') {
+        if (catObjetivo && (textoObj.includes('venta') || textoObj.includes('crecer') || textoObj.includes('subir'))) {
+            const value = row.categorias?.[catObjetivo] || 0;
+            return { label:`Ventas ${catObjetivo}`, value, display:fmt(value), unidad:'$' };
+        }
+        if (textoObj.includes('ticket')) return { label:'Ticket promedio', value:row.ticket, display:fmt(row.ticket), unidad:'$' };
+        if (textoObj.includes('shopify')) return { label:'% Shopify', value:row.shopifyShare, display:fmtPct(row.shopifyShare), unidad:'%' };
+        if (textoObj.includes('mercado libre') || /\bml\b/.test(textoObj)) return { label:'% Mercado Libre', value:row.mlShare, display:fmtPct(row.mlShare), unidad:'%' };
+        if (textoObj.includes('combo') || textoObj.includes('rutina') || textoObj.includes('pack')) return { label:'% combos reales', value:row.comboShare, display:fmtPct(row.comboShare), unidad:'%' };
+        if (textoObj.includes('unidad') || /\buds\b/.test(textoObj)) return { label:'Unidades', value:row.uds || 0, display:(row.uds || 0).toLocaleString('es-AR'), unidad:'nro' };
+        if (textoObj.includes('venta') || textoObj.includes('ingreso') || textoObj.includes('facturacion')) return { label:'Ventas $', value:row.total, display:fmt(row.total), unidad:'$' };
     }
     if (metrica === 'ticket') return { label:'Ticket promedio', value:row.ticket, display:fmt(row.ticket), unidad:'$' };
     if (metrica === 'combos') return { label:'% combos reales', value:row.comboShare, display:fmtPct(row.comboShare), unidad:'%' };
     if (metrica === 'shopify') return { label:'% Shopify', value:row.shopifyShare, display:fmtPct(row.shopifyShare), unidad:'%' };
     if (metrica === 'ml') return { label:'% Mercado Libre', value:row.mlShare, display:fmtPct(row.mlShare), unidad:'%' };
     if (metrica === 'ventas') return { label:'Ventas $', value:row.total, display:fmt(row.total), unidad:'$' };
-    if (metrica === 'unidades') return { label:'Unidades', value:row.comboUds, display:row.comboUds.toLocaleString('es-AR'), unidad:'nro' };
+    if (metrica === 'unidades') return { label:'Unidades', value:row.uds || 0, display:(row.uds || 0).toLocaleString('es-AR'), unidad:'nro' };
     if (tipo === 'shopify') return { label:'% Shopify', value:row.shopifyShare, display:fmtPct(row.shopifyShare), unidad:'%' };
     if (tipo === 'ml') return { label:'% Mercado Libre', value:row.mlShare, display:fmtPct(row.mlShare), unidad:'%' };
     if (tipo === 'categorias') return { label:'Ventas categoría líder', value:row.topCategoria?.[1] || 0, display:fmt(row.topCategoria?.[1] || 0), unidad:'$' };
