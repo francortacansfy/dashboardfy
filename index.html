@@ -2067,7 +2067,7 @@ function aplicarLayoutObjetivoLocal() {
     limpiar.style.height = '36px';
     limpiar.style.alignSelf = 'end';
     const desdeLabel = desdeBox.querySelector('label');
-    if (desdeLabel) desdeLabel.textContent = 'Período a analizar';
+    if (desdeLabel) desdeLabel.textContent = 'Período base';
     const rangeBox = document.createElement('div');
     rangeBox.className = 'date-range-box';
     const single = document.createElement('button');
@@ -2076,7 +2076,7 @@ function aplicarLayoutObjetivoLocal() {
     single.type = 'button';
     single.style.cssText = 'width:100%;text-align:left;cursor:pointer';
     single.onclick = togglePeriodoKpisPopover;
-    single.textContent = 'Elegir período';
+    single.textContent = 'Elegir período base';
     const popover = document.createElement('div');
     popover.className = 'date-range-popover';
     popover.id = 'kpiPeriodoPopover';
@@ -2092,7 +2092,7 @@ function aplicarLayoutObjetivoLocal() {
     aplicar.className = 'btn-sync';
     aplicar.type = 'button';
     aplicar.style.cssText = 'width:100%;justify-content:center';
-    aplicar.textContent = 'Aplicar período';
+    aplicar.textContent = 'Aplicar período base';
     aplicar.onclick = aplicarPeriodoKpisPopover;
     popover.appendChild(aplicar);
     desde.dataset.grouped = '1';
