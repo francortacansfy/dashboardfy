@@ -434,25 +434,14 @@
         <div class="table-card">
             <div class="table-head">
                 <h3>Seguimiento</h3>
-                <div class="filters">
-                    <select class="filter-select" id="kpiSeguimientoPreset" onchange="guardarEstadoFormularioKpis();renderKpis()">
-                        <option value="mes_actual" selected>Mes actual</option>
-                        <option value="objetivo">Mismo período base</option>
-                        <option value="ultimo_mes">Último mes</option>
-                        <option value="ultimos_2_meses">Últimos 2 meses</option>
-                        <option value="ultimos_7_dias">Últimos 7 días</option>
-                        <option value="personalizado">Personalizado</option>
-                    </select>
-                    <input class="search-input" id="kpiSeguimientoDesde" type="date" onchange="guardarEstadoFormularioKpis();renderKpis()" style="width:145px;display:none">
-                    <input class="search-input" id="kpiSeguimientoHasta" type="date" onchange="guardarEstadoFormularioKpis();renderKpis()" style="width:145px;display:none">
-                </div>
+                <span style="font-size:12px;color:var(--text-3)">Mes actual, proyectado al cierre</span>
             </div>
             <div class="kpi-grid" id="kpiMesActualGrid" style="padding:18px 22px 0;margin-bottom:18px"></div>
         </div>
         <div class="table-card">
             <div class="table-head">
                 <h3>Mirar fino</h3>
-                <span style="font-size:12px;color:var(--text-3)">Que revisar para explicar el avance o la diferencia</span>
+                <span style="font-size:12px;color:var(--text-3)">Qué revisar para explicar el avance o la diferencia</span>
             </div>
             <div id="kpiMirarFino" style="padding:18px 22px"></div>
         </div>
