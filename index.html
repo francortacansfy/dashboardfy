@@ -2390,21 +2390,21 @@ function renderGrowthMensual(base) {
             texto: 'Hacer crecer Shopify como canal de mayor control comercial.',
             cards: [
                 ['% Shopify', fmtPct(actual?.shopifyShare || 0), actual?.shopifyShare, anterior?.shopifyShare, ' pp', 'green', 'shopping-bag'],
-                ['Ventas Shopify', fmt(actual?.shopifyVentas || 0), (actual?.shopifyVentas || 0)/1000000, (anterior?.shopifyVentas || 0)/1000000, 'M', 'blue', 'store'],
+                ['Ventas Shopify', fmt(actual?.shopify || 0), (actual?.shopify || 0)/1000000, (anterior?.shopify || 0)/1000000, 'M', 'blue', 'store'],
                 ['Ticket Shopify', fmt(actual?.shopifyTicket || 0), (actual?.shopifyTicket || 0)/1000, (anterior?.shopifyTicket || 0)/1000, 'k', 'orange', 'tag'],
             ],
             cols: ['% Shopify','Ventas Shopify','Ticket Shopify'],
-            values: r => [fmtPct(r.shopifyShare), fmt(r.shopifyVentas), fmt(r.shopifyTicket)],
+            values: r => [fmtPct(r.shopifyShare), fmt(r.shopify), fmt(r.shopifyTicket)],
         },
         ml: {
             texto: 'Defender el canal de volumen cuidando ventas, participación y ticket.',
             cards: [
                 ['% Mercado Libre', fmtPct(actual?.mlShare || 0), actual?.mlShare, anterior?.mlShare, ' pp', 'blue', 'store'],
-                ['Ventas ML', fmt(actual?.mlVentas || 0), (actual?.mlVentas || 0)/1000000, (anterior?.mlVentas || 0)/1000000, 'M', 'green', 'dollar-sign'],
+                ['Ventas ML', fmt(actual?.ml || 0), (actual?.ml || 0)/1000000, (anterior?.ml || 0)/1000000, 'M', 'green', 'dollar-sign'],
                 ['Ticket ML', fmt(actual?.mlTicket || 0), (actual?.mlTicket || 0)/1000, (anterior?.mlTicket || 0)/1000, 'k', 'orange', 'tag'],
             ],
             cols: ['% ML','Ventas ML','Ticket ML'],
-            values: r => [fmtPct(r.mlShare), fmt(r.mlVentas), fmt(r.mlTicket)],
+            values: r => [fmtPct(r.mlShare), fmt(r.ml), fmt(r.mlTicket)],
         },
         categorias: {
             texto: 'Detectar qué familia explica el crecimiento mensual.',
@@ -2503,11 +2503,11 @@ function valoresObjetivoDineroYPorcentaje(tipo, row) {
     if (metrica === 'ventas') return { moneyLabel:'Ventas $', money:row.total || 0, pctLabel:'% de ventas', pct:100 };
     if (metrica === 'ticket') return { moneyLabel:'Ticket promedio', money:row.ticket || 0, pctLabel:'% combos reales', pct:row.comboShare || 0 };
     if (metrica === 'combos') return { moneyLabel:'Ventas combos reales', money:row.comboVentas || 0, pctLabel:'% combos reales', pct:row.comboShare || 0 };
-    if (metrica === 'shopify') return { moneyLabel:'Ventas Shopify', money:row.shopifyVentas || 0, pctLabel:'% Shopify', pct:row.shopifyShare || 0 };
-    if (metrica === 'ml') return { moneyLabel:'Ventas Mercado Libre', money:row.mlVentas || 0, pctLabel:'% Mercado Libre', pct:row.mlShare || 0 };
+    if (metrica === 'shopify') return { moneyLabel:'Ventas Shopify', money:row.shopify || 0, pctLabel:'% Shopify', pct:row.shopifyShare || 0 };
+    if (metrica === 'ml') return { moneyLabel:'Ventas Mercado Libre', money:row.ml || 0, pctLabel:'% Mercado Libre', pct:row.mlShare || 0 };
     if (metrica === 'unidades') return { moneyLabel:'Ventas objetivo', money:row.total || 0, pctLabel:'Unidades', pct:row.uds || 0 };
-    if (tipo === 'shopify') return { moneyLabel:'Ventas Shopify', money:row.shopifyVentas || 0, pctLabel:'% Shopify', pct:row.shopifyShare || 0 };
-    if (tipo === 'ml') return { moneyLabel:'Ventas Mercado Libre', money:row.mlVentas || 0, pctLabel:'% Mercado Libre', pct:row.mlShare || 0 };
+    if (tipo === 'shopify') return { moneyLabel:'Ventas Shopify', money:row.shopify || 0, pctLabel:'% Shopify', pct:row.shopifyShare || 0 };
+    if (tipo === 'ml') return { moneyLabel:'Ventas Mercado Libre', money:row.ml || 0, pctLabel:'% Mercado Libre', pct:row.mlShare || 0 };
     if (tipo === 'categorias') {
         const money = row.topCategoria?.[1] || 0;
         const pct = row.total ? money / row.total * 100 : 0;
