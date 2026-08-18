@@ -97,7 +97,9 @@
         .plan-grid { display:grid; grid-template-columns:repeat(6,minmax(130px,1fr)); gap:12px; align-items:end; }
         .plan-grid .wide { grid-column:span 2; }
         .plan-grid .xl { grid-column:span 3; }
+        .plan-grid .full { grid-column:1/-1; }
         .plan-divider { grid-column:1/-1; height:1px; background:var(--border); margin:2px 0; }
+        .plan-textarea { min-height:84px; resize:vertical; line-height:1.45; padding-top:11px; }
         .focus-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:10px; padding:18px 22px; }
         .focus-item { border:1px solid var(--border); background:var(--surface-2); border-radius:10px; padding:12px 14px; display:grid; grid-template-columns:auto 1fr; gap:10px; align-items:start; }
         .focus-item input { margin-top:3px; }
