@@ -2035,13 +2035,12 @@ function prepararControlesObjetivoKpis() {
         if (!tipoSel.querySelector('option[value="nuevo"]')) {
             tipoSel.insertAdjacentHTML('beforeend', '<option value="nuevo">Cargar nuevo</option>');
         }
-        tipoSel.value = '';
         tipoSel.dataset.ready = '1';
     }
     ['Meta','MetaTipo'].forEach(campo => {
         const el = document.getElementById('kpiObjetivo' + campo) || document.getElementById('kpi' + campo);
         if (el && !el.dataset.ready) {
-            el.value = campo === 'MetaTipo' ? 'auto' : '';
+            if (!el.value) el.value = campo === 'MetaTipo' ? 'auto' : '';
             el.dataset.ready = '1';
         }
     });
