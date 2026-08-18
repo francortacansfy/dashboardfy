@@ -1860,6 +1860,29 @@ function planFechaEnRango(fecha, desde, hasta) {
     return (!desde || f >= desde) && (!hasta || f <= hasta);
 }
 
+function diasInclusivosPlan(desde, hasta) {
+    if (!desde || !hasta) return 0;
+    const start = new Date(`${desde}T00:00:00`);
+    const end = new Date(`${hasta}T00:00:00`);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end < start) return 0;
+    return Math.round((end - start) / 86400000) + 1;
+}
+
+function normalizarPeriodoComparacionPlan() {
+    const desde = document.getElementById('planDesde')?.value || '';
+    const hasta = document.getElementById('planHasta')?.value || '';
+    const baseDesdeEl = document.getElementById('planBaseDesde');
+    const baseHastaEl = document.getElementById('planBaseHasta');
+    if (!desde || !hasta || !baseDesdeEl || !baseHastaEl) return;
+    const diasPlan = diasInclusivosPlan(desde, hasta);
+    const diasBase = diasInclusivosPlan(baseDesdeEl.value, baseHastaEl.value);
+    if (!diasPlan || diasBase === diasPlan) return;
+    const baseHasta = sumarDias(desde, -1);
+    const baseDesde = restarDias(desde, diasPlan);
+    baseDesdeEl.value = baseDesde;
+    baseHastaEl.value = baseHasta;
+}
+
 function restarDias(fechaIso, dias) {
     const d = new Date(`${fechaIso}T00:00:00`);
     d.setDate(d.getDate() - dias);
@@ -1951,6 +1974,7 @@ function renderPlanComercial() {
     const estado = leerPlanEstado();
     const decision = decisionPlanActiva();
     aplicarDecisionAlPlan(decision);
+    normalizarPeriodoComparacionPlan();
     const tipoDecision = decision?.tipo || '';
     const kpi = tipoDecision === 'shopify' ? 'shopify' : tipoDecision === 'rutinas' ? 'combos' : tipoDecision === 'ml' ? 'ticket' : 'ticket';
     const marca = document.getElementById('planMarca').value || '';
@@ -1994,7 +2018,7 @@ function renderPlanComercial() {
         <div class="kpi"><div class="kpi-header"><span class="kpi-label">${principal.label}</span><div class="kpi-icon green"><i class="fas fa-bullseye"></i></div></div><div class="kpi-value">${principal.display}</div><div class="kpi-sub">${selectedSkus.length ? 'Foco elegido' : 'Foco recomendado'}</div></div>
         <div class="kpi"><div class="kpi-header"><span class="kpi-label">Ventas foco</span><div class="kpi-icon blue"><i class="fas fa-dollar-sign"></i></div></div><div class="kpi-value">${fmtMoneyCompact(actual.ventas)}</div><div class="kpi-sub">${fmt(actual.ventas)} · ${actual.ordenes} órdenes</div></div>
         <div class="kpi"><div class="kpi-header"><span class="kpi-label">Diferencia</span><div class="kpi-icon ${delta >= 0 ? 'green' : 'red'}"><i class="fas fa-chart-line"></i></div></div><div class="kpi-value">${deltaTxt}</div><div class="kpi-sub">Anterior: ${principalBase.display}</div></div>
-        <div class="kpi"><div class="kpi-header"><span class="kpi-label">Avance ventas</span><div class="kpi-icon orange"><i class="fas fa-gauge-high"></i></div></div><div class="kpi-value">${base.ventas ? fmtPct(avance) : '-'}</div><div class="kpi-sub">Analizado vs anterior</div></div>
+        <div class="kpi"><div class="kpi-header"><span class="kpi-label">Ventas vs base</span><div class="kpi-icon orange"><i class="fas fa-gauge-high"></i></div></div><div class="kpi-value">${base.ventas ? fmtPct(avance) : '-'}</div><div class="kpi-sub">${baseDesde} a ${baseHasta}</div></div>
     `;
     const list = document.getElementById('planFocusList');
     const renderCombo = c => {
