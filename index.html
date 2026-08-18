@@ -2897,19 +2897,24 @@ function renderAccionComercialKpis(tipo) {
     const canales = bloques.filter(b => b.titulo !== 'Prioridad' && b.titulo !== 'Medición');
     const medicion = bloques.find(b => b.titulo === 'Medición');
     el.innerHTML = `
-        <div class="action-box main">
-            <strong>Qué hacer</strong>
-            <p>${escapeHtml(prioridad?.texto || KPI_ACCION_COMERCIAL_ACTUAL.decision)}</p>
-        </div>
-        <div class="action-box">
-            <strong>Dónde aplicarlo</strong>
-            ${canales.length
-                ? canales.map(b => `<div class="action-channel"><b>${escapeHtml(b.titulo)}:</b> ${escapeHtml(b.texto)}</div>`).join('')
-                : '<p>Definir canal según el foco elegido.</p>'}
-        </div>
-        <div class="action-box">
-            <strong>Cómo medirlo</strong>
-            <p>${escapeHtml(medicion?.texto || 'Ventas del foco, avance vs meta y cierre estimado.')}</p>
+        <div class="action-panel">
+            <div class="action-panel-title"><i class="fas fa-bolt"></i> Propuesta sugerida</div>
+            <div class="action-steps">
+                <div class="action-step">
+                    <strong>Qué hacer</strong>
+                    <p>${escapeHtml(prioridad?.texto || KPI_ACCION_COMERCIAL_ACTUAL.decision)}</p>
+                </div>
+                <div class="action-step">
+                    <strong>Dónde aplicarlo</strong>
+                    ${canales.length
+                        ? canales.map(b => `<div class="action-channel"><b>${escapeHtml(b.titulo)}:</b> ${escapeHtml(b.texto)}</div>`).join('')
+                        : '<p>Definir canal según el foco elegido.</p>'}
+                </div>
+                <div class="action-step">
+                    <strong>Cómo medirlo</strong>
+                    <p>${escapeHtml(medicion?.texto || 'Ventas del foco, avance vs meta y cierre estimado.')}</p>
+                </div>
+            </div>
         </div>
     `;
 }
