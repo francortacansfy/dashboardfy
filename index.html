@@ -1911,7 +1911,8 @@ function compararCombosPlan(actualRows, baseRows, fallbackRows) {
     const actual = mapCombosPlan(actualRows.length ? actualRows : fallbackRows);
     const base = mapCombosPlan(baseRows);
     const skus = [...new Set([...Object.keys(actual), ...Object.keys(base)])];
-    const search = (document.getElementById('planProductoSearch')?.value || '').trim().toLowerCase();
+    const productoFiltro = (document.getElementById('planProductoSearch')?.value || '').trim();
+    const search = productoFiltro.toLowerCase();
     const categoria = document.getElementById('planCategoria')?.value || '';
     const selected = PLAN_SKUS_SELECCIONADOS;
     return skus.map(sku => {
@@ -1926,12 +1927,20 @@ function compararCombosPlan(actualRows, baseRows, fallbackRows) {
             ticket:a.ordenes?.size ? a.ventas / a.ordenes.size : 0,
         };
     }).filter(x => {
+        const producto = productoPorSkuKpis(x.sku);
         const catOk = !categoria || categoriaKpi({ sku:x.sku, marca:x.marca }) === categoria;
-        const textOk = selected.has(x.sku) || !search || `${x.sku} ${x.marca}`.toLowerCase().includes(search);
+        const texto = `${x.sku} ${x.marca} ${producto?.nombre || ''}`.toLowerCase();
+        const textOk = selected.has(x.sku) || !search || x.sku === productoFiltro || texto.includes(search);
         return catOk && textOk;
     })
       .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
       .slice(0, 24);
+}
+
+function productosRecomendadosPlan(combos) {
+    const ganan = combos.filter(c => c.delta >= 0 && c.ventas > 0).sort((a, b) => b.delta - a.delta).slice(0, 3);
+    const pierden = combos.filter(c => c.delta < 0 || (c.baseVentas > 0 && c.ventas === 0)).sort((a, b) => a.delta - b.delta).slice(0, 3);
+    return [...ganan, ...pierden];
 }
 
 function renderPlanComercial() {
@@ -1964,19 +1973,23 @@ function renderPlanComercial() {
     const combos = compararCombosPlan(actualRows, baseRows, filtrado);
     const selected = PLAN_SKUS_SELECCIONADOS;
     const selectedSkus = [...selected];
-    const actual = calcularPlanMetricas(actualRows, selectedSkus);
-    const base = calcularPlanMetricas(baseRows, selectedSkus);
+    const recomendadosAuto = productosRecomendadosPlan(combos);
+    const skusMedidos = selectedSkus.length ? selectedSkus : recomendadosAuto.map(c => c.sku);
+    const actual = calcularPlanMetricas(actualRows, skusMedidos);
+    const base = calcularPlanMetricas(baseRows, skusMedidos);
     const principal = valorPlanKpi(kpi, actual);
     const principalBase = valorPlanKpi(kpi, base);
     const delta = principal.value - principalBase.value;
     const deltaTxt = kpi === 'ticket' ? fmt(delta) : `${delta >= 0 ? '+' : ''}${delta.toFixed(1).replace('.', ',')} pp`;
     const avance = base.ventas ? (actual.ventas / base.ventas * 100) : 0;
     const grid = document.getElementById('planKpiGrid');
-    if (!decision || !selectedSkus.length) {
-        if (grid) grid.innerHTML = '<div class="empty" style="grid-column:1/-1">Elegí una decisión guardada y productos foco para ver avance.</div>';
+    if (!decision) {
+        if (grid) grid.innerHTML = '<div class="empty" style="grid-column:1/-1">Elegí una decisión guardada para medir el plan.</div>';
+    } else if (!skusMedidos.length) {
+        if (grid) grid.innerHTML = '<div class="empty" style="grid-column:1/-1">Sin productos sugeridos para este filtro y período.</div>';
     } else
     if (grid) grid.innerHTML = `
-        <div class="kpi"><div class="kpi-header"><span class="kpi-label">${principal.label}</span><div class="kpi-icon green"><i class="fas fa-bullseye"></i></div></div><div class="kpi-value">${principal.display}</div><div class="kpi-sub">Foco seleccionado</div></div>
+        <div class="kpi"><div class="kpi-header"><span class="kpi-label">${principal.label}</span><div class="kpi-icon green"><i class="fas fa-bullseye"></i></div></div><div class="kpi-value">${principal.display}</div><div class="kpi-sub">${selectedSkus.length ? 'Foco elegido' : 'Foco recomendado'}</div></div>
         <div class="kpi"><div class="kpi-header"><span class="kpi-label">Ventas foco</span><div class="kpi-icon blue"><i class="fas fa-dollar-sign"></i></div></div><div class="kpi-value">${fmtMoneyCompact(actual.ventas)}</div><div class="kpi-sub">${fmt(actual.ventas)} · ${actual.ordenes} órdenes</div></div>
         <div class="kpi"><div class="kpi-header"><span class="kpi-label">Diferencia</span><div class="kpi-icon ${delta >= 0 ? 'green' : 'red'}"><i class="fas fa-chart-line"></i></div></div><div class="kpi-value">${deltaTxt}</div><div class="kpi-sub">Anterior: ${principalBase.display}</div></div>
         <div class="kpi"><div class="kpi-header"><span class="kpi-label">Avance ventas</span><div class="kpi-icon orange"><i class="fas fa-gauge-high"></i></div></div><div class="kpi-value">${base.ventas ? fmtPct(avance) : '-'}</div><div class="kpi-sub">Analizado vs anterior</div></div>
@@ -1984,6 +1997,8 @@ function renderPlanComercial() {
     const list = document.getElementById('planFocusList');
     const renderCombo = c => {
         const checked = selected.has(c.sku) ? 'checked' : '';
+        const producto = productoPorSkuKpis(c.sku);
+        const nombre = producto?.nombre ? ` · ${producto.nombre}` : '';
         const tiendaTxt = Object.entries(c.tiendas).sort((a,b) => b[1]-a[1]).map(([t,v]) => `${t} ${fmtMoneyCompact(v)}`).join(' · ');
         const deltaTxt = `${c.delta >= 0 ? '+' : ''}${fmt(c.delta)}`;
         const deltaColor = c.delta >= 0 ? 'var(--green)' : 'var(--red)';
@@ -1991,7 +2006,7 @@ function renderPlanComercial() {
         return `<label class="focus-item">
             <input type="checkbox" data-plan-sku value="${escapeHtml(c.sku)}" ${checked} onchange="togglePlanSku(this.value,this.checked)">
             <span>
-                <span class="focus-title">${escapeHtml(c.sku)} · ${escapeHtml(c.marca)}</span>
+                <span class="focus-title">${escapeHtml(c.sku)} · ${escapeHtml(c.marca)}${escapeHtml(nombre)}</span>
                 <span class="focus-meta"><strong style="color:${deltaColor}">${recomendacion}</strong><br>${fmt(c.ventas)} · ${c.ordenesCount} órdenes · Ticket ${fmt(c.ticket)}<br>Anterior ${fmt(c.baseVentas)} · <strong style="color:${deltaColor}">${deltaTxt}</strong>${tiendaTxt ? `<br>${escapeHtml(tiendaTxt)}` : ''}</span>
             </span>
         </label>`;
@@ -2010,7 +2025,7 @@ function renderPlanComercial() {
             ${ganan.length ? ganan.map(renderCombo).join('') : '<div class="empty">Sin ganadores en este período.</div>'}
             <div style="grid-column:1/-1" class="section-title">Pierden / recuperar</div>
             ${pierden.length ? pierden.map(renderCombo).join('') : '<div class="empty">Sin caídas contra la base.</div>'}
-        ` : '<div class="empty" style="grid-column:1/-1">Buscá un SKU o producto para elegir foco. Si no marcás ninguno, las cards miden el total del filtro.</div>';
+        ` : '<div class="empty" style="grid-column:1/-1">Sin productos sugeridos para este filtro.</div>';
     }
     renderTareasPlan();
     guardarPlanEstado();
