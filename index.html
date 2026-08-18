@@ -1742,6 +1742,7 @@ function guardarPlanEstado() {
         hasta: val('planHasta'),
         baseDesde: val('planBaseDesde'),
         baseHasta: val('planBaseHasta'),
+        categoria: val('planCategoria'),
         tema: val('planTema'),
         forma: val('planForma'),
         search: val('planProductoSearch'),
@@ -1765,6 +1766,7 @@ function prepararPlanComercial() {
         ['planHasta', estado.hasta || ''],
         ['planBaseDesde', estado.baseDesde || ''],
         ['planBaseHasta', estado.baseHasta || ''],
+        ['planCategoria', estado.categoria || ''],
         ['planTema', estado.tema || ''],
         ['planForma', estado.forma || 'Mixto: ML + Shopify/Klaviyo'],
         ['planProductoSearch', estado.search || ''],
@@ -1801,15 +1803,26 @@ function decisionPlanActiva() {
 function poblarProductosPlan() {
     const catSel = document.getElementById('planCategoria');
     if (catSel && !catSel.dataset.ready) {
-        const cats = [...new Set(DATA.map(categoriaKpi).filter(Boolean))].sort();
+        const cats = categoriasKpisDisponibles();
         catSel.innerHTML = '<option value="">Todas</option>' + cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
         catSel.dataset.ready = '1';
     }
-    const list = document.getElementById('planProductosList');
-    if (list && !list.dataset.ready) {
-        const skus = [...new Set(DATA.map(d => d.sku).filter(Boolean))].sort();
-        list.innerHTML = skus.map(s => `<option value="${escapeHtml(s)}"></option>`).join('');
-        list.dataset.ready = '1';
+    const select = document.getElementById('planProductoSearch');
+    if (select && !select.dataset.ready) {
+        const productos = PRODUCTOS
+            .filter(p => p.sku)
+            .slice()
+            .sort((a, b) => String(a.sku).localeCompare(String(b.sku), 'es'));
+        const actual = select.value;
+        select.innerHTML = '<option value="">Recomendados automáticamente</option>' + productos.map(p => {
+            const label = `${p.sku}${p.nombre ? ' - ' + p.nombre : ''}`;
+            return `<option value="${escapeHtml(p.sku)}">${escapeHtml(label)}</option>`;
+        }).join('');
+        if (actual && !productos.some(p => p.sku === actual)) {
+            select.insertAdjacentHTML('beforeend', `<option value="${escapeHtml(actual)}">${escapeHtml(actual)}</option>`);
+        }
+        select.value = actual || '';
+        select.dataset.ready = '1';
     }
 }
 
