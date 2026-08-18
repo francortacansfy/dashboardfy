@@ -96,6 +96,8 @@
         .action-footer { display:flex; justify-content:flex-end; padding:0 22px 14px; }
         .plan-grid { display:grid; grid-template-columns:repeat(6,minmax(130px,1fr)); gap:12px; align-items:end; }
         .plan-grid .wide { grid-column:span 2; }
+        .plan-grid .xl { grid-column:span 3; }
+        .plan-divider { grid-column:1/-1; height:1px; background:var(--border); margin:2px 0; }
         .focus-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:10px; padding:18px 22px; }
         .focus-item { border:1px solid var(--border); background:var(--surface-2); border-radius:10px; padding:12px 14px; display:grid; grid-template-columns:auto 1fr; gap:10px; align-items:start; }
         .focus-item input { margin-top:3px; }
@@ -122,12 +124,14 @@
             .objective-builder .wide { grid-column:span 2; }
             .plan-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
             .plan-grid .wide { grid-column:span 2; }
+            .plan-grid .xl { grid-column:span 2; }
             .action-steps { grid-template-columns:1fr; }
             .task-row { grid-template-columns:1fr; }
         }
         @media (max-width:700px) {
             .objective-builder { grid-template-columns:1fr; }
             .objective-builder .wide { grid-column:auto; }
+            .plan-grid .wide, .plan-grid .xl { grid-column:auto; }
             .action-grid { grid-template-columns:1fr; }
         }
 
