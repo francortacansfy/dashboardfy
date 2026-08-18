@@ -3292,12 +3292,18 @@ let PRODUCTOS = [];
 
 async function loadProductos() {
     let res = await fetch(
-        `${SUPA_URL}/rest/v1/productos?select=sku,nombre,marca,categoria,stock_actual,stock_minimo,stock_critico,stock_ml_total,dias_stock_ml,stock_ml_prioridad&order=sku.asc&limit=1000`,
+        `${SUPA_URL}/rest/v1/productos?select=sku,nombre,marca,categoria,terminos_match,stock_actual,stock_minimo,stock_critico,stock_ml_total,dias_stock_ml,stock_ml_prioridad&order=sku.asc&limit=1000`,
         { headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` } }
     );
     // Las columnas de Stock ML pueden no existir todavía (migración pendiente):
     // si la query extendida falla, reintentar con las columnas originales para
     // no romper el resto del dashboard por un 400 de PostgREST.
+    if (!res.ok) {
+        res = await fetch(
+            `${SUPA_URL}/rest/v1/productos?select=sku,nombre,marca,categoria,terminos_match,stock_actual,stock_minimo,stock_critico&order=sku.asc&limit=1000`,
+            { headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` } }
+        );
+    }
     if (!res.ok) {
         res = await fetch(
             `${SUPA_URL}/rest/v1/productos?select=sku,nombre,marca,categoria,stock_actual,stock_minimo,stock_critico&order=sku.asc&limit=1000`,
