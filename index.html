@@ -1122,6 +1122,24 @@ function categoriaKpi(d) {
     return 'Vitaminas y Minerales';
 }
 
+function categoriaKpiFallback(d) {
+    const sku = (d.sku || '').toUpperCase();
+    if (COMBOS_REALES.has(d.sku)) return 'Combos';
+    if (d.marca === 'Hairfy') {
+        if (sku.includes('SHA')) return 'Shampoos';
+        if (sku.includes('ACO')) return 'Acondicionadores';
+        if (sku.includes('CMB')) return 'Combos';
+        if (sku.includes('VIT') || sku.includes('COL')) return 'Suplementos';
+        return 'Accesorios';
+    }
+    if (sku.includes('MAG') || sku.includes('POT') || sku.includes('MIN')) return 'Magnesios';
+    if (sku.includes('COL')) return 'Colágeno Hidrolizado';
+    if (sku.includes('OME') || sku.includes('MCT')) return 'Omegas & Grasas Saludables';
+    if (sku.includes('MFY')) return 'Multivitamínico';
+    if (['CUR','MEL','SPI','RES','NAD','B12'].some(x => sku.includes(x))) return 'Veganos';
+    return 'Vitaminas y Minerales';
+}
+
 function calcularCoreMensual(base) {
     const porMes = {};
     base.filter(d => d.completa).forEach(d => {
