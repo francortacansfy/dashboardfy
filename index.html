@@ -2884,17 +2884,26 @@ function renderAccionComercialKpis(tipo) {
         el.innerHTML = '<div class="empty" style="grid-column:1/-1">Elegí un objetivo para ver una acción comercial sugerida.</div>';
         return;
     }
-    el.innerHTML = KPI_ACCION_COMERCIAL_ACTUAL.bloques.map((raw, i) => {
-        const b = Array.isArray(raw) ? { titulo:raw[0], texto:raw[1], decision:`${raw[0]}: ${raw[1]}` } : raw;
-        return `
-        <label class="action-box selectable ${i === 0 ? 'main selected' : ''}">
-            <input type="radio" name="kpiAccionComercialOpcion" value="${i}" ${i === 0 ? 'checked' : ''} onchange="seleccionarAccionComercialKpis(${i})">
-            <span>
-                <strong>${escapeHtml(b.titulo)}</strong>
-                <p>${escapeHtml(b.texto)}</p>
-            </span>
-        </label>
-    `}).join('');
+    const bloques = KPI_ACCION_COMERCIAL_ACTUAL.bloques.map(raw =>
+        Array.isArray(raw) ? { titulo:raw[0], texto:raw[1] } : raw
+    );
+    const prioridad = bloques.find(b => b.titulo === 'Prioridad') || bloques[0];
+    const canales = bloques.filter(b => b.titulo !== 'Prioridad' && b.titulo !== 'Medición');
+    const medicion = bloques.find(b => b.titulo === 'Medición');
+    el.innerHTML = `
+        <div class="action-box main">
+            <strong>Qué hacer</strong>
+            <p>${escapeHtml(prioridad?.texto || KPI_ACCION_COMERCIAL_ACTUAL.decision)}</p>
+        </div>
+        <div class="action-box">
+            <strong>Dónde aplicarlo</strong>
+            <p>${canales.map(b => `<b>${escapeHtml(b.titulo)}:</b> ${escapeHtml(b.texto)}`).join('<br>') || 'Definir canal según el foco elegido.'}</p>
+        </div>
+        <div class="action-box">
+            <strong>Cómo medirlo</strong>
+            <p>${escapeHtml(medicion?.texto || 'Ventas del foco, avance vs meta y cierre estimado.')}</p>
+        </div>
+    `;
 }
 
 function seleccionarAccionComercialKpis(index) {
@@ -2907,10 +2916,7 @@ function seleccionarAccionComercialKpis(index) {
 }
 
 function accionComercialElegidaKpis() {
-    const raw = KPI_ACCION_COMERCIAL_ACTUAL?.bloques?.[KPI_ACCION_COMERCIAL_ELEGIDA];
-    if (!raw) return KPI_ACCION_COMERCIAL_ACTUAL?.decision || '';
-    const b = Array.isArray(raw) ? { titulo:raw[0], texto:raw[1], decision:`${raw[0]}: ${raw[1]}` } : raw;
-    return b.decision || `${b.titulo}: ${b.texto}`;
+    return KPI_ACCION_COMERCIAL_ACTUAL?.decision || '';
 }
 
 function usarAccionComercialKpis() {
