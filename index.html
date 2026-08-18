@@ -2543,43 +2543,37 @@ function renderMetaGapKpis(tipo, actual) {
         : metaTipoSel;
     const tieneMeta = Number.isFinite(metaRaw);
     const gap = tieneMeta ? metaRaw - principal.value : 0;
-    const avance = tieneMeta && metaRaw > 0 ? Math.max(0, Math.min(999, principal.value / metaRaw * 100)) : 0;
-    const estado = !tieneMeta ? {label:'Sin meta', color:'blue', sub:'Cargá una meta para medir avance'} :
-        avance >= 100 ? {label:'Alcanzado', color:'green', sub:'Meta alcanzada o superada'} :
-        avance >= 75 ? {label:'En camino', color:'orange', sub:'Todavía falta, pero viene encaminado'} :
-        {label:'En riesgo', color:'red', sub:'Falta bastante para llegar'};
+    const baseVsMeta = tieneMeta && metaRaw > 0 ? Math.max(0, Math.min(999, principal.value / metaRaw * 100)) : 0;
     const fmtMeta = n => metaTipo === 'money' ? fmt(n) : metaTipo === 'pct' ? fmtPct(n) : n.toLocaleString('es-AR');
-    const gapDisplay = !tieneMeta ? 'Sin meta' : metaTipo === 'money' ? fmt(gap) : metaTipo === 'pct' ? `${gap >= 0 ? '+' : ''}${gap.toFixed(1).replace('.', ',')} pp` : `${gap >= 0 ? '+' : ''}${gap.toLocaleString('es-AR')}`;
+    const gapAbs = Math.abs(gap);
+    const gapDisplay = !tieneMeta ? '-' : metaTipo === 'money' ? fmt(gapAbs) : metaTipo === 'pct' ? `${gapAbs.toFixed(1).replace('.', ',')} pp` : gapAbs.toLocaleString('es-AR');
+    const gapLabel = !tieneMeta ? 'Sin meta futura' : gap > 0 ? 'Crecimiento necesario' : 'Margen sobre meta';
+    const gapSub = !tieneMeta ? 'Cargá una meta futura' : gap > 0 ? 'Lo que falta contra la meta' : 'La base ya supera la meta';
     if (!tipo || !actual) {
-        document.getElementById('metaKpiGrid').innerHTML = '<div class="empty" style="grid-column:1/-1">Elegí objetivo y período para ver el avance.</div>';
+        document.getElementById('metaKpiGrid').innerHTML = '<div class="empty" style="grid-column:1/-1">Elegí objetivo y período base para ver la referencia.</div>';
         renderDecisionKpis();
         return;
     }
     document.getElementById('metaKpiGrid').innerHTML = `
         <div class="kpi">
-            <div class="kpi-header"><span class="kpi-label">Estado</span><div class="kpi-icon ${estado.color}"><i class="fas fa-signal"></i></div></div>
-            <div class="kpi-value">${estado.label}</div>
-            <div class="kpi-sub">${estado.sub}</div>
-        </div>
-        <div class="kpi">
             <div class="kpi-header"><span class="kpi-label">${principal.label}</span><div class="kpi-icon green"><i class="fas fa-bullseye"></i></div></div>
             <div class="kpi-value">${principal.display}</div>
-            <div class="kpi-sub">Valor del período analizado</div>
+            <div class="kpi-sub">Valor del período base</div>
         </div>
         <div class="kpi">
-            <div class="kpi-header"><span class="kpi-label">Meta</span><div class="kpi-icon blue"><i class="fas fa-flag-checkered"></i></div></div>
+            <div class="kpi-header"><span class="kpi-label">Meta futura</span><div class="kpi-icon blue"><i class="fas fa-flag-checkered"></i></div></div>
             <div class="kpi-value">${tieneMeta ? fmtMeta(metaRaw) : '-'}</div>
             <div class="kpi-sub">Tipo: ${metaTipo === 'money' ? '$' : metaTipo === 'pct' ? '%' : 'número'}</div>
         </div>
         <div class="kpi">
-            <div class="kpi-header"><span class="kpi-label">Diferencia</span><div class="kpi-icon ${tieneMeta && gap <= 0 ? 'green' : 'orange'}"><i class="fas fa-route"></i></div></div>
+            <div class="kpi-header"><span class="kpi-label">${gapLabel}</span><div class="kpi-icon ${tieneMeta && gap <= 0 ? 'green' : 'orange'}"><i class="fas fa-route"></i></div></div>
             <div class="kpi-value">${gapDisplay}</div>
-            <div class="kpi-sub">${tieneMeta && gap <= 0 ? 'Meta alcanzada o superada' : 'Falta para llegar'}</div>
+            <div class="kpi-sub">${gapSub}</div>
         </div>
         <div class="kpi">
-            <div class="kpi-header"><span class="kpi-label">Avance</span><div class="kpi-icon red"><i class="fas fa-chart-simple"></i></div></div>
-            <div class="kpi-value">${tieneMeta ? fmtPct(avance) : '-'}</div>
-            <div class="kpi-sub">Actual / meta</div>
+            <div class="kpi-header"><span class="kpi-label">Base vs meta</span><div class="kpi-icon orange"><i class="fas fa-chart-simple"></i></div></div>
+            <div class="kpi-value">${tieneMeta ? fmtPct(baseVsMeta) : '-'}</div>
+            <div class="kpi-sub">Referencia, no seguimiento</div>
         </div>
     `;
     renderDecisionKpis();
