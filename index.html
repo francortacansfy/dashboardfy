@@ -1919,6 +1919,18 @@ function calcularPlanMetricas(rows, skus = []) {
     };
 }
 
+function calcularPlanMetricasSkus(rows, skus = []) {
+    return skus.length ? calcularPlanMetricas(rows, skus) : {
+        ventas:0,
+        ordenes:0,
+        uds:0,
+        ticket:0,
+        ventasCombos:0,
+        comboShare:0,
+        shopifyShare:0,
+    };
+}
+
 function valorPlanKpi(kpi, m) {
     if (kpi === 'combos') return { label:'% combos reales', value:m.comboShare, display:fmtPct(m.comboShare), suffix:' pp' };
     if (kpi === 'shopify') return { label:'% Shopify', value:m.shopifyShare, display:fmtPct(m.shopifyShare), suffix:' pp' };
