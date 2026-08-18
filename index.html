@@ -1286,10 +1286,12 @@ let KPI_ACCION_COMERCIAL_ACTUAL = null;
 let KPI_ACCION_COMERCIAL_ELEGIDA = 0;
 let KPI_CAMBIO_TIMER = null;
 
-function guardarEstadoFormularioKpis() {
+function guardarEstadoFormularioKpis(opts = {}) {
     const get = id => document.getElementById(id)?.value || '';
     const periodoEl = document.getElementById('kpiPeriodoRango');
-    const scope = scopeObjetivoEfectivoKpis();
+    const scope = opts.liviano
+        ? { marca:get('kpiScopeMarca'), tienda:get('kpiScopeTienda'), categoria:get('kpiScopeCategoria'), producto:'' }
+        : scopeObjetivoEfectivoKpis();
     let previo = {};
     try { previo = JSON.parse(localStorage.getItem(KPI_FORM_STATE_KEY) || '{}'); } catch(e) {}
     const estado = {
@@ -1433,7 +1435,7 @@ function cambiarObjetivoKpis() {
 
 function programarCambioObjetivoKpis() {
     KPI_DECISION_ACTIVA_ID = null;
-    guardarEstadoFormularioKpis();
+    guardarEstadoFormularioKpis({ liviano:true });
     if (KPI_CAMBIO_TIMER) clearTimeout(KPI_CAMBIO_TIMER);
     KPI_CAMBIO_TIMER = setTimeout(() => {
         KPI_CAMBIO_TIMER = null;
