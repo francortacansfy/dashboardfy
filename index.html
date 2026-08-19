@@ -2503,6 +2503,16 @@ function setScopeDetectadoKpis(id, value) {
 }
 
 function scopeObjetivoDetectadoKpis() {
+    // Los 4 objetivos predefinidos (rutinas/shopify/ml/categorias) son temas
+    // comerciales, no filtros literales: su nombre visible puede contener
+    // palabras como "combos" (ej. "Subir ticket con combos/rutinas") que no
+    // deben forzar un filtro de Categoria/Marca/Tienda. Solo autodetectar
+    // scope a partir del texto cuando el objetivo es libre ("Cargar nuevo").
+    const tipoSeleccionado = document.getElementById('kpiObjetivoTipo')?.value || '';
+    const esObjetivoPredefinido = ['rutinas', 'shopify', 'ml', 'categorias'].includes(tipoSeleccionado);
+    if (esObjetivoPredefinido) {
+        return { marca: '', tienda: '', categoria: '', producto: '' };
+    }
     const texto = textoObjetivoSeleccionado();
     const textoNormalizado = normalizarTextoSimple(texto);
     const producto = detectarProductoDesdeTextoKpis(texto);
