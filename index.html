@@ -3176,8 +3176,8 @@ function renderSeguimientoMesActual(base, tipo) {
     const color = !tieneMeta ? 'blue' : objetivoAlcanzado || llegaria ? 'green' : 'red';
     const cierreLabel = esPorcentaje ? 'Lectura del mes' : 'Cierre estimado';
     const estadoSub = !tieneMeta ? 'Cargá meta para comparar' : objetivoAlcanzado ? 'La meta ya está alcanzada' : llegaria ? 'Al ritmo actual llegaría' : 'Al ritmo actual no llegaría';
-    const cierreSub = !tieneMeta ? 'Cargá meta para comparar' : esPorcentaje ? `Diferencia actual: ${gapActual >= 0 ? '+' : ''}${gapActual.toFixed(1).replace('.', ',')} pp` : `${diasTranscurridos}/${diasMes} días · faltan ${fmtTipo(Math.max(0, gapProyectado))}`;
-    const ritmoSub = !tieneMeta || esPorcentaje || !diasRestantes ? 'Ritmo actual' : `Necesita ${fmtTipo(ritmoNecesario)} por día`;
+    const cierreSub = !tieneMeta ? 'Cargá meta para comparar' : esPorcentaje ? `Diferencia actual: ${gapActual >= 0 ? '+' : ''}${gapActual.toFixed(1).replace('.', ',')} pp` : esTasaPromedio ? `${diasTranscurridos}/${diasMes} días · faltan ${fmtTipo(Math.max(0, gapActual))} contra la meta` : `${diasTranscurridos}/${diasMes} días · faltan ${fmtTipo(Math.max(0, gapProyectado))}`;
+    const ritmoSub = !tieneMeta || sinRitmoDiario || !diasRestantes ? 'Ritmo actual' : `Necesita ${fmtTipo(ritmoNecesario)} por día`;
     const mostrarPeso = esPorcentaje || (doble.pct > 0 && doble.pct < 99.95);
     const pesoCard = mostrarPeso ? `
         <div class="kpi">
