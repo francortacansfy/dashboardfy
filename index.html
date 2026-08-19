@@ -1449,6 +1449,15 @@ function cambiarObjetivoKpis() {
         clearTimeout(KPI_CAMBIO_TIMER);
         KPI_CAMBIO_TIMER = null;
     }
+    // Si se elige un objetivo predefinido (no "Cargar nuevo"), hay que vaciar
+    // el campo de texto libre — si no, queda con contenido viejo y
+    // renderGrowthMensual() fuerza el select de vuelta a "nuevo" en cada
+    // render, sin dejar elegir ningun objetivo predefinido nunca mas.
+    const selObjetivo = document.getElementById('kpiObjetivoTipo');
+    if (selObjetivo && selObjetivo.value !== 'nuevo') {
+        const nuevoInput = document.getElementById('kpiObjetivoNuevo');
+        if (nuevoInput) nuevoInput.value = '';
+    }
     transformarObjetivoEnCampoEscribible();
     actualizarDecisionDesdeObjetivo();
     guardarEstadoFormularioKpis();
