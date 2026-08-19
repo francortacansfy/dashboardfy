@@ -1966,11 +1966,17 @@ function compararCombosPlan(actualRows, baseRows, fallbackRows) {
     const categoria = document.getElementById('planCategoria')?.value || '';
     const selected = PLAN_SKUS_SELECCIONADOS;
     // El período "actual" suele estar incompleto (ej. van 19 días de un plan
-    // de 61) mientras que "comparar contra" ya cerró entero. Sin normalizar
-    // por día, cualquier producto aparece como "cayó" solo por tener menos
-    // días acumulados — nunca hay ganadores. Se escala la base a la misma
-    // cantidad de días que el período actual antes de comparar.
-    const diasActual = diasInclusivosKpis(document.getElementById('planDesde')?.value, document.getElementById('planHasta')?.value) || 1;
+    // de 61, porque el resto todavía no pasó) mientras que "comparar contra"
+    // ya cerró entero. normalizarPeriodoComparacionPlan() ya iguala el largo
+    // NOMINAL de los dos rangos, pero eso no alcanza: si "hasta" cae en el
+    // futuro, esos dias nominales no tienen datos reales. Por eso se capea
+    // "hasta" en hoy para contar los dias que realmente tienen ventas antes
+    // de escalar la base — sin esto, ningun producto aparece como ganador.
+    const hoyIsoPlan = new Date().toISOString().substring(0, 10);
+    const planDesdeVal = document.getElementById('planDesde')?.value;
+    const planHastaVal = document.getElementById('planHasta')?.value;
+    const planHastaEfectiva = planHastaVal && planHastaVal < hoyIsoPlan ? planHastaVal : hoyIsoPlan;
+    const diasActual = diasInclusivosKpis(planDesdeVal, planHastaEfectiva) || 1;
     const diasBase = diasInclusivosKpis(document.getElementById('planBaseDesde')?.value, document.getElementById('planBaseHasta')?.value) || 1;
     const factorNormalizacion = diasBase > 0 ? diasActual / diasBase : 1;
     return skus.map(sku => {
