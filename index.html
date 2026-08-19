@@ -1965,10 +1965,18 @@ function compararCombosPlan(actualRows, baseRows, fallbackRows) {
     const search = productoFiltro.toLowerCase();
     const categoria = document.getElementById('planCategoria')?.value || '';
     const selected = PLAN_SKUS_SELECCIONADOS;
+    // El período "actual" suele estar incompleto (ej. van 19 días de un plan
+    // de 61) mientras que "comparar contra" ya cerró entero. Sin normalizar
+    // por día, cualquier producto aparece como "cayó" solo por tener menos
+    // días acumulados — nunca hay ganadores. Se escala la base a la misma
+    // cantidad de días que el período actual antes de comparar.
+    const diasActual = diasInclusivosKpis(document.getElementById('planDesde')?.value, document.getElementById('planHasta')?.value) || 1;
+    const diasBase = diasInclusivosKpis(document.getElementById('planBaseDesde')?.value, document.getElementById('planBaseHasta')?.value) || 1;
+    const factorNormalizacion = diasBase > 0 ? diasActual / diasBase : 1;
     return skus.map(sku => {
         const a = actual[sku] || { sku, marca:base[sku]?.marca || '', ventas:0, ordenes:new Set(), tiendas:{} };
         const b = base[sku] || { ventas:0, ordenes:new Set(), tiendas:{} };
-        const delta = a.ventas - b.ventas;
+        const delta = a.ventas - b.ventas * factorNormalizacion;
         return {
             ...a,
             baseVentas:b.ventas || 0,
