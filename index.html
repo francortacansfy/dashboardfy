@@ -3155,16 +3155,23 @@ function renderSeguimientoMesActual(base, tipo) {
     const diasMes = rango.preset === 'mes_actual' ? diasDelMesKpis(rango.hasta) : diasTranscurridos;
     const unidad = principal.unidad === '$' ? 'money' : principal.unidad === '%' ? 'pct' : 'number';
     const esPorcentaje = unidad === 'pct';
-    const proyeccion = esPorcentaje ? principal.value : (diasTranscurridos > 0 ? principal.value / diasTranscurridos * diasMes : 0);
-    const proyeccionDinero = diasTranscurridos > 0 ? doble.money / diasTranscurridos * diasMes : 0;
+    // "Ticket promedio" es un promedio, no una suma acumulada: proyectarlo al
+    // cierre multiplicando por (dias del mes / dias transcurridos) infla el
+    // numero sin sentido (ej. $37.016 actual -> "$71.719 de cierre"). Se trata
+    // igual que un porcentaje: el valor actual YA es la mejor estimacion del
+    // cierre, no se re-escala por dias restantes.
+    const esTasaPromedio = principal.label === 'Ticket promedio';
+    const sinRitmoDiario = esPorcentaje || esTasaPromedio;
+    const proyeccion = sinRitmoDiario ? principal.value : (diasTranscurridos > 0 ? principal.value / diasTranscurridos * diasMes : 0);
+    const proyeccionDinero = sinRitmoDiario ? doble.money : (diasTranscurridos > 0 ? doble.money / diasTranscurridos * diasMes : 0);
     const tieneMeta = Number.isFinite(metaRaw);
     const gapProyectado = tieneMeta ? metaRaw - proyeccion : 0;
     const gapActual = tieneMeta ? metaRaw - principal.value : 0;
     const diasRestantes = Math.max(0, diasMes - diasTranscurridos);
-    const ritmoNecesario = !esPorcentaje && tieneMeta && diasRestantes > 0 ? Math.max(0, (metaRaw - principal.value) / diasRestantes) : 0;
+    const ritmoNecesario = !sinRitmoDiario && tieneMeta && diasRestantes > 0 ? Math.max(0, (metaRaw - principal.value) / diasRestantes) : 0;
     const fmtTipo = n => unidad === 'money' ? fmt(n) : unidad === 'pct' ? fmtPct(n) : Math.round(n).toLocaleString('es-AR');
     const objetivoAlcanzado = tieneMeta && principal.value >= metaRaw;
-    const llegaria = tieneMeta && (esPorcentaje ? principal.value >= metaRaw : proyeccion >= metaRaw);
+    const llegaria = tieneMeta && (sinRitmoDiario ? principal.value >= metaRaw : proyeccion >= metaRaw);
     const estado = !tieneMeta ? 'Sin meta' : objetivoAlcanzado ? 'Alcanzado' : llegaria ? 'En camino' : 'En riesgo';
     const color = !tieneMeta ? 'blue' : objetivoAlcanzado || llegaria ? 'green' : 'red';
     const cierreLabel = esPorcentaje ? 'Lectura del mes' : 'Cierre estimado';
