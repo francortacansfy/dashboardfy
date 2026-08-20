@@ -3407,8 +3407,14 @@ async function renderDashboard() {
             <div class="kpi-value">${fmt(revenue)}</div>
         </div>
         <div class="kpi">
-            <div class="kpi-header"><span class="kpi-label">Órdenes Únicas</span><div class="kpi-icon blue"><i class="fas fa-receipt"></i></div></div>
+            <div class="kpi-header"><span class="kpi-label">Órdenes</span><div class="kpi-icon blue"><i class="fas fa-receipt"></i></div></div>
+            <div class="kpi-value" id="kpiOrdenes">${ordenesTicket.toLocaleString('es-AR')}</div>
+            <div class="kpi-sub">1 por compra real (un paquete ML = 1)</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi-header"><span class="kpi-label">Órdenes Únicas (por producto)</span><div class="kpi-icon blue"><i class="fas fa-receipt"></i></div></div>
             <div class="kpi-value" id="kpiOrdenesUnicas">${orders.toLocaleString('es-AR')}</div>
+            <div class="kpi-sub">1 por línea de producto, incluye ML y Shopify</div>
         </div>
         <div class="kpi">
             <div class="kpi-header"><span class="kpi-label">Ticket Promedio</span><div class="kpi-icon orange"><i class="fas fa-tag"></i></div></div>
