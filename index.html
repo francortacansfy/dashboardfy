@@ -2042,7 +2042,14 @@ function renderPlanComercial() {
     aplicarDecisionAlPlan(decision);
     normalizarPeriodoComparacionPlan();
     const tipoDecision = decision?.tipo || '';
-    const kpi = tipoDecision === 'shopify' ? 'shopify' : tipoDecision === 'rutinas' ? 'combos' : tipoDecision === 'ml' ? 'ticket' : 'ticket';
+    // El tipo de objetivo ("rutinas") no dice que metrica mostrar — "rutinas"
+    // agrupa tanto ticket como combos. Hay que respetar "Que medir" que se
+    // eligio al guardar la decision (decision.metrica); solo si quedo en
+    // "auto" se usa el tipo como pista, como antes.
+    const metricaGuardada = decision?.metrica;
+    const kpi = (metricaGuardada && metricaGuardada !== 'auto')
+        ? metricaGuardada
+        : (tipoDecision === 'shopify' ? 'shopify' : tipoDecision === 'rutinas' ? 'combos' : tipoDecision === 'ml' ? 'ticket' : 'ticket');
     const marca = document.getElementById('planMarca').value || '';
     const tienda = document.getElementById('planTienda').value || '';
     const desde = document.getElementById('planDesde').value;
