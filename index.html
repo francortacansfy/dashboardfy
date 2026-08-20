@@ -3359,26 +3359,24 @@ async function renderDashboard() {
         (!mes    || d.fecha?.substring(5,7) === mes)
     );
 
-    // "Órdenes Únicas": para ML, cada producto de un paquete es una venta
-    // independiente (tiene su propio num_venta/estado, puede cancelarse
-    // aparte) - la cabecera ('padre') es solo un renglon de agrupacion de
-    // envio, no una venta en si. Cuenta hijas+sueltas, igual que el tile
-    // nativo de ML — SIN excluir canceladas/devueltas: ML si las cuenta ahi
-    // (el tile nativo "Cantidad de ventas" incluye canceladas).
-    const kpiMap = {};
-    subset.filter(d => d.tipoFila !== 'padre').forEach(d => {
-        if (d.num_venta) kpiMap[d.num_venta] = true;
+    // "Órdenes" (compra real, no linea de producto): un paquete ML cuenta 1
+    // vez via su fila padre — igual que ya cuenta Shopify (sus lineas
+    // comparten num_venta). Es el denominador del Ticket Promedio.
+    const ordenesSet = new Set();
+    subset.filter(d => d.completa && d.tipoFila !== 'hija').forEach(d => {
+        if (d.num_venta) ordenesSet.add(d.num_venta);
     });
-    // Ticket Promedio: hijas+sueltas tambien (mismo criterio que "Órdenes
-    // Únicas" de arriba) - asi calcula ML su "Precio promedio por venta"
-    // (Ventas Brutas / Cantidad de ventas, mismo denominador). La plata
-    // (revenue) sigue sumando por cabecera+sueltas para no duplicar montos;
-    // solo cambia cuantas "ordenes" hay para promediarla.
-    const kpiMapTicket = {};
-    subset.filter(d => d.completa && d.tipoFila !== 'padre').forEach(d => {
-        if (d.num_venta) kpiMapTicket[d.num_venta] = true;
-    });
-    const ordenesTicket = Object.keys(kpiMapTicket).length;
+    const ordenesTicket = ordenesSet.size;
+
+    // "Órdenes Únicas (por producto)": cada producto cuenta aparte. Para ML,
+    // cada hija de un paquete tiene su propio num_venta — asi lo cuenta ML
+    // mismo en su "Cantidad de ventas" nativa (por eso se excluye solo la
+    // cabecera/padre e incluye canceladas/devueltas, igual que ese tile).
+    // Para Shopify, aunque las lineas de un mismo pedido compartan
+    // num_venta, ahora se cuentan las filas directamente (sin deduplicar
+    // por num_venta) para que el desglose por producto tambien la incluya.
+    const ordenesPorProducto = subset.filter(d => d.tipoFila !== 'padre').length;
+
     const revenue = subset.filter(d => d.completa && d.tipoFila !== 'hija').reduce((s, d) => s + d.total, 0);
     const lines   = subset.length;
 
@@ -3386,7 +3384,7 @@ async function renderDashboard() {
     // ya refleja el total real de órdenes/clientes sin necesidad de fetches aparte.
     // Las filas con anulaciones_reembolsos_ars cargado (cancelada o devuelta) quedan
     // afuera de ingresos, unidades, órdenes y clientes.
-    const orders = Object.keys(kpiMap).length;
+    const orders = ordenesPorProducto;
     const uniqueClients = new Set(subset.filter(d => d.completa).map(d => d.dni).filter(Boolean)).size;
     const totalUnits = subset.filter(d => d.completa).reduce((s, d) => s + d.uds, 0);
     const avgTick = ordenesTicket ? revenue / ordenesTicket : 0;
