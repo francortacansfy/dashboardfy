@@ -1158,7 +1158,9 @@ function calcularCoreMensual(base) {
             if (d.tienda === 'Mercado Libre') m.ml += d.total;
             if (d.tienda === 'Shopify') m.shopify += d.total;
         }
-        if (d.tipoFila !== 'padre' && d.num_venta) m.ordenes.add(d.num_venta);
+        // Orden = compra real (1 por paquete ML, como ya hace Shopify) —
+        // no una linea de producto. Ver calcularGrowthRangoKpis.
+        if (d.tipoFila !== 'hija' && d.num_venta) m.ordenes.add(d.num_venta);
     });
     return Object.entries(porMes).sort(([a], [b]) => a.localeCompare(b)).map(([ym, v]) => ({
         mes: ym,
