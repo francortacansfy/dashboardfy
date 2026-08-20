@@ -1950,12 +1950,13 @@ function valorPlanKpi(kpi, m) {
 
 function mapCombosPlan(rows) {
     const map = {};
-    // Esto agrupa POR PRODUCTO (sku), no un total de plata general: hay que
-    // excluir las filas "padre" (cabecera de paquete ML, sin sku real, plata
-    // ya repartida entre las hijas) ademas de las "hija" duplicadas — si no,
-    // las cabeceras de paquete se agrupan como si fueran uno o dos productos
-    // fantasma con sku vacio/espacio y millones de ventas falsas.
-    rows.filter(d => d.completa && d.tipoFila !== 'hija' && d.tipoFila !== 'padre').forEach(d => {
+    // Esto agrupa POR PRODUCTO (sku): hay que excluir solo las filas "padre"
+    // (cabecera de paquete ML, sin sku real — si se incluye, se agrupa como
+    // un producto fantasma con sku vacio/espacio y millones de ventas
+    // falsas). Las "hija" SI se incluyen — son las que tienen el reparto real
+    // de plata por producto dentro de un paquete; excluirlas tambien perderia
+    // toda venta de productos que solo se vendieron dentro de paquetes.
+    rows.filter(d => d.completa && d.tipoFila !== 'padre').forEach(d => {
         if (!map[d.sku]) map[d.sku] = { sku:d.sku, marca:d.marca, ventas:0, ordenes:new Set(), tiendas:{} };
         map[d.sku].ventas += d.total;
         if (d.num_venta && !d.esPaquete) map[d.sku].ordenes.add(d.num_venta);
