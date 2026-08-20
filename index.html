@@ -2691,12 +2691,16 @@ function calcularGrowthRangoKpis(base, desde, hasta, label) {
             categorias[cat] = (categorias[cat] || 0) + d.total;
             uds += parseFloat(d.uds) || 0;
         }
-        if (d.tipoFila !== 'padre') {
-            if (d.num_venta && !d.esPaquete) ordenes.add(d.num_venta);
-            if (d.tienda === 'Mercado Libre' && d.num_venta && !d.esPaquete) mlOrdenes.add(d.num_venta);
-            if (d.tienda === 'Shopify' && d.num_venta && !d.esPaquete) shopifyOrdenes.add(d.num_venta);
-            if (COMBOS_REALES.has(d.sku)) comboUds += d.uds;
+        // "Orden" para ticket promedio = una compra real, no una linea de
+        // producto: un paquete ML cuenta 1 vez (via su fila padre), igual
+        // que ya cuenta Shopify (sus lineas comparten num_venta). Por eso
+        // se excluye 'hija' aca, al reves que en el bloque de plata de arriba.
+        if (d.tipoFila !== 'hija') {
+            if (d.num_venta) ordenes.add(d.num_venta);
+            if (d.tienda === 'Mercado Libre' && d.num_venta) mlOrdenes.add(d.num_venta);
+            if (d.tienda === 'Shopify' && d.num_venta) shopifyOrdenes.add(d.num_venta);
         }
+        if (d.tipoFila !== 'padre' && COMBOS_REALES.has(d.sku)) comboUds += d.uds;
     });
     return {
         mes: label,
