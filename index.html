@@ -3970,7 +3970,12 @@ function parseARS(s) {
 function parseFechaMay(s) {
     const p = (s||'').trim().split('/');
     if (p.length !== 3) return null;
-    return `${2000+parseInt(p[2])}-${String(parseInt(p[1])).padStart(2,'0')}-${String(parseInt(p[0])).padStart(2,'0')}`;
+    const dia = parseInt(p[0]), mes = parseInt(p[1]), anioRaw = parseInt(p[2]);
+    if (!Number.isFinite(dia) || !Number.isFinite(mes) || !Number.isFinite(anioRaw)) return null;
+    // El sheet suele traer año de 2 digitos (DD/MM/AA), pero si alguna fila
+    // ya viene con año de 4 digitos no hay que sumarle 2000 (2000+2026=4026).
+    const anio = p[2].length >= 4 ? anioRaw : 2000 + anioRaw;
+    return `${anio}-${String(mes).padStart(2,'0')}-${String(dia).padStart(2,'0')}`;
 }
 
 async function fetchCSV(gid) {
