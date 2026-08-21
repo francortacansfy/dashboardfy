@@ -4095,6 +4095,7 @@ function populateMayoristaFilters() {
     if (selCli) { const v=selCli.value; selCli.innerHTML='<option value="">Todos</option>'+clientes.map(c=>`<option value="${c}"${v===c?' selected':''}>${c.length>35?c.substring(0,35)+'…':c}</option>`).join(''); }
     const selTipo = document.getElementById('filterMayorCliTipo');
     if (selTipo) { const v=selTipo.value; selTipo.innerHTML='<option value="">Todos los tipos</option>'+tipos.map(t=>`<option value="${t}"${v===t?' selected':''}>${t}</option>`).join(''); }
+    actualizarEstadoFiltros();
 }
 
 function switchMayorTab(tab) {
