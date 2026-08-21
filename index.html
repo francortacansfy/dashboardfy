@@ -1130,6 +1130,7 @@ function populateTiendaFilters() {
         sel.innerHTML = '<option value="">Todos</option>' +
             anios.map(a => `<option value="${a}"${val===a?' selected':''}>${a}</option>`).join('');
     });
+    actualizarEstadoFiltros();
 }
 
 function renderAll() {
