@@ -4076,8 +4076,8 @@ function renderMayorista() {
 
     document.getElementById('mayorKpiGrid').innerHTML = `
         <div class="kpi"><div class="kpi-header"><span class="kpi-label">Facturado</span><div class="kpi-icon green"><i class="fas fa-dollar-sign"></i></div></div><div class="kpi-value">${fmt(kpiTotal)}</div><div class="kpi-sub">${anio||'Histórico parcial'}</div></div>
-        <div class="kpi"><div class="kpi-header"><span class="kpi-label">Pedidos (2026)</span><div class="kpi-icon blue"><i class="fas fa-receipt"></i></div></div><div class="kpi-value">${subset.length.toLocaleString('es-AR')}</div><div class="kpi-sub">Con filtros aplicados</div></div>
-        <div class="kpi"><div class="kpi-header"><span class="kpi-label">Unidades (2026)</span><div class="kpi-icon orange"><i class="fas fa-cubes"></i></div></div><div class="kpi-value">${totalUds.toLocaleString('es-AR')}</div><div class="kpi-sub">Totales vendidas</div></div>
+        <div class="kpi"><div class="kpi-header"><span class="kpi-label">Pedidos (${anio||'2026'})</span><div class="kpi-icon blue"><i class="fas fa-receipt"></i></div></div><div class="kpi-value">${subset.length.toLocaleString('es-AR')}</div><div class="kpi-sub">Con filtros aplicados</div></div>
+        <div class="kpi"><div class="kpi-header"><span class="kpi-label">Unidades (${anio||'2026'})</span><div class="kpi-icon orange"><i class="fas fa-cubes"></i></div></div><div class="kpi-value">${totalUds.toLocaleString('es-AR')}</div><div class="kpi-sub">Totales vendidas</div></div>
         <div class="kpi"><div class="kpi-header"><span class="kpi-label">Clientes Activos</span><div class="kpi-icon red"><i class="fas fa-users"></i></div></div><div class="kpi-value">${kpiCli}</div><div class="kpi-sub">${anio||'2026'}</div></div>
         <div class="kpi"><div class="kpi-header"><span class="kpi-label">Ticket Prom.</span><div class="kpi-icon blue"><i class="fas fa-tag"></i></div></div><div class="kpi-value">${fmt(avgTicket)}</div><div class="kpi-sub">Por pedido</div></div>
     `;
