@@ -3819,14 +3819,15 @@ function renderAnalisis() {
         // "Liquidar" aunque su stock sea perfectamente sano. Preferir
         // duracion_meses (dosis diaria real, mas preciso) por sobre el
         // multiplo de combo_componentes cuando este disponible.
-        const multiplicador = Number(prod.duracion_meses) || COMBO_MULTIPLICADOR.get(sku) || 1;
+        const duracionMeses = Number(prod.duracion_meses) || 0;
+        const multiplicador = duracionMeses || COMBO_MULTIPLICADOR.get(sku) || 1;
         const umbralRojo    = 60 * multiplicador;
         const umbralAmarillo = 30 * multiplicador;
         let semaforo = d.udsTotal === 0 ? 'gris'
                      : diasCob > umbralRojo || tendPct < -20 ? 'rojo'
                      : diasCob > umbralAmarillo || tendPct < -10 ? 'amarillo'
                      : 'verde';
-        return { sku, nombre, stock, rotDiaria: Math.round(rotDiaria * 10) / 10, diasCob, precioProm, margenEst, tendPct, semaforo, multiplicador };
+        return { sku, nombre, stock, rotDiaria: Math.round(rotDiaria * 10) / 10, diasCob, precioProm, margenEst, tendPct, semaforo, multiplicador, multiplicadorEsMeses: !!duracionMeses };
     });
 
     const orden = { rojo:0, amarillo:1, verde:2, gris:3 };
