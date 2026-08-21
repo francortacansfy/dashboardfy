@@ -1064,6 +1064,44 @@ async function loadData() {
     }
 }
 
+// Agrupa cada label+control de las filterbars en una "pildora" (.filter-group)
+// y resalta la que tiene un filtro aplicado (valor != ""). Solo cambia como
+// se ven los filtros, no toca los onchange/oninput que ya disparaban los renders.
+function agruparFiltros() {
+    document.querySelectorAll('.filterbar').forEach(bar => {
+        bar.querySelectorAll('.filterbar-sep').forEach(sep => sep.remove());
+        [...bar.querySelectorAll('.filterbar-label')].forEach(label => {
+            const control = label.nextElementSibling;
+            if (!control || !['SELECT', 'INPUT'].includes(control.tagName)) return;
+            const group = document.createElement('div');
+            group.className = 'filter-group';
+            label.before(group);
+            group.appendChild(label);
+            group.appendChild(control);
+        });
+        [...bar.querySelectorAll(':scope > select, :scope > input')].forEach(control => {
+            const group = document.createElement('div');
+            group.className = 'filter-group';
+            control.before(group);
+            group.appendChild(control);
+        });
+    });
+    document.querySelectorAll('.filterbar select, .filterbar input').forEach(el => {
+        el.addEventListener('change', () => actualizarEstadoFiltro(el));
+        el.addEventListener('input', () => actualizarEstadoFiltro(el));
+        actualizarEstadoFiltro(el);
+    });
+}
+
+function actualizarEstadoFiltro(el) {
+    const group = el.closest('.filter-group');
+    if (group) group.classList.toggle('is-active', !!el.value);
+}
+
+function actualizarEstadoFiltros() {
+    document.querySelectorAll('.filterbar select, .filterbar input').forEach(actualizarEstadoFiltro);
+}
+
 function populateTiendaFilters() {
     const tiendas = [...new Set(DATA.map(d => d.tienda).filter(Boolean))].sort();
     const marcas  = [...new Set(DATA.map(d => d.marca).filter(x => x && x !== 'S/D'))].sort();
