@@ -1655,7 +1655,7 @@ function guardarObjetivoCustomKpis(item) {
     const objetivos = JSON.parse(localStorage.getItem(KPI_OBJETIVOS_CUSTOM_KEY) || '[]');
     if (!objetivos.some(x => x.toLowerCase() === texto.toLowerCase())) {
         objetivos.push(texto);
-        localStorage.setItem(KPI_OBJETIVOS_CUSTOM_KEY, JSON.stringify(objetivos.slice(-20)));
+        guardarClaveSincronizada(KPI_OBJETIVOS_CUSTOM_KEY, JSON.stringify(objetivos.slice(-20)));
     }
     poblarObjetivosCustomKpis();
 }
@@ -1712,7 +1712,7 @@ function borrarDecisionKpis(id) {
     if (!item) return;
     if (!confirm(`¿Borrar esta decisión?\n\n${item.decision}`)) return;
     const nuevas = decisiones.filter(d => d.id !== id);
-    localStorage.setItem(KPI_DECISIONES_KEY, JSON.stringify(nuevas));
+    guardarClaveSincronizada(KPI_DECISIONES_KEY, JSON.stringify(nuevas));
     if (KPI_DECISION_ACTIVA_ID === id) {
         KPI_DECISION_ACTIVA_ID = null;
         ['kpiDecision', 'kpiNota'].forEach(idEl => {
