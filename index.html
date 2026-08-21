@@ -3865,8 +3865,10 @@ function renderAnalisis() {
         // mismo cliente (ej. Mascara Pack 3 = 3 mascaras = mismo ritmo de
         // recompra que 1 sola, pero 3x mas dias de cobertura son normales).
         // Sin este ajuste, todo pack de compra poco frecuente queda marcado
-        // "Liquidar" aunque su stock sea perfectamente sano.
-        const multiplicador = COMBO_MULTIPLICADOR.get(sku) || 1;
+        // "Liquidar" aunque su stock sea perfectamente sano. Preferir
+        // duracion_meses (dosis diaria real, mas preciso) por sobre el
+        // multiplo de combo_componentes cuando este disponible.
+        const multiplicador = Number(prod.duracion_meses) || COMBO_MULTIPLICADOR.get(sku) || 1;
         const umbralRojo    = 60 * multiplicador;
         const umbralAmarillo = 30 * multiplicador;
         let semaforo = d.udsTotal === 0 ? 'gris'
