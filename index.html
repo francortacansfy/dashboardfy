@@ -4262,6 +4262,7 @@ function renderMayoristaClientes() {
 }
 
 (async () => {
+    agruparFiltros();
     renderUltimaSincronizacion();
     await precargarEstadoSupabase();
     aplicarLayoutObjetivoLocal();
