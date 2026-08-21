@@ -346,8 +346,8 @@
     </div>
     <div class="filterbar" id="fb-mayorista">
         <span class="filterbar-label">Año</span>
-        <select class="filter-select" id="filterAnioMay" onchange="renderMayorista()"><option value="">Todos</option></select>
-        <select class="filter-select" id="filterMesMay" onchange="renderMayorista()">
+        <select class="filter-select" id="filterAnioMay" onchange="renderMayoristaActivo()"><option value="">Todos</option></select>
+        <select class="filter-select" id="filterMesMay" onchange="renderMayoristaActivo()">
             <option value="">Todos los meses</option>
             <option value="01">Enero</option><option value="02">Febrero</option><option value="03">Marzo</option>
             <option value="04">Abril</option><option value="05">Mayo</option><option value="06">Junio</option>
@@ -356,14 +356,14 @@
         </select>
         <div class="filterbar-sep"></div>
         <span class="filterbar-label">Tipo</span>
-        <select class="filter-select" id="filterTipoMay" onchange="renderMayorista()">
+        <select class="filter-select" id="filterTipoMay" onchange="renderMayoristaActivo()">
             <option value="">Todos</option>
             <option value="Mayorista">Mayorista</option>
             <option value="Distribuidor">Distribuidor</option>
         </select>
         <div class="filterbar-sep"></div>
         <span class="filterbar-label">Cliente</span>
-        <select class="filter-select" id="filterClienteMay" onchange="renderMayorista()" style="max-width:220px;"><option value="">Todos</option></select>
+        <select class="filter-select" id="filterClienteMay" onchange="renderMayoristaActivo()" style="max-width:220px;"><option value="">Todos</option></select>
     </div>
     <div class="filterbar" id="fb-stock">
         <span class="filterbar-label">Año</span>
@@ -4208,7 +4208,7 @@ function renderMayoristaSkus() {
 
     // Chart 2: Top 10 por pedidos (cuántas órdenes incluyen ese producto)
     const orderMap = {};
-    MAYOR_DATA.forEach(d=>Object.keys(d.productos).forEach(n=>{ orderMap[n]=(orderMap[n]||0)+1; }));
+    subset.forEach(d=>Object.keys(d.productos).forEach(n=>{ orderMap[n]=(orderMap[n]||0)+1; }));
     const top10orders = Object.entries(orderMap).sort((a,b)=>b[1]-a[1]).slice(0,10);
     if (CHARTS.mayorProd2026) CHARTS.mayorProd2026.destroy();
     CHARTS.mayorProd2026 = new Chart(document.getElementById('chartMayorProd2026'), {
