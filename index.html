@@ -2199,7 +2199,7 @@ function agregarTareaPlan() {
     const estado = leerPlanEstado();
     const tareas = estado.tareas || [];
     tareas.push({ id:Date.now().toString(), texto:'', responsable:'', estado:'Pendiente' });
-    localStorage.setItem(PLAN_KEY, JSON.stringify({ ...estado, tareas }));
+    guardarClaveSincronizada(PLAN_KEY, JSON.stringify({ ...estado, tareas }));
     renderTareasPlan();
 }
 
