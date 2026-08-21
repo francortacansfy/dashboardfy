@@ -3374,7 +3374,9 @@ async function renderDashboard() {
     // Las filas con anulaciones_reembolsos_ars cargado (cancelada o devuelta) quedan
     // afuera de ingresos, unidades, órdenes y clientes.
     const orders = ordenesPorProducto;
-    const uniqueClients = new Set(subset.filter(d => d.completa).map(d => d.dni).filter(Boolean)).size;
+    // 'S/D' es el fallback cuando no hay DNI ni email valido (ver resolveClienteId):
+    // no es un cliente real, asi que no debe contar como "1 cliente" en el Set.
+    const uniqueClients = new Set(subset.filter(d => d.completa).map(d => d.dni).filter(dni => dni && dni !== 'S/D')).size;
     const totalUnits = subset.filter(d => d.completa).reduce((s, d) => s + d.uds, 0);
     const avgTick = ordenesTicket ? revenue / ordenesTicket : 0;
     const avgUnitPrice = totalUnits ? revenue / totalUnits : 0;
