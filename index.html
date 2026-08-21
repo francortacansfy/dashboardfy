@@ -4047,7 +4047,7 @@ async function loadMayorista() {
         };
         MAYOR_CLIENTES = [];
         for (let i = 1; i < linesC.length; i++) {
-            const row = parseCSVRow(linesC[i]);
+            const row = linesC[i];
             if (!row || !row[0]?.trim()) continue;
             const totalARS = parseARS(row[ci.total]);
             MAYOR_CLIENTES.push({
@@ -4069,7 +4069,7 @@ async function loadMayorista() {
         const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
         const monthPad   = monthNames.reduce((o,n,i)=>{o[n]=String(i+1).padStart(2,'0');return o;},{});
         for (let i = 0; i < linesS.length; i++) {
-            const row = parseCSVRow(linesS[i]);
+            const row = linesS[i];
             const c0  = row[0]?.trim()||'';
             if (yearRe.test(c0) && !MAYOR_YEARS.find(y=>y.year===c0)) {
                 MAYOR_YEARS.push({ year:c0, total:parseARS(row[1]), prom:parseARS(row[2]), clientes:parseInt(row[4])||0 });
