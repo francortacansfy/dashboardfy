@@ -197,7 +197,11 @@
 
         .loading-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:999; place-items:center; }
         .loading-overlay.show { display:grid; }
-        .loading-box { background:var(--surface); border-radius:14px; padding:28px 36px; display:flex; align-items:center; gap:14px; font-size:14px; font-weight:600; color:var(--text-1); }
+        .loading-box { background:var(--surface); border-radius:16px; padding:26px 34px; display:flex; align-items:center; gap:16px; box-shadow:0 20px 44px rgba(0,0,0,.18); }
+        .loading-logo { width:40px; height:40px; flex-shrink:0; border-radius:11px; background:var(--primary); color:#fff; display:grid; place-items:center; font-size:17px; animation:pulseLogo 1.4s ease-in-out infinite; }
+        @keyframes pulseLogo { 0%,100% { opacity:1; } 50% { opacity:.55; } }
+        .loading-title { font-size:14px; font-weight:700; color:var(--text-1); margin-bottom:4px; }
+        .loading-sub { display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--text-3); }
         .spinner { width:20px; height:20px; border:2.5px solid var(--border); border-top-color:var(--primary); border-radius:50%; animation:spin .7s linear infinite; }
         .status-pill { display:inline-flex; align-items:center; gap:5px; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; }
         .status-pill.ok     { background:var(--green-light); color:var(--green-dark); }
