@@ -4096,25 +4096,41 @@ function switchMayorTab(tab) {
     if (tab==='clientes')  renderMayoristaClientes();
 }
 
-function renderMayorista() {
-    const anio    = document.getElementById('filterAnioMay')?.value    || '';
-    const mes     = document.getElementById('filterMesMay')?.value     || '';
-    const tipo    = document.getElementById('filterTipoMay')?.value    || '';
-    const cliente = document.getElementById('filterClienteMay')?.value || '';
-    const subset  = MAYOR_DATA.filter(d=>
-        (!anio    || d.fecha?.substring(0,4)===anio) &&
-        (!mes     || d.fecha?.substring(5,7)===mes)  &&
-        (!tipo    || d.tipo===tipo)                   &&
-        (!cliente || d.cliente===cliente)
+// Filtros compartidos por Resumen y SKUs (Año/Mes/Tipo/Cliente de la barra fija).
+function filtrosMayorista() {
+    return {
+        anio:    document.getElementById('filterAnioMay')?.value    || '',
+        mes:     document.getElementById('filterMesMay')?.value     || '',
+        tipo:    document.getElementById('filterTipoMay')?.value    || '',
+        cliente: document.getElementById('filterClienteMay')?.value || '',
+    };
+}
+
+function filtrarMayoristaSubset(f) {
+    return MAYOR_DATA.filter(d=>
+        (!f.anio    || d.fecha?.substring(0,4)===f.anio) &&
+        (!f.mes     || d.fecha?.substring(5,7)===f.mes)  &&
+        (!f.tipo    || d.tipo===f.tipo)                   &&
+        (!f.cliente || d.cliente===f.cliente)
     );
+}
+
+function renderMayorista() {
+    const { anio, mes, tipo, cliente } = filtrosMayorista();
+    const subset  = filtrarMayoristaSubset({ anio, mes, tipo, cliente });
 
     const totalRev  = subset.reduce((s,d)=>s+d.total,0);
     const totalUds  = subset.reduce((s,d)=>s+d.unidades,0);
     const uniqCli   = new Set(subset.map(d=>d.cliente).filter(Boolean)).size;
     const avgTicket = subset.length ? totalRev/subset.length : 0;
 
-    // KPIs históricos del año seleccionado (de Stats) o del subset
-    const yearStats = anio ? MAYOR_YEARS.find(y=>y.year===anio) : null;
+    // Los totales precalculados de la hoja Stats (mas completos/autoritativos
+    // que el CSV de pedidos crudo) solo sirven cuando el unico filtro activo
+    // es el Año — si tambien hay Mes/Tipo/Cliente, mostrarian el total del
+    // año entero ignorando esos filtros en silencio. Con cualquier otro
+    // filtro encima, se calcula del subset ya filtrado como todo lo demas.
+    const soloAnio  = anio && !mes && !tipo && !cliente;
+    const yearStats = soloAnio ? MAYOR_YEARS.find(y=>y.year===anio) : null;
     const kpiTotal  = yearStats ? yearStats.total : totalRev;
     const kpiCli    = yearStats ? yearStats.clientes : uniqCli;
 
