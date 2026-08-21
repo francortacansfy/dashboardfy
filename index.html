@@ -3861,6 +3861,14 @@ function renderAnalisis() {
         else if (fecha >= corteAnt) porSku[sku].udsAnt += d.uds;
     });
 
+    // Sin esto, un SKU sin ninguna venta en las ultimas 8 semanas nunca entra
+    // a porSku y desaparece del reporte entero, en vez de aparecer marcado
+    // "Sin movimiento" (gris) como corresponde.
+    PRODUCTOS.forEach(p => {
+        const sku = String(p.sku || '').trim();
+        if (sku && !porSku[sku]) porSku[sku] = { udsTotal:0, ingresosTotal:0, udsRec:0, udsAnt:0 };
+    });
+
     const prodMap = {};
     PRODUCTOS.forEach(p => { prodMap[p.sku] = p; });
     const diasTotal = SEMANAS * 7;
@@ -3932,7 +3940,7 @@ function renderAnalisis() {
             <td class="mono" style="font-weight:700">${diasStr}</td>
             <td class="mono" style="color:${tendColor};font-weight:700">${tendStr}</td>
             <td class="mono">${fmt(r.precioProm)}</td>
-            <td class="mono" style="color:var(--green)">${fmt(r.margenEst)}</td>
+            <td class="mono" style="color:var(--primary)">${fmt(r.margenEst)}</td>
             <td style="font-size:11px;font-weight:600;color:${c.dot}">${c.label}</td>
         </tr>`;
     }).join('') || '<tr><td colspan="10" class="empty">Sin resultados</td></tr>';
@@ -4175,7 +4183,7 @@ function renderMayorista() {
     if (CHARTS.mayorMes) CHARTS.mayorMes.destroy();
     CHARTS.mayorMes = new Chart(document.getElementById('chartMayorMes'), {
         type:'bar',
-        data:{ labels:mLabels.map(m=>MESES[parseInt(m)-1]), datasets:[{ data:mLabels.map(m=>byMonth[m]), backgroundColor:'#16a97e', borderRadius:6, borderWidth:0 }] },
+        data:{ labels:mLabels.map(m=>MESES[parseInt(m)-1]), datasets:[{ data:mLabels.map(m=>byMonth[m]), backgroundColor:'#00478d', borderRadius:6, borderWidth:0 }] },
         options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>` ${fmt(ctx.raw)}`}}}, scales:{ x:{ticks:{font:{family:'DM Sans',size:11}},grid:{display:false}}, y:{ticks:{callback:v=>fmt(v),font:{family:'DM Sans',size:10}},grid:{display:false}}}}
     });
 
@@ -4230,7 +4238,7 @@ function renderMayoristaSkus() {
             <td>
                 <div style="display:flex;align-items:center;gap:8px;">
                     <div style="flex:1;height:6px;background:var(--border);border-radius:3px;min-width:80px;">
-                        <div style="width:${totalUds2026?Math.round(qty/totalUds2026*100):0}%;height:100%;background:var(--green);border-radius:3px;"></div>
+                        <div style="width:${totalUds2026?Math.round(qty/totalUds2026*100):0}%;height:100%;background:var(--primary);border-radius:3px;"></div>
                     </div>
                     <span class="mono" style="font-size:11px;min-width:38px;">${totalUds2026?((qty/totalUds2026)*100).toFixed(1):0}%</span>
                 </div>
