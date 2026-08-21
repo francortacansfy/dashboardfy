@@ -4010,7 +4010,7 @@ async function loadMayorista() {
         ]);
 
         // ── Ventas 2026 ──
-        const hdr      = parseCSVRow(linesV[0]);
+        const hdr      = linesV[0] || [];
         const PROD_NAMES = hdr.slice(13, 66).map(h => h.trim());
         const provIdx  = hdr.findIndex(h => h.trim() === 'Provincia');
         const udsIdx   = hdr.findIndex(h => h.trim() === 'Unidades Totales por Pedido');
