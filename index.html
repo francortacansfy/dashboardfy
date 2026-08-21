@@ -996,6 +996,7 @@ async function loadData() {
         }).filter(d => d.total > 0); // mismo criterio que analyticsfyl: descarta filas sin ingreso real
 
         await loadProductos();
+        await loadComboMultiplicadores();
 
         console.log('Filas cargadas:', DATA.length);
         statusDot.classList.add('ok');
