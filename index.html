@@ -1412,7 +1412,7 @@ function guardarEstadoFormularioKpis(opts = {}) {
         previo.nota,
     ].some(Boolean);
     if (!tieneDatosActuales && habiaDatos) return;
-    localStorage.setItem(KPI_FORM_STATE_KEY, JSON.stringify({ ...previo, ...estado }));
+    guardarClaveSincronizada(KPI_FORM_STATE_KEY, JSON.stringify({ ...previo, ...estado }));
 }
 
 function restaurarEstadoFormularioKpis() {
@@ -1642,7 +1642,7 @@ function guardarDecisionKpis() {
     const decisiones = JSON.parse(localStorage.getItem(KPI_DECISIONES_KEY) || '[]');
     const item = { ...actual, id: Date.now().toString() };
     decisiones.unshift(item);
-    localStorage.setItem(KPI_DECISIONES_KEY, JSON.stringify(decisiones.slice(0, 30)));
+    guardarClaveSincronizada(KPI_DECISIONES_KEY, JSON.stringify(decisiones.slice(0, 30)));
     guardarObjetivoCustomKpis(item);
     KPI_DECISION_ACTIVA_ID = item.id;
     poblarDecisionesPlan();
