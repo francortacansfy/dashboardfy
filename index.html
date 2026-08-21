@@ -4041,7 +4041,7 @@ async function loadMayorista() {
     } catch(e) {
         console.error('Error cargando mayorista:', e);
         const grid = document.getElementById('mayorKpiGrid');
-        if (grid) grid.innerHTML = '<div class="empty" style="grid-column:1/-1">No se pudo cargar la hoja de Mayorista. Reintentá con "Sincronizar" o revisá la conexión.</div>';
+        if (grid) grid.innerHTML = '<div class="empty" style="grid-column:1/-1">No se pudo cargar la hoja de Mayorista. Recargá la página para reintentar.</div>';
     }
 }
 
