@@ -4192,12 +4192,15 @@ function renderMayoristaClientes() {
     }).join('') || '<tr><td colspan="10" class="empty">Sin resultados</td></tr>';
 }
 
-aplicarLayoutObjetivoLocal();
-window.addEventListener('beforeunload', guardarEstadoFormularioKpis);
-restaurarEstadoFormularioKpis();
-loadData();
-loadMayorista();
-activarTab(localStorage.getItem(LAST_TAB_KEY) || 'dashboard', false);
+(async () => {
+    await precargarEstadoSupabase();
+    aplicarLayoutObjetivoLocal();
+    window.addEventListener('beforeunload', guardarEstadoFormularioKpis);
+    restaurarEstadoFormularioKpis();
+    loadData();
+    loadMayorista();
+    activarTab(localStorage.getItem(LAST_TAB_KEY) || 'dashboard', false);
+})();
 </script>
 </body>
 </html>
