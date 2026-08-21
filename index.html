@@ -4016,7 +4016,7 @@ async function loadMayorista() {
         const udsIdx   = hdr.findIndex(h => h.trim() === 'Unidades Totales por Pedido');
         MAYOR_DATA = [];
         for (let i = 6; i < linesV.length; i++) {
-            const row = parseCSVRow(linesV[i]);
+            const row = linesV[i];
             if (!row || row.length < 12) continue;
             const fechaRaw = row[0]?.trim();
             if (!fechaRaw || !/^\d+\/\d+\/\d+$/.test(fechaRaw)) continue;
@@ -4033,7 +4033,7 @@ async function loadMayorista() {
         }
 
         // ── Clientes ──
-        const cHdr = parseCSVRow(linesC[0]);
+        const cHdr = linesC[0] || [];
         const ci = {
             nombre: 0, prov: cHdr.findIndex(h=>h.trim()==='Provincia del Cliente'),
             tipo: cHdr.findIndex(h=>h.trim()==='Qué es'),
