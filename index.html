@@ -4155,8 +4155,10 @@ function renderMayorista() {
     const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
     const yearForMonth = anio || '2026';
     document.getElementById('labelMayorMesAnio').textContent = yearForMonth;
+    // Mismo criterio que arriba: el desglose mensual precalculado de Stats
+    // no distingue Tipo/Cliente, asi que solo se usa si esos filtros no estan activos.
     let byMonth = {};
-    if (MAYOR_MONTHLY[yearForMonth]) {
+    if (!tipo && !cliente && MAYOR_MONTHLY[yearForMonth]) {
         byMonth = MAYOR_MONTHLY[yearForMonth];
     } else {
         subset.forEach(d=>{ const m=d.fecha?.substring(5,7); if(m) byMonth[m]=(byMonth[m]||0)+d.total; });
