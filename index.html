@@ -1773,7 +1773,7 @@ function limpiarObjetivoKpis() {
     });
     const metaTipo = document.getElementById('kpiObjetivoMetaTipo');
     if (metaTipo) metaTipo.value = 'auto';
-    localStorage.removeItem(KPI_FORM_STATE_KEY);
+    eliminarClaveSincronizada(KPI_FORM_STATE_KEY);
     renderKpis();
     renderDecisionKpis();
 }
@@ -1784,7 +1784,7 @@ try {
     const planGuardado = JSON.parse(localStorage.getItem(PLAN_KEY) || '{}');
     if (planGuardado.skus) {
         delete planGuardado.skus;
-        localStorage.setItem(PLAN_KEY, JSON.stringify(planGuardado));
+        guardarClaveSincronizada(PLAN_KEY, JSON.stringify(planGuardado));
     }
 } catch(e) {}
 
