@@ -4184,8 +4184,13 @@ function renderMayorista() {
 }
 
 function renderMayoristaSkus() {
+    const { anio, mes, tipo, cliente } = filtrosMayorista();
+    const subset = filtrarMayoristaSubset({ anio, mes, tipo, cliente });
+    const labelAnio = document.getElementById('labelMayorSkusAnio');
+    if (labelAnio) labelAnio.textContent = `Todos los productos — ${anio || 'histórico'}`;
+
     const prodMap = {};
-    MAYOR_DATA.forEach(d=>Object.entries(d.productos).forEach(([n,q])=>{ prodMap[n]=(prodMap[n]||0)+q; }));
+    subset.forEach(d=>Object.entries(d.productos).forEach(([n,q])=>{ prodMap[n]=(prodMap[n]||0)+q; }));
     const sorted2026 = Object.entries(prodMap).sort((a,b)=>b[1]-a[1]);
     const totalUds2026 = sorted2026.reduce((s,[,q])=>s+q,0);
     const top10 = sorted2026.slice(0,10);
