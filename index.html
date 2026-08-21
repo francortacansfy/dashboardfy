@@ -219,7 +219,13 @@
 <body>
 
 <div class="loading-overlay" id="loadingOverlay">
-    <div class="loading-box"><div class="spinner"></div> Cargando datos…</div>
+    <div class="loading-box">
+        <div class="loading-logo"><i class="fas fa-bolt"></i></div>
+        <div>
+            <div class="loading-title">FyLabs Analytics</div>
+            <div class="loading-sub"><div class="spinner"></div> Sincronizando datos…</div>
+        </div>
+    </div>
 </div>
 
 <aside class="sidebar">
@@ -967,14 +973,15 @@ async function fetchAllParalelo(urlBase, headers) {
 const LAST_SYNC_KEY = 'fyl_dashboard_last_sync';
 
 function marcarUltimaSincronizacion() {
-    localStorage.setItem(LAST_SYNC_KEY, new Date().toISOString());
+    try { localStorage.setItem(LAST_SYNC_KEY, new Date().toISOString()); } catch(e) {}
     renderUltimaSincronizacion();
 }
 
 function renderUltimaSincronizacion() {
     const el = document.getElementById('lastSync');
     if (!el) return;
-    const iso = localStorage.getItem(LAST_SYNC_KEY);
+    let iso = null;
+    try { iso = localStorage.getItem(LAST_SYNC_KEY); } catch(e) {}
     if (!iso) { el.textContent = ''; return; }
     const fecha = new Date(iso);
     if (Number.isNaN(fecha.getTime())) { el.textContent = ''; return; }
