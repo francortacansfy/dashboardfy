@@ -4096,6 +4096,15 @@ function switchMayorTab(tab) {
     if (tab==='clientes')  renderMayoristaClientes();
 }
 
+// Año/Mes/Tipo/Cliente son una barra compartida entre Resumen y SKUs: al
+// cambiar un filtro hay que re-renderizar la sub-pestaña que esté visible en
+// ese momento, no siempre "Resumen" (Clientes usa sus propios filtros aparte).
+function renderMayoristaActivo() {
+    const activo = document.querySelector('.mayor-tab.active')?.dataset.mtab || 'resumen';
+    if (activo === 'skus') renderMayoristaSkus();
+    else renderMayorista();
+}
+
 // Filtros compartidos por Resumen y SKUs (Año/Mes/Tipo/Cliente de la barra fija).
 function filtrosMayorista() {
     return {
