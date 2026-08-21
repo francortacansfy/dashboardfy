@@ -770,6 +770,52 @@
 const SUPA_URL = 'https://tilsqawlwgbuttyboxpn.supabase.co';
 const SUPA_KEY = 'sb_publishable_14OWO27CxU7Cml4rwtvBlg_8RR-6sGm';
 
+// Claves que antes vivían solo en localStorage (decisiones, plan comercial, etc.)
+// y que ahora también se persisten en Supabase (tabla dashboard_estado) para que
+// no se pierdan al limpiar el navegador y estén disponibles desde cualquier equipo.
+const CLAVES_ESTADO_SINCRONIZADO = ['fyl_kpi_decisiones', 'fyl_kpi_objetivos_custom', 'fyl_kpi_form_state', 'fyl_plan_comercial'];
+
+function guardarClaveSincronizada(clave, valorJson) {
+    localStorage.setItem(clave, valorJson);
+    if (!CLAVES_ESTADO_SINCRONIZADO.includes(clave)) return;
+    fetch(`${SUPA_URL}/rest/v1/dashboard_estado`, {
+        method: 'POST',
+        headers: {
+            'apikey': SUPA_KEY,
+            'Authorization': `Bearer ${SUPA_KEY}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'resolution=merge-duplicates'
+        },
+        body: JSON.stringify({ clave, valor: JSON.parse(valorJson), actualizado_en: new Date().toISOString() })
+    }).catch(e => console.warn('No se pudo sincronizar con Supabase:', clave, e));
+}
+
+function eliminarClaveSincronizada(clave) {
+    localStorage.removeItem(clave);
+    if (!CLAVES_ESTADO_SINCRONIZADO.includes(clave)) return;
+    fetch(`${SUPA_URL}/rest/v1/dashboard_estado?clave=eq.${encodeURIComponent(clave)}`, {
+        method: 'DELETE',
+        headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` }
+    }).catch(e => console.warn('No se pudo borrar en Supabase:', clave, e));
+}
+
+async function precargarEstadoSupabase() {
+    try {
+        const res = await fetch(`${SUPA_URL}/rest/v1/dashboard_estado?select=clave,valor`, {
+            headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` }
+        });
+        if (!res.ok) return;
+        const filas = await res.json();
+        filas.forEach(f => {
+            if (CLAVES_ESTADO_SINCRONIZADO.includes(f.clave)) {
+                localStorage.setItem(f.clave, JSON.stringify(f.valor));
+            }
+        });
+    } catch (e) {
+        console.warn('No se pudo precargar estado desde Supabase:', e);
+    }
+}
+
 let DATA = [];
 let CHARTS = {};
 const COMBOS_REALES = new Set([
