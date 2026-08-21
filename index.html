@@ -103,8 +103,8 @@
         .plan-textarea { min-height:84px; resize:vertical; line-height:1.45; padding-top:11px; }
         .focus-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(420px,1fr)); gap:12px; padding:18px 22px; }
         .focus-item { border:1px solid var(--border); background:var(--surface-2); border-radius:10px; padding:14px 16px; display:grid; grid-template-columns:18px 1fr; gap:12px; align-items:start; min-width:0; cursor:pointer; }
-        .focus-item:hover { border-color:rgba(22,169,126,.45); background:var(--surface); }
-        .focus-item.selected { border-color:var(--green); background:var(--green-light); }
+        .focus-item:hover { border-color:rgba(0,71,141,.45); background:var(--surface); }
+        .focus-item.selected { border-color:var(--primary); background:var(--primary-light); }
         .focus-item input { margin-top:2px; width:15px; height:15px; }
         .focus-title { display:block; font-size:13px; font-weight:700; color:var(--text-1); line-height:1.35; overflow-wrap:anywhere; }
         .focus-meta { display:block; font-size:12px; color:var(--text-3); line-height:1.55; margin-top:7px; }
@@ -146,7 +146,7 @@
         .sku-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; margin-bottom:24px; }
         .sku-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px 18px; position:relative; overflow:hidden; }
         .sku-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
-        .sku-card:nth-child(1)::before { background:#16a97e; }
+        .sku-card:nth-child(1)::before { background:#00478d; }
         .sku-card:nth-child(2)::before { background:#2563eb; }
         .sku-card:nth-child(3)::before { background:#f59e0b; }
         .sku-card:nth-child(4)::before { background:#8b5cf6; }
@@ -166,7 +166,7 @@
         .table-head h3 { font-size:14px; font-weight:600; color:var(--text-1); }
         .filters { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
         .search-input { padding:7px 14px; border:1px solid var(--border-dark); border-radius:8px; background:var(--surface-2); color:var(--text-1); font-family:'DM Sans',sans-serif; font-size:13px; width:200px; outline:none; transition:border .15s; }
-        .search-input:focus { border-color:var(--green); }
+        .search-input:focus { border-color:var(--primary); }
         .filter-select { padding:7px 12px; border:1px solid var(--border-dark); border-radius:8px; background:var(--surface-2); color:var(--text-1); font-family:'DM Sans',sans-serif; font-size:13px; outline:none; cursor:pointer; }
         .table-scroll { max-height:480px; overflow-y:auto; }
         .table-scroll-tall { max-height:calc(100vh - 360px); min-height:320px; }
@@ -178,13 +178,13 @@
         tbody tr:last-child td { border-bottom:none; }
         tbody tr:hover td { background:var(--surface-2); }
         .mono { font-family:'DM Mono',monospace; font-size:12px; color:var(--text-3); }
-        .badge { display:inline-block; padding:2px 8px; border-radius:5px; font-size:11px; font-weight:600; background:var(--green-light); color:var(--green-dark); }
-        body.dark .badge { color:#34d399; }
+        .badge { display:inline-block; padding:2px 8px; border-radius:5px; font-size:11px; font-weight:600; background:var(--primary-light); color:var(--primary-dark); }
+        body.dark .badge { color:#5b9bd8; }
         .empty { padding:40px; text-align:center; color:var(--text-4); font-size:13px; }
 
         .mayor-tab { padding:9px 18px; border:none; background:none; border-bottom:3px solid transparent; color:var(--text-3); font-size:13.5px; font-weight:600; font-family:'DM Sans',sans-serif; cursor:pointer; margin-bottom:-1px; transition:color .15s,border-color .15s; }
         .mayor-tab:hover { color:var(--text-1); }
-        .mayor-tab.active { color:var(--green); border-bottom-color:var(--green); }
+        .mayor-tab.active { color:var(--primary); border-bottom-color:var(--primary); }
 
         .loading-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:999; place-items:center; }
         .loading-overlay.show { display:grid; }
