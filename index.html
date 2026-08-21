@@ -4202,6 +4202,7 @@ function renderMayoristaClientes() {
 }
 
 (async () => {
+    renderUltimaSincronizacion();
     await precargarEstadoSupabase();
     aplicarLayoutObjetivoLocal();
     window.addEventListener('beforeunload', guardarEstadoFormularioKpis);
