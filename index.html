@@ -4000,7 +4000,7 @@ function parseFechaMay(s) {
 async function fetchCSV(gid) {
     const res = await fetch(`${SHEETS_BASE}&gid=${gid}`);
     if (!res.ok) throw new Error(`CSV fetch failed gid=${gid}`);
-    return (await res.text()).split('\n');
+    return parseCSV(await res.text());
 }
 
 async function loadMayorista() {
