@@ -2206,13 +2206,13 @@ function agregarTareaPlan() {
 function actualizarTareaPlan(id, campo, valor) {
     const estado = leerPlanEstado();
     const tareas = (estado.tareas || []).map(t => t.id === id ? { ...t, [campo]:valor } : t);
-    localStorage.setItem(PLAN_KEY, JSON.stringify({ ...estado, tareas }));
+    guardarClaveSincronizada(PLAN_KEY, JSON.stringify({ ...estado, tareas }));
 }
 
 function borrarTareaPlan(id) {
     const estado = leerPlanEstado();
     const tareas = (estado.tareas || []).filter(t => t.id !== id);
-    localStorage.setItem(PLAN_KEY, JSON.stringify({ ...estado, tareas }));
+    guardarClaveSincronizada(PLAN_KEY, JSON.stringify({ ...estado, tareas }));
     renderTareasPlan();
 }
 
