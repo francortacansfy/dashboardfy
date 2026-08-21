@@ -4253,7 +4253,7 @@ function renderMayoristaClientes() {
         c.total > 0 &&
         (!q      || c.nombre.toLowerCase().includes(q)) &&
         (!tipo   || c.tipo   === tipo)                  &&
-        (!estado || c.estado.includes(estado))
+        (!estado || c.estado === estado)
     ).sort((a,b)=>b.total-a.total);
 
     const totalH = filtered.reduce((s,c)=>s+c.total,0);
