@@ -3889,10 +3889,11 @@ function renderAnalisis() {
         const tendColor = r.tendPct > 0 ? 'var(--green)' : r.tendPct < 0 ? 'var(--red)' : 'var(--text-3)';
         const tendStr   = r.tendPct > 0 ? `+${r.tendPct}%` : r.tendPct !== 0 ? `${r.tendPct}%` : '—';
         const diasStr   = r.diasCob === 999 ? '∞' : r.diasCob + ' días';
+        const ajusteTag = r.multiplicador > 1 ? ` <span title="Umbral ajustado x${r.multiplicador} por ser pack/combo de ${r.multiplicador} unidades" style="font-size:9px;font-weight:800;color:var(--text-3);border:1px solid var(--border);border-radius:4px;padding:1px 4px;">x${r.multiplicador}</span>` : '';
         return `
         <tr style="background:${c.bg}">
             <td><span class="status-pill ${c.pill}">${['verde','amarillo','rojo'].includes(r.semaforo) ? {verde:'🟢',amarillo:'🟡',rojo:'🔴'}[r.semaforo]+' ' : '⚪ '}${c.label}</span></td>
-            <td><span class="badge">${r.sku}</span></td>
+            <td><span class="badge">${r.sku}</span>${ajusteTag}</td>
             <td style="max-width:200px;white-space:normal;font-size:12px;">${r.nombre}</td>
             <td class="mono">${r.stock}</td>
             <td class="mono">${r.rotDiaria} u/día</td>
