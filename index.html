@@ -3644,6 +3644,11 @@ async function loadComboMultiplicadores() {
     }
 }
 
+function estadoStock(p) {
+    const stockDisp = p.stock_actual ?? 0;
+    return stockDisp <= p.stock_critico ? 'danger' : stockDisp <= p.stock_minimo ? 'warn' : 'ok';
+}
+
 function renderStock() {
     const q      = (document.getElementById('stockSearch')?.value || '').toLowerCase();
     const filter = document.getElementById('stockFilter')?.value   || '';
