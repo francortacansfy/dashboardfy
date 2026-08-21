@@ -3661,6 +3661,36 @@ async function loadProductos() {
     indexarProductosKpis();
 }
 
+// Multiplicador de "cuantos meses/ciclos de compra dura un envase" para
+// combos y packs (ej. HF-MASK-REP-045-P3 = 3 mascaras = dura 3x mas que
+// una suelta). Sale de combo_componentes.cantidad (cargado a mano por
+// combo en Contexto empresa/combo_componentes.csv, ver Agente de
+// ventas/CLAUDE.md), promediando entre los componentes de cada combo
+// para el caso (raro) de que no todos compartan la misma cantidad.
+// Si un SKU no tiene entrada ahi (producto suelto o combo sin cargar),
+// el multiplicador queda en 1 - mismo comportamiento que antes.
+let COMBO_MULTIPLICADOR = new Map();
+
+async function loadComboMultiplicadores() {
+    try {
+        const res = await fetch(
+            `${SUPA_URL}/rest/v1/combo_stock_componentes?select=sku_combo,cantidad`,
+            { headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` } }
+        );
+        if (!res.ok) throw new Error(`Supabase combo_stock_componentes error: ${res.status}`);
+        const filas = await res.json();
+        const suma = new Map(), cuenta = new Map();
+        filas.forEach(f => {
+            suma.set(f.sku_combo, (suma.get(f.sku_combo) || 0) + Number(f.cantidad || 0));
+            cuenta.set(f.sku_combo, (cuenta.get(f.sku_combo) || 0) + 1);
+        });
+        COMBO_MULTIPLICADOR = new Map([...suma.keys()].map(sku => [sku, suma.get(sku) / cuenta.get(sku)]));
+    } catch (e) {
+        console.error('No se pudo cargar combo_stock_componentes, se sigue sin ajuste de packs/combos:', e);
+        COMBO_MULTIPLICADOR = new Map();
+    }
+}
+
 function renderStock() {
     const q      = (document.getElementById('stockSearch')?.value || '').toLowerCase();
     const filter = document.getElementById('stockFilter')?.value   || '';
