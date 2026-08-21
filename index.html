@@ -3952,15 +3952,35 @@ let MAYOR_CLIENTES = [];   // base de clientes
 let MAYOR_YEARS    = [];   // [{year, total, prom, clientes}]
 let MAYOR_MONTHLY  = {};   // { year: { '01': amt, ... } }
 
-function parseCSVRow(line) {
-    const result = []; let field = '', inQ = false;
-    for (let i = 0; i < line.length; i++) {
-        const ch = line[i];
-        if (ch === '"') { inQ = !inQ; }
-        else if (ch === ',' && !inQ) { result.push(field); field = ''; }
-        else { field += ch; }
+// Parsea el CSV entero de una (no linea por linea con split('\n')) porque una
+// celda del Google Sheet puede traer un salto de linea real adentro de
+// comillas (ej. una direccion pegada con enter) — cortar por '\n' antes de
+// interpretar las comillas desalinearia todas las filas siguientes.
+function parseCSV(text) {
+    const rows = [];
+    let row = [], field = '', inQ = false;
+    for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+        if (inQ) {
+            if (ch === '"') {
+                if (text[i + 1] === '"') { field += '"'; i++; }
+                else inQ = false;
+            } else field += ch;
+        } else if (ch === '"') {
+            inQ = true;
+        } else if (ch === ',') {
+            row.push(field); field = '';
+        } else if (ch === '\r') {
+            // el '\n' que sigue cierra la fila
+        } else if (ch === '\n') {
+            row.push(field); field = '';
+            rows.push(row); row = [];
+        } else {
+            field += ch;
+        }
     }
-    result.push(field); return result;
+    if (field !== '' || row.length) { row.push(field); rows.push(row); }
+    return rows;
 }
 function parseARS(s) {
     if (!s) return 0;
