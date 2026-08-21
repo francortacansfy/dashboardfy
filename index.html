@@ -3594,31 +3594,22 @@ function indexarProductosKpis() {
 }
 
 async function loadProductos() {
-    // duracion_meses puede no existir todavia (migracion pendiente, ver
-    // supabase-combos/productos_duracion_meses_columna.sql): si falla, cae
-    // al mismo patron de fallback que ya existia para las columnas de ML.
+    // productos.categoria y productos.terminos_match no existen como columnas
+    // reales en Supabase (ver categoriaKpiFallback / categoriasKpisDisponibles,
+    // que ya asumen categoria ausente) - pedirlas tiraba 400 en PostgREST y
+    // tumbaba TODA la query, cayendo siempre al ultimo fallback sin marca ni
+    // duracion_meses. No pedirlas nunca.
     let res = await fetch(
-        `${SUPA_URL}/rest/v1/productos?select=sku,nombre,marca,categoria,terminos_match,stock_actual,stock_minimo,stock_critico,stock_ml_total,dias_stock_ml,stock_ml_prioridad,duracion_meses&order=sku.asc&limit=1000`,
+        `${SUPA_URL}/rest/v1/productos?select=sku,nombre,marca,stock_actual,stock_minimo,stock_critico,stock_ml_total,dias_stock_ml,stock_ml_prioridad,duracion_meses&order=sku.asc&limit=1000`,
         { headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` } }
     );
+    // Las columnas de Stock ML o duracion_meses pueden no existir todavía en
+    // otros entornos (migración pendiente): si la query extendida falla,
+    // reintentar con las columnas base para no romper el resto del dashboard
+    // por un 400 de PostgREST.
     if (!res.ok) {
         res = await fetch(
-            `${SUPA_URL}/rest/v1/productos?select=sku,nombre,marca,categoria,terminos_match,stock_actual,stock_minimo,stock_critico,stock_ml_total,dias_stock_ml,stock_ml_prioridad&order=sku.asc&limit=1000`,
-            { headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` } }
-        );
-    }
-    // Las columnas de Stock ML pueden no existir todavía (migración pendiente):
-    // si la query extendida falla, reintentar con las columnas originales para
-    // no romper el resto del dashboard por un 400 de PostgREST.
-    if (!res.ok) {
-        res = await fetch(
-            `${SUPA_URL}/rest/v1/productos?select=sku,nombre,marca,categoria,terminos_match,stock_actual,stock_minimo,stock_critico&order=sku.asc&limit=1000`,
-            { headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` } }
-        );
-    }
-    if (!res.ok) {
-        res = await fetch(
-            `${SUPA_URL}/rest/v1/productos?select=sku,nombre,marca,categoria,stock_actual,stock_minimo,stock_critico&order=sku.asc&limit=1000`,
+            `${SUPA_URL}/rest/v1/productos?select=sku,nombre,marca,stock_actual,stock_minimo,stock_critico&order=sku.asc&limit=1000`,
             { headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` } }
         );
     }
