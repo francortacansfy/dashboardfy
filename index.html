@@ -3852,11 +3852,19 @@ function renderAnalisis() {
         const margenEst    = Math.round(precioProm * 0.67);
         const tendPct      = d.udsAnt > 0 ? Math.round(((d.udsRec - d.udsAnt) / d.udsAnt) * 100)
                            : d.udsRec > 0 ? 100 : 0;
+        // Un pack/combo de N "dura" N veces mas que la unidad suelta para el
+        // mismo cliente (ej. Mascara Pack 3 = 3 mascaras = mismo ritmo de
+        // recompra que 1 sola, pero 3x mas dias de cobertura son normales).
+        // Sin este ajuste, todo pack de compra poco frecuente queda marcado
+        // "Liquidar" aunque su stock sea perfectamente sano.
+        const multiplicador = COMBO_MULTIPLICADOR.get(sku) || 1;
+        const umbralRojo    = 60 * multiplicador;
+        const umbralAmarillo = 30 * multiplicador;
         let semaforo = d.udsTotal === 0 ? 'gris'
-                     : diasCob > 60 || tendPct < -20 ? 'rojo'
-                     : diasCob > 30 || tendPct < -10 ? 'amarillo'
+                     : diasCob > umbralRojo || tendPct < -20 ? 'rojo'
+                     : diasCob > umbralAmarillo || tendPct < -10 ? 'amarillo'
                      : 'verde';
-        return { sku, nombre, stock, rotDiaria: Math.round(rotDiaria * 10) / 10, diasCob, precioProm, margenEst, tendPct, semaforo };
+        return { sku, nombre, stock, rotDiaria: Math.round(rotDiaria * 10) / 10, diasCob, precioProm, margenEst, tendPct, semaforo, multiplicador };
     });
 
     const orden = { rojo:0, amarillo:1, verde:2, gris:3 };
