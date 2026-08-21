@@ -3328,7 +3328,7 @@ function renderMarcas() {
 
     const totalIngresos = Object.values(map).reduce((s,v) => s + v.total, 0);
     const rows = Object.entries(map).sort((a,b) => b[1].total - a[1].total);
-    const colors = ['#16a97e','#2563eb','#f59e0b','#8b5cf6','#ef4444','#06b6d4','#ec4899','#84cc16','#f97316','#a855f7'];
+    const colors = ['#00478d','#2563eb','#f59e0b','#8b5cf6','#ef4444','#06b6d4','#ec4899','#84cc16','#f97316','#a855f7'];
 
     // KPIs
     const totalMarcas   = rows.length;
@@ -3525,7 +3525,7 @@ async function renderDashboard() {
 
     const top5money = Object.entries(skuMap).filter(([sku]) => sku && sku !== 'null' && sku !== '' && sku !== 'S/D').sort((a,b) => b[1].total - a[1].total).slice(0,5);
     const top5uds   = Object.entries(skuMap).filter(([sku]) => sku && sku !== 'null' && sku !== '' && sku !== 'S/D').sort((a,b) => b[1].uds   - a[1].uds  ).slice(0,5);
-    const colors    = ['#16a97e','#2563eb','#f59e0b','#8b5cf6','#ef4444'];
+    const colors    = ['#00478d','#2563eb','#f59e0b','#8b5cf6','#ef4444'];
 
     document.getElementById('skuCards').innerHTML = top5money.map(([sku,v],i) => `
         <div class="sku-card">
@@ -4153,11 +4153,11 @@ function renderMayorista() {
     `;
 
     // Chart 1: Facturado por año (histórico de Stats)
-    const COLORS_YEAR = ['#94a3b8','#2563eb','#f59e0b','#16a97e'];
+    const COLORS_YEAR = ['#94a3b8','#2563eb','#f59e0b','#00478d'];
     if (CHARTS.mayorAnio) CHARTS.mayorAnio.destroy();
     CHARTS.mayorAnio = new Chart(document.getElementById('chartMayorAnio'), {
         type:'bar',
-        data:{ labels: MAYOR_YEARS.map(y=>y.year), datasets:[{ data:MAYOR_YEARS.map(y=>y.total), backgroundColor:MAYOR_YEARS.map((_,i)=>COLORS_YEAR[i]||'#16a97e'), borderRadius:6, borderWidth:0 }] },
+        data:{ labels: MAYOR_YEARS.map(y=>y.year), datasets:[{ data:MAYOR_YEARS.map(y=>y.total), backgroundColor:MAYOR_YEARS.map((_,i)=>COLORS_YEAR[i]||'#00478d'), borderRadius:6, borderWidth:0 }] },
         options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>` ${fmt(ctx.raw)}`}}}, scales:{ x:{ticks:{font:{family:'DM Sans',size:12}},grid:{display:false}}, y:{ticks:{callback:v=>fmt(v),font:{family:'DM Sans',size:10}},grid:{display:false}}}}
     });
 
