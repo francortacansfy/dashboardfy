@@ -148,7 +148,8 @@
 
         .section-title { font-size:13px; font-weight:600; color:var(--text-2); text-transform:uppercase; letter-spacing:.6px; margin-bottom:14px; }
         .sku-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; margin-bottom:24px; }
-        .sku-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px 18px; position:relative; overflow:hidden; }
+        .sku-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px 18px; position:relative; overflow:hidden; box-shadow:var(--shadow-card); transition:box-shadow .15s ease,transform .15s ease; }
+        .sku-card:hover { box-shadow:var(--shadow-card-hover); transform:translateY(-2px); }
         .sku-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
         .sku-card:nth-child(1)::before { background:#00478d; }
         .sku-card:nth-child(2)::before { background:#2563eb; }
@@ -161,7 +162,7 @@
         .sku-units { font-size:11.5px; color:var(--text-3); margin-top:3px; }
 
         .chart-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:24px; }
-        .chart-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:20px 22px; }
+        .chart-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:20px 22px; box-shadow:var(--shadow-card); }
         .chart-card h3 { font-size:13px; font-weight:600; color:var(--text-2); margin-bottom:16px; }
         .chart-wrap { position:relative; height:220px; }
 
