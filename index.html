@@ -3684,17 +3684,30 @@ let COMBO_MULTIPLICADOR = new Map();
 async function loadComboMultiplicadores() {
     try {
         const res = await fetch(
-            `${SUPA_URL}/rest/v1/combo_stock_componentes?select=sku_combo,cantidad`,
+            `${SUPA_URL}/rest/v1/combo_stock_componentes?select=sku_combo,sku_componente,cantidad`,
             { headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` } }
         );
         if (!res.ok) throw new Error(`Supabase combo_stock_componentes error: ${res.status}`);
         const filas = await res.json();
         const suma = new Map(), cuenta = new Map();
+        // Para combos de varios productos distintos (no packs del mismo item),
+        // la duracion real del combo la marca el componente que se termina
+        // primero (min), no la cantidad de items - igual criterio "cuello de
+        // botella" que ya usa combo_stock_calculado para el stock.
+        const duracionMinPorCombo = new Map();
         filas.forEach(f => {
             suma.set(f.sku_combo, (suma.get(f.sku_combo) || 0) + Number(f.cantidad || 0));
             cuenta.set(f.sku_combo, (cuenta.get(f.sku_combo) || 0) + 1);
+            const componenteProd = PRODUCTOS_BY_SKU.get(String(f.sku_componente || '').trim().toUpperCase());
+            const duracionComponente = Number(componenteProd?.duracion_meses);
+            if (duracionComponente > 0) {
+                const actual = duracionMinPorCombo.get(f.sku_combo);
+                if (actual === undefined || duracionComponente < actual) duracionMinPorCombo.set(f.sku_combo, duracionComponente);
+            }
         });
-        COMBO_MULTIPLICADOR = new Map([...suma.keys()].map(sku => [sku, suma.get(sku) / cuenta.get(sku)]));
+        COMBO_MULTIPLICADOR = new Map([...suma.keys()].map(sku =>
+            [sku, duracionMinPorCombo.get(sku) || (suma.get(sku) / cuenta.get(sku))]
+        ));
     } catch (e) {
         console.error('No se pudo cargar combo_stock_componentes, se sigue sin ajuste de packs/combos:', e);
         COMBO_MULTIPLICADOR = new Map();
