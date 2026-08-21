@@ -1796,7 +1796,7 @@ function leerPlanEstado() {
 function guardarPlanEstado() {
     const prev = leerPlanEstado();
     const val = id => document.getElementById(id)?.value || '';
-    localStorage.setItem(PLAN_KEY, JSON.stringify({
+    guardarClaveSincronizada(PLAN_KEY, JSON.stringify({
         ...prev,
         kpi: val('planKpi'),
         marca: val('planMarca'),
