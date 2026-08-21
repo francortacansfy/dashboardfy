@@ -4038,7 +4038,11 @@ async function loadMayorista() {
 
         populateMayoristaFilters();
         console.log('Mayorista cargado:', MAYOR_DATA.length, 'pedidos |', MAYOR_CLIENTES.length, 'clientes |', MAYOR_YEARS.length, 'años');
-    } catch(e) { console.error('Error cargando mayorista:', e); }
+    } catch(e) {
+        console.error('Error cargando mayorista:', e);
+        const grid = document.getElementById('mayorKpiGrid');
+        if (grid) grid.innerHTML = '<div class="empty" style="grid-column:1/-1">No se pudo cargar la hoja de Mayorista. Reintentá con "Sincronizar" o revisá la conexión.</div>';
+    }
 }
 
 function populateMayoristaFilters() {
