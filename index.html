@@ -4044,8 +4044,8 @@ async function loadMayorista() {
         }
 
         // ── Stats: yearly + monthly ──
-        MAYOR_YEARS = []; MAYOR_MONTHLY = {}; MAYOR_TOP_HIST = [];
-        let inMonthly = false, inTopProd = false;
+        MAYOR_YEARS = []; MAYOR_MONTHLY = {};
+        let inMonthly = false;
         const yearRe = /^(20\d\d)$/;
         const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
         const monthPad   = monthNames.reduce((o,n,i)=>{o[n]=String(i+1).padStart(2,'0');return o;},{});
@@ -4062,12 +4062,6 @@ async function loadMayorista() {
                     if (!MAYOR_MONTHLY[y]) MAYOR_MONTHLY[y]={};
                     MAYOR_MONTHLY[y][m] = parseARS(row[j+1]);
                 });
-            }
-            if (c0.includes('TOP 10 PRODUCTOS MÁS')) { inTopProd = true; continue; }
-            if (inTopProd && row[6]?.trim() && row[7]?.trim() && !row[6].includes('Producto')) {
-                const nombre = row[6].trim(); const qty = parseInt(row[7])||0;
-                if (nombre && qty) MAYOR_TOP_HIST.push({nombre, qty});
-                if (MAYOR_TOP_HIST.length >= 10) inTopProd = false;
             }
         }
 
