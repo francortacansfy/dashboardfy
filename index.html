@@ -3669,7 +3669,7 @@ function renderStock() {
             // stock_actual ya es el inventario físico disponible; no descontar
             // ventas otra vez, porque eso duplicaría la baja de stock.
             const stockDisp   = p.stock_actual ?? 0;
-            const estado      = stockDisp <= p.stock_critico ? 'danger' : stockDisp <= p.stock_minimo ? 'warn' : 'ok';
+            const estado      = estadoStock(p);
             return { ...p, udsVendidas, stockDisp, estado };
         })
         .filter(p => {
@@ -3687,8 +3687,8 @@ function renderStock() {
 
     // KPIs de stock
     const total    = PRODUCTOS.length;
-    const criticos = PRODUCTOS.filter(p => (p.stock_actual ?? 0) <= p.stock_critico).length;
-    const bajos    = PRODUCTOS.filter(p => { const s = p.stock_actual ?? 0; return s > p.stock_critico && s <= p.stock_minimo; }).length;
+    const criticos = PRODUCTOS.filter(p => estadoStock(p) === 'danger').length;
+    const bajos    = PRODUCTOS.filter(p => estadoStock(p) === 'warn').length;
     const okCount  = total - criticos - bajos;
 
     document.getElementById('stockKpiGrid').innerHTML = `
