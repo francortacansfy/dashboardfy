@@ -3672,13 +3672,20 @@ async function loadProductos() {
 }
 
 // Multiplicador de "cuantos meses/ciclos de compra dura un envase" para
-// combos y packs (ej. HF-MASK-REP-045-P3 = 3 mascaras = dura 3x mas que
-// una suelta). Sale de combo_componentes.cantidad (cargado a mano por
-// combo en Contexto empresa/combo_componentes.csv, ver Agente de
-// ventas/CLAUDE.md), promediando entre los componentes de cada combo
-// para el caso (raro) de que no todos compartan la misma cantidad.
-// Si un SKU no tiene entrada ahi (producto suelto o combo sin cargar),
-// el multiplicador queda en 1 - mismo comportamiento que antes.
+// combos y packs. Dos fuentes, cargadas a mano en Contexto empresa (ver
+// Agente de ventas/CLAUDE.md):
+//   1. Si algun componente del combo tiene duracion_meses propia (dosis
+//      diaria real, productos.csv), se usa la MINIMA entre todos - el
+//      componente que se termina primero marca cuando el cliente vuelve
+//      a comprar (ej. Pack Bienestar con Omega 3 de 1 mes + Magnesio de
+//      2 meses = dura 1 mes, no importa que el resto sobre).
+//   2. Si ninguno tiene ese dato (tipico en Hairfy, sin dosis diaria
+//      cargada), se cae a combo_componentes.cantidad promedio - un pack
+//      de 3 mascaras dura ~3x mas que una suelta aunque no sepamos los
+//      dias exactos.
+// Si un SKU no tiene entrada en combo_componentes (producto suelto o
+// combo sin cargar), el multiplicador queda en 1 - mismo comportamiento
+// que antes de este ajuste.
 let COMBO_MULTIPLICADOR = new Map();
 
 async function loadComboMultiplicadores() {
