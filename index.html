@@ -3681,6 +3681,12 @@ async function loadProductos() {
 // combo sin cargar), el multiplicador queda en 1 - mismo comportamiento
 // que antes de este ajuste.
 let COMBO_MULTIPLICADOR = new Map();
+// sku_combo (normalizado) -> [{sku, cantidad}]: detalle de que compone cada
+// combo/pack, para la vista "Por Producto" (reparte unidades/plata de cada
+// venta de un combo entre sus componentes reales, sea un pack del mismo
+// producto (ej. "-P2" = 1 componente con cantidad 2) o un combo de productos
+// distintos (varios componentes, tipicamente cantidad 1 cada uno).
+let COMBO_COMPONENTES = new Map();
 
 async function loadComboMultiplicadores() {
     try {
@@ -3690,6 +3696,17 @@ async function loadComboMultiplicadores() {
         );
         if (!res.ok) throw new Error(`Supabase combo_stock_componentes error: ${res.status}`);
         const filas = await res.json();
+        const componentesPorCombo = new Map();
+        filas.forEach(f => {
+            const comboKey = String(f.sku_combo || '').trim().toUpperCase();
+            if (!comboKey) return;
+            if (!componentesPorCombo.has(comboKey)) componentesPorCombo.set(comboKey, []);
+            componentesPorCombo.get(comboKey).push({
+                sku: String(f.sku_componente || '').trim().toUpperCase(),
+                cantidad: Number(f.cantidad || 0) || 1,
+            });
+        });
+        COMBO_COMPONENTES = componentesPorCombo;
         const suma = new Map(), cuenta = new Map();
         // Para combos de varios productos distintos (no packs del mismo item),
         // la duracion real del combo la marca el componente que se termina
