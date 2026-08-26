@@ -3404,6 +3404,11 @@ async function renderDashboard() {
     // num_venta, ahora se cuentan las filas directamente (sin deduplicar
     // por num_venta) para que el desglose por producto tambien la incluya.
     const ordenesPorProducto = subset.filter(d => d.tipoFila !== 'padre').length;
+    // Mismo conteo pero solo ventas completas (sin cancelar/devolver): es el
+    // denominador correcto para el Ticket Promedio, para que quede alineado
+    // con `revenue` (que tambien excluye canceladas/devueltas) igual que hace
+    // analyticsfyl con ordersConteo/nOrdenes.
+    const ordenesPorProductoCompletas = subset.filter(d => d.completa && d.tipoFila !== 'padre').length;
 
     const revenue = subset.filter(d => d.completa && d.tipoFila !== 'hija').reduce((s, d) => s + d.total, 0);
     const lines   = subset.length;
