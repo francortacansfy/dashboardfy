@@ -1054,7 +1054,7 @@ async function loadData() {
         renderAll();
         restaurarEstadoFormularioKpis();
         renderKpis();
-        activarTab(localStorage.getItem(LAST_TAB_KEY) || 'dashboard', false);
+        activarTab(tabInicialDashboard(), false);
     } catch(e) {
         console.error(e);
         alert('Error al conectar con Supabase: ' + e.message);
@@ -3910,6 +3910,13 @@ function renderAnalisis() {
 const TITLES = { dashboard:'Dashboard', kpis:'KPIs', productos:'Productos', marcas:'Marcas', stock:'Stock', analisis:'Análisis SKUs', mayorista:'Mayorista' };
 const LAST_TAB_KEY = 'fyl_dashboard_tab_activo';
 
+function tabInicialDashboard() {
+    const params = new URLSearchParams(window.location.search);
+    const requested = params.get('tab');
+    if (requested && TITLES[requested]) return requested;
+    return localStorage.getItem(LAST_TAB_KEY) || 'dashboard';
+}
+
 function activarTab(tab, guardar = true) {
     const page = document.getElementById(tab);
     const btn = document.querySelector(`.nav-btn[data-tab="${tab}"]`);
@@ -4311,8 +4318,9 @@ function renderMayoristaClientes() {
     restaurarEstadoFormularioKpis();
     loadData();
     loadMayorista();
-    activarTab(localStorage.getItem(LAST_TAB_KEY) || 'dashboard', false);
+    activarTab(tabInicialDashboard(), false);
 })();
 </script>
 </body>
 </html>
+
