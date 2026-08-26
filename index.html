@@ -250,7 +250,13 @@
     <div class="nav-label">Menú</div>
     <button class="nav-btn active" data-tab="dashboard"><i class="fas fa-chart-line"></i> Dashboard</button>
     <button class="nav-btn" data-tab="kpis"><i class="fas fa-bullseye"></i> KPIs</button>
-    <button class="nav-btn" data-tab="productos"><i class="fas fa-box"></i> Productos</button>
+    <div class="nav-group" id="prodGroup">
+        <button class="nav-btn" data-tab="productos"><i class="fas fa-box"></i> Productos <i class="fas fa-chevron-right nav-caret"></i></button>
+        <div class="nav-submenu">
+            <button class="nav-subbtn active" data-psub="sku" onclick="switchProductosVista('sku')">Por SKU</button>
+            <button class="nav-subbtn" data-psub="producto" onclick="switchProductosVista('producto')">Por Producto</button>
+        </div>
+    </div>
     <button class="nav-btn" data-tab="marcas"><i class="fas fa-tags"></i> Marcas</button>
     <button class="nav-btn" data-tab="stock"><i class="fas fa-boxes"></i> Stock</button>
     <button class="nav-btn" data-tab="analisis"><i class="fas fa-traffic-light"></i> Análisis SKUs</button>
@@ -3954,7 +3960,9 @@ function activarTab(tab, guardar = true) {
     const fb = document.getElementById('fb-' + tab);
     if (fb) fb.classList.add('active');
     if (guardar) localStorage.setItem(LAST_TAB_KEY, tab);
+    document.getElementById('prodGroup')?.classList.toggle('open', tab === 'productos');
     if (tab === 'kpis') renderKpis();
+    if (tab === 'productos') renderProductos();
     if (tab === 'stock') { renderStock(); renderStockMl(); }
     if (tab === 'marcas') renderMarcas();
     if (tab === 'analisis') renderAnalisis();
