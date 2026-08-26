@@ -3577,7 +3577,21 @@ async function renderDashboard() {
     `).join('') || '<tr><td colspan="7" class="empty">Sin datos</td></tr>';
 }
 
+let PRODUCTOS_VISTA = 'sku';
+
+function switchProductosVista(v) {
+    PRODUCTOS_VISTA = v;
+    document.querySelectorAll('.nav-subbtn[data-psub]').forEach(b => b.classList.toggle('active', b.dataset.psub === v));
+    document.getElementById('tableCardProductosSku').style.display      = v === 'sku'      ? '' : 'none';
+    document.getElementById('tableCardProductosProducto').style.display = v === 'producto' ? '' : 'none';
+}
+
 function renderProductos() {
+    renderProductosPorSku();
+    renderProductosPorProducto();
+}
+
+function renderProductosPorSku() {
     const q      = (document.getElementById('skuSearch')?.value || '').toLowerCase();
     const tienda = document.getElementById('filterTiendaProd')?.value || '';
     const marca  = document.getElementById('filterMarcaProd')?.value  || '';
@@ -3607,6 +3621,53 @@ function renderProductos() {
             <td>${v.uds.toLocaleString('es-AR')}</td>
             <td><strong>${fmt(v.total)}</strong></td>
             <td>${v.uds ? fmt(v.total / v.uds) : '-'}</td>
+        </tr>
+    `).join('') || '<tr><td colspan="4" class="empty">Sin resultados</td></tr>';
+}
+
+function renderProductosPorProducto() {
+    const q      = (document.getElementById('skuSearch')?.value || '').toLowerCase();
+    const tienda = document.getElementById('filterTiendaProd')?.value || '';
+    const marca  = document.getElementById('filterMarcaProd')?.value  || '';
+    const anio   = document.getElementById('filterAnioProd')?.value   || '';
+    const mes    = document.getElementById('filterMesProd')?.value    || '';
+    const subset = DATA.filter(d =>
+        (!tienda || d.tienda === tienda) &&
+        (!marca  || d.marca  === marca)  &&
+        (!anio   || d.fecha?.substring(0,4) === anio) &&
+        (!mes    || d.fecha?.substring(5,7) === mes)  &&
+        d.completa && d.tipoFila !== 'padre'
+    );
+
+    // Reparte cada venta entre sus componentes reales (combo_stock_componentes):
+    // un pack "-P2"/"-P3" tiene 1 componente con cantidad 2/3 (esos envases se
+    // suman al producto base); un combo de productos distintos tiene varios
+    // componentes (cantidad 1 cada uno, la plata se reparte entre ellos). Un
+    // SKU que no esta en combo_stock_componentes es un producto suelto: se
+    // cuenta como su propio componente, cantidad 1.
+    const map = {}; // key = sku del componente (producto base), normalizado
+    subset.forEach(d => {
+        const skuVendido = String(d.sku || '').trim().toUpperCase();
+        const componentes = COMBO_COMPONENTES.get(skuVendido) || [{ sku: skuVendido, cantidad: 1 }];
+        const totalCantidad = componentes.reduce((s, c) => s + c.cantidad, 0) || 1;
+        componentes.forEach(c => {
+            if (!map[c.sku]) map[c.sku] = { uds: 0, total: 0 };
+            map[c.sku].uds   += d.uds * c.cantidad;
+            map[c.sku].total += d.total * (c.cantidad / totalCantidad);
+        });
+    });
+
+    const rows = Object.entries(map)
+        .map(([sku, v]) => ({ sku, nombre: PRODUCTOS_BY_SKU.get(sku)?.nombre || sku, ...v }))
+        .filter(r => !q || r.nombre.toLowerCase().includes(q) || r.sku.toLowerCase().includes(q))
+        .sort((a, b) => b.total - a.total);
+
+    document.getElementById('tableProductsPorProductoBody').innerHTML = rows.map(r => `
+        <tr>
+            <td>${r.nombre}</td>
+            <td>${r.uds.toLocaleString('es-AR')}</td>
+            <td><strong>${fmt(r.total)}</strong></td>
+            <td>${r.uds ? fmt(r.total / r.uds) : '-'}</td>
         </tr>
     `).join('') || '<tr><td colspan="4" class="empty">Sin resultados</td></tr>';
 }
@@ -3729,6 +3790,7 @@ async function loadComboMultiplicadores() {
     } catch (e) {
         console.error('No se pudo cargar combo_stock_componentes, se sigue sin ajuste de packs/combos:', e);
         COMBO_MULTIPLICADOR = new Map();
+        COMBO_COMPONENTES = new Map();
     }
 }
 
