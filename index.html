@@ -3404,11 +3404,22 @@ async function renderDashboard() {
     // num_venta, ahora se cuentan las filas directamente (sin deduplicar
     // por num_venta) para que el desglose por producto tambien la incluya.
     const ordenesPorProducto = subset.filter(d => d.tipoFila !== 'padre').length;
-    // Mismo conteo pero solo ventas completas (sin cancelar/devolver): es el
-    // denominador correcto para el Ticket Promedio, para que quede alineado
-    // con `revenue` (que tambien excluye canceladas/devueltas) igual que hace
-    // analyticsfyl con ordersConteo/nOrdenes.
-    const ordenesPorProductoCompletas = subset.filter(d => d.completa && d.tipoFila !== 'padre').length;
+
+    // Ticket Promedio: misma logica que el AOV de analyticsfyl (groupByOrder
+    // sobre hijas+sueltas completas) — se agrupa por num_venta (no se cuenta
+    // fila a fila) y se suma/promedia sobre ese agrupado, en vez de tomar el
+    // total del paquete via su fila padre. Con esto el numerador y el
+    // denominador del Ticket Promedio salen exactamente del mismo conjunto de
+    // filas, igual que hace analyticsfyl con ordersConteo/nOrdenes.
+    const ordenesTicketMap = {};
+    subset.filter(d => d.completa && d.tipoFila !== 'padre').forEach(d => {
+        if (!d.num_venta) return;
+        if (!ordenesTicketMap[d.num_venta]) ordenesTicketMap[d.num_venta] = 0;
+        ordenesTicketMap[d.num_venta] += d.total;
+    });
+    const ordenesTicketGrupos = Object.values(ordenesTicketMap).filter(t => t > 0);
+    const revenueTicket = ordenesTicketGrupos.reduce((s, t) => s + t, 0);
+    const ordenesTicketCount = ordenesTicketGrupos.length;
 
     const revenue = subset.filter(d => d.completa && d.tipoFila !== 'hija').reduce((s, d) => s + d.total, 0);
     const lines   = subset.length;
