@@ -3433,10 +3433,7 @@ async function renderDashboard() {
     // no es un cliente real, asi que no debe contar como "1 cliente" en el Set.
     const uniqueClients = new Set(subset.filter(d => d.completa).map(d => d.dni).filter(dni => dni && dni !== 'S/D')).size;
     const totalUnits = subset.filter(d => d.completa).reduce((s, d) => s + d.uds, 0);
-    // Ticket Promedio: se divide por ordenesPorProductoCompletas (no ordenesTicket)
-    // para igualar el criterio nativo de ML, que cuenta cada producto de un
-    // paquete como una venta aparte en su "Precio promedio por venta".
-    const avgTick = ordenesPorProductoCompletas ? revenue / ordenesPorProductoCompletas : 0;
+    const avgTick = ordenesTicketCount ? revenueTicket / ordenesTicketCount : 0;
     const avgUnitPrice = totalUnits ? revenue / totalUnits : 0;
     // Cancelada vs devuelta: aproximacion por palabra clave sobre `estado` (no es
     // 1 a 1 exacto contra los tiles nativos de ML, pero se acerca bastante).
