@@ -663,7 +663,7 @@
             <div class="table-head">
                 <h3>Inventario de ventas — por Producto</h3>
             </div>
-            <div class="table-scroll table-scroll-tall">
+            <div class="table-scroll" id="prodScrollProducto">
                 <table>
                     <thead><tr><th>Producto</th><th>Envases</th><th>Total Bruto</th><th>Precio Unitario</th></tr></thead>
                     <tbody id="tableProductsPorProductoBody"><tr><td colspan="4" class="empty">Sin datos</td></tr></tbody>
@@ -3584,11 +3584,29 @@ function switchProductosVista(v) {
     document.querySelectorAll('.nav-subbtn[data-psub]').forEach(b => b.classList.toggle('active', b.dataset.psub === v));
     document.getElementById('tableCardProductosSku').style.display      = v === 'sku'      ? '' : 'none';
     document.getElementById('tableCardProductosProducto').style.display = v === 'producto' ? '' : 'none';
+    ajustarAlturaTablaProductos();
 }
+
+// El offset hasta el borde superior de la tabla varia (filterbar puede
+// envolver a 2 lineas en pantallas angostas, distinto contenido arriba en
+// cada vista) - en vez de un max-height fijo en CSS (que dejaba hueco vacio
+// abajo en pantallas altas), se mide en runtime cuanto queda hasta el fondo
+// de la ventana y se usa eso, para que la tabla siempre ocupe todo el alto
+// visible disponible.
+function ajustarAlturaTablaProductos() {
+    const scroll = document.getElementById(PRODUCTOS_VISTA === 'sku' ? 'prodScrollSku' : 'prodScrollProducto');
+    if (!scroll || scroll.offsetParent === null) return;
+    const top = scroll.getBoundingClientRect().top;
+    scroll.style.maxHeight = Math.max(320, window.innerHeight - top - 28) + 'px';
+}
+window.addEventListener('resize', () => {
+    if (document.getElementById('productos')?.classList.contains('active')) ajustarAlturaTablaProductos();
+});
 
 function renderProductos() {
     renderProductosPorSku();
     renderProductosPorProducto();
+    ajustarAlturaTablaProductos();
 }
 
 function renderProductosPorSku() {
