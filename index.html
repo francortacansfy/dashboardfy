@@ -1182,7 +1182,7 @@ function populateTiendaFilters() {
             marcas.map(m => `<option value="${m}"${val===m?' selected':''}>${m}</option>`).join('');
     });
 
-    ['filterAnioDash','filterAnioKpis','filterAnioProd','filterAnioMarcas','filterAnioStock'].forEach(id => {
+    ['filterAnioDash','filterAnioKpis','filterAnioProd','filterAnioMarcas','filterAnioStock','filterAnioNuevos'].forEach(id => {
         const sel = document.getElementById(id);
         if (!sel) return;
         const val = sel.value;
@@ -3724,6 +3724,75 @@ function renderProductosPorProducto() {
     `).join('') || '<tr><td colspan="4" class="empty">Sin resultados</td></tr>';
 }
 
+
+function renderNuevos() {
+    const tienda = document.getElementById('filterTiendaNuevos')?.value || '';
+    const marca  = document.getElementById('filterMarcaNuevos')?.value  || '';
+    const anio   = document.getElementById('filterAnioNuevos')?.value   || '';
+    const mes    = document.getElementById('filterMesNuevos')?.value    || '';
+
+    const nuevos = PRODUCTOS.filter(p => (p.estado || '').trim() === 'nuevo');
+
+    const ventasPorSku = {};
+    DATA.filter(d =>
+        (!tienda || d.tienda === tienda) &&
+        (!marca  || d.marca  === marca)  &&
+        (!anio   || d.fecha?.substring(0,4) === anio) &&
+        (!mes    || d.fecha?.substring(5,7) === mes)  &&
+        d.completa && d.tipoFila !== 'padre'
+    ).forEach(d => {
+        if (!ventasPorSku[d.sku]) ventasPorSku[d.sku] = { uds: 0, total: 0 };
+        ventasPorSku[d.sku].uds   += d.uds;
+        ventasPorSku[d.sku].total += d.total;
+    });
+
+    const hoy = new Date();
+    const rows = nuevos.map(p => {
+        const v = ventasPorSku[p.sku] || { uds: 0, total: 0 };
+        const fechaEntrada = p.fecha_entrada ? new Date(p.fecha_entrada + 'T00:00:00') : null;
+        const dias = fechaEntrada ? Math.floor((hoy - fechaEntrada) / 86400000) : null;
+        return { ...p, uds: v.uds, total: v.total, dias };
+    }).sort((a, b) => b.total - a.total);
+
+    const totalUds = rows.reduce((s, r) => s + r.uds, 0);
+    const totalIngresos = rows.reduce((s, r) => s + r.total, 0);
+    // Se acerca a dejar de ser "nuevo": ya pasaron 76+ dias desde el alta (umbral de 90).
+    const porCumplir = rows.filter(r => r.dias !== null && r.dias >= 76 && r.dias < 90).length;
+
+    document.getElementById('nuevosKpiGrid').innerHTML = `
+        <div class="kpi">
+            <div class="kpi-header"><span class="kpi-label">SKUs nuevos</span><div class="kpi-icon blue"><i class="fas fa-star"></i></div></div>
+            <div class="kpi-value">${rows.length}</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi-header"><span class="kpi-label">Unidades vendidas</span><div class="kpi-icon green"><i class="fas fa-cube"></i></div></div>
+            <div class="kpi-value">${totalUds.toLocaleString('es-AR')}</div>
+        </div>
+        <div class="kpi money-main">
+            <div class="kpi-header"><span class="kpi-label">Ingresos</span><div class="kpi-icon green"><i class="fas fa-dollar-sign"></i></div></div>
+            <div class="kpi-value">${fmt(totalIngresos)}</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi-header"><span class="kpi-label">Por cumplir 90 días</span><div class="kpi-icon orange"><i class="fas fa-hourglass-half"></i></div></div>
+            <div class="kpi-value">${porCumplir}</div>
+            <div class="kpi-sub">Dejan de ser "nuevo" pronto</div>
+        </div>
+    `;
+
+    document.getElementById('tableNuevosBody').innerHTML = rows.map(r => `
+        <tr>
+            <td><span class="badge">${r.sku}</span></td>
+            <td style="max-width:220px;white-space:normal;font-size:12px;">${r.nombre || '-'}</td>
+            <td>${r.marca || '-'}</td>
+            <td class="mono">${r.fecha_entrada || '-'}</td>
+            <td class="mono">${r.dias ?? '-'}</td>
+            <td class="mono">${r.uds.toLocaleString('es-AR')}</td>
+            <td class="mono"><strong>${fmt(r.total)}</strong></td>
+            <td class="mono">${r.uds ? fmt(r.total / r.uds) : '-'}</td>
+            <td class="mono">${(r.stock_actual ?? 0).toLocaleString('es-AR')}</td>
+        </tr>
+    `).join('') || '<tr><td colspan="9" class="empty">Sin productos marcados como nuevos</td></tr>';
+}
 
 let PRODUCTOS = [];
 let PRODUCTOS_BY_SKU = new Map();
