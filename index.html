@@ -3720,7 +3720,7 @@ async function loadProductos() {
     // tumbaba TODA la query, cayendo siempre al ultimo fallback sin marca ni
     // duracion_meses. No pedirlas nunca.
     let res = await fetch(
-        `${SUPA_URL}/rest/v1/productos?select=sku,nombre,marca,stock_actual,stock_minimo,stock_critico,stock_ml_total,dias_stock_ml,stock_ml_prioridad,duracion_meses&order=sku.asc&limit=1000`,
+        `${SUPA_URL}/rest/v1/productos?select=sku,nombre,marca,stock_actual,stock_minimo,stock_critico,stock_ml_total,dias_stock_ml,stock_ml_prioridad,duracion_meses,estado,fecha_entrada&order=sku.asc&limit=1000`,
         { headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` } }
     );
     // Las columnas de Stock ML o duracion_meses pueden no existir todavía en
