@@ -1166,7 +1166,7 @@ function populateTiendaFilters() {
     const marcas  = [...new Set(DATA.map(d => d.marca).filter(x => x && x !== 'S/D'))].sort();
     const anios   = [...new Set(DATA.map(d => d.fecha?.substring(0,4)).filter(Boolean))].sort();
 
-    ['filterTiendaDash','filterTiendaKpis','filterTiendaProd','filterTiendaMarcas','planTienda'].forEach(id => {
+    ['filterTiendaDash','filterTiendaKpis','filterTiendaProd','filterTiendaMarcas','filterTiendaNuevos','planTienda'].forEach(id => {
         const sel = document.getElementById(id);
         if (!sel) return;
         const val = sel.value;
@@ -1174,7 +1174,7 @@ function populateTiendaFilters() {
             tiendas.map(t => `<option value="${t}"${val===t?' selected':''}>${t}</option>`).join('');
     });
 
-    ['filterMarcaDash','filterMarcaKpis','filterMarcaProd','planMarca'].forEach(id => {
+    ['filterMarcaDash','filterMarcaKpis','filterMarcaProd','filterMarcaNuevos','planMarca'].forEach(id => {
         const sel = document.getElementById(id);
         if (!sel) return;
         const val = sel.value;
