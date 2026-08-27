@@ -359,6 +359,23 @@
         <div class="filterbar-sep"></div>
         <input type="text" id="analisisSearch" class="search-input" placeholder="Buscar SKU o nombre…" oninput="renderAnalisis()" style="width:180px;">
     </div>
+    <div class="filterbar" id="fb-nuevos">
+        <span class="filterbar-label">Año</span>
+        <select class="filter-select" id="filterAnioNuevos" onchange="renderNuevos()"><option value="">Todos</option></select>
+        <select class="filter-select" id="filterMesNuevos" onchange="renderNuevos()">
+            <option value="">Todos los meses</option>
+            <option value="01">Enero</option><option value="02">Febrero</option><option value="03">Marzo</option>
+            <option value="04">Abril</option><option value="05">Mayo</option><option value="06">Junio</option>
+            <option value="07">Julio</option><option value="08">Agosto</option><option value="09">Septiembre</option>
+            <option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
+        </select>
+        <div class="filterbar-sep"></div>
+        <span class="filterbar-label">Marca</span>
+        <select class="filter-select" id="filterMarcaNuevos" onchange="renderNuevos()"><option value="">Todas</option></select>
+        <div class="filterbar-sep"></div>
+        <span class="filterbar-label">Tienda</span>
+        <select class="filter-select" id="filterTiendaNuevos" onchange="renderNuevos()"><option value="">Todas</option></select>
+    </div>
     <div class="filterbar" id="fb-mayorista">
         <span class="filterbar-label">Año</span>
         <select class="filter-select" id="filterAnioMay" onchange="renderMayoristaActivo()"><option value="">Todos</option></select>
