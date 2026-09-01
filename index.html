@@ -2087,7 +2087,13 @@ function mapCombosPlan(rows) {
 }
 
 function compararCombosPlan(actualRows, baseRows, fallbackRows) {
-    const actual = mapCombosPlan(actualRows.length ? actualRows : fallbackRows);
+    // No caer a fallbackRows (historico completo, sin filtro de fecha) cuando
+    // actualRows da 0 filas: eso pasa legitimamente al arrancar un periodo
+    // nuevo (ej. dia 1-2 del mes, todavia sin ventas) y el fallback mezclaba
+    // decadas de ventas como si fueran del periodo actual — numeros
+    // absurdos (cientos de millones) y un calculo carísimo sobre TODO
+    // DATA en cada render.
+    const actual = mapCombosPlan(actualRows);
     const base = mapCombosPlan(baseRows);
     const skus = [...new Set([...Object.keys(actual), ...Object.keys(base)])];
     const productoFiltro = (document.getElementById('planProductoSearch')?.value || '').trim();
