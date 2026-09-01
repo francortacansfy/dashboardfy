@@ -1338,29 +1338,22 @@ function calcularMetricasResumen(subset) {
 }
 
 function calcularCoreMensual(base) {
-    const porMes = {};
-    base.filter(d => d.completa).forEach(d => {
+    const filasPorMes = {};
+    base.forEach(d => {
         const ym = d.fecha?.substring(0, 7);
         if (!ym || !isMesCerrado(ym)) return;
-        if (!porMes[ym]) {
-            porMes[ym] = { total:0, ml:0, shopify:0, ordenes:new Set() };
-        }
-        const m = porMes[ym];
-        if (d.tipoFila !== 'hija') {
-            m.total += d.total;
-            if (d.tienda === 'Mercado Libre') m.ml += d.total;
-            if (d.tienda === 'Shopify') m.shopify += d.total;
-        }
-        // Orden = compra real (1 por paquete ML, como ya hace Shopify) —
-        // no una linea de producto. Ver calcularGrowthRangoKpis.
-        if (d.tipoFila !== 'hija' && d.num_venta) m.ordenes.add(d.num_venta);
+        (filasPorMes[ym] = filasPorMes[ym] || []).push(d);
     });
-    return Object.entries(porMes).sort(([a], [b]) => a.localeCompare(b)).map(([ym, v]) => ({
-        mes: ym,
-        total: v.total,
-        ticket: v.ordenes.size ? v.total / v.ordenes.size : 0,
-        mlShare: v.total ? v.ml / v.total * 100 : 0,
-        shopifyShare: v.total ? v.shopify / v.total * 100 : 0,
+    return Object.entries(filasPorMes).sort(([a], [b]) => a.localeCompare(b)).map(([ym, filas]) => {
+        const m = calcularMetricasResumen(filas);
+        const ml = filas.filter(d => d.completa && d.tipoFila !== 'hija' && d.tienda === 'Mercado Libre').reduce((s, d) => s + d.total, 0);
+        const shopify = filas.filter(d => d.completa && d.tipoFila !== 'hija' && d.tienda === 'Shopify').reduce((s, d) => s + d.total, 0);
+        return {
+            mes: ym,
+            total: m.ingresos,
+            ticket: m.ticket,
+            mlShare: m.ingresos ? ml / m.ingresos * 100 : 0,
+            shopifyShare: m.ingresos ? shopify / m.ingresos * 100 : 0,
     }));
 }
 
