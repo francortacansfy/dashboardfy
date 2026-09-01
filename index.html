@@ -1290,6 +1290,53 @@ function categoriaKpiFallback(d) {
     return 'Vitaminas y Minerales';
 }
 
+// Fuente unica de verdad para Ingresos/Ordenes/Ordenes Unicas (por
+// producto)/Ticket Promedio/Precio Prom. por Unidad — la misma logica que
+// usan los tiles de la pestana Dashboard. calcularCoreMensual,
+// calcularGrowthRangoKpis y renderDashboard llaman a esta funcion en vez de
+// cada una recalcular su propia version, para que un mismo nombre de
+// metrica nunca muestre numeros distintos entre pestanas.
+function calcularMetricasResumen(subset) {
+    // "Ordenes" (compra real, no linea de producto): un paquete ML cuenta 1
+    // vez via su fila padre — igual que ya cuenta Shopify (sus lineas
+    // comparten num_venta).
+    const ordenesSet = new Set();
+    subset.filter(d => d.completa && d.tipoFila !== 'hija').forEach(d => {
+        if (d.num_venta) ordenesSet.add(d.num_venta);
+    });
+    const ordenes = ordenesSet.size;
+
+    // "Ordenes Unicas (por producto)": cada linea de producto cuenta aparte
+    // (hijas+sueltas, sin deduplicar por num_venta) — asi se acerca a
+    // "Cantidad de ventas" nativa de ML.
+    const ordenesPorProducto = subset.filter(d => d.tipoFila !== 'padre').length;
+
+    // "Ticket Promedio": agrupa por num_venta sobre hijas+sueltas completas
+    // (mismo criterio que el AOV de analyticsfyl) — numerador y denominador
+    // salen del mismo conjunto de filas.
+    const ticketMap = {};
+    subset.filter(d => d.completa && d.tipoFila !== 'padre').forEach(d => {
+        if (!d.num_venta) return;
+        if (!ticketMap[d.num_venta]) ticketMap[d.num_venta] = 0;
+        ticketMap[d.num_venta] += d.total;
+    });
+    const ticketGrupos = Object.values(ticketMap).filter(t => t > 0);
+    const revenueTicket = ticketGrupos.reduce((s, t) => s + t, 0);
+    const ticketOrdenes = ticketGrupos.length;
+
+    const ingresos = subset.filter(d => d.completa && d.tipoFila !== 'hija').reduce((s, d) => s + d.total, 0);
+    const totalUnits = subset.filter(d => d.completa).reduce((s, d) => s + d.uds, 0);
+
+    return {
+        ingresos,
+        ordenes,
+        ordenesPorProducto,
+        ticket: ticketOrdenes ? revenueTicket / ticketOrdenes : 0,
+        avgUnitPrice: totalUnits ? ingresos / totalUnits : 0,
+        totalUnits,
+    };
+}
+
 function calcularCoreMensual(base) {
     const porMes = {};
     base.filter(d => d.completa).forEach(d => {
