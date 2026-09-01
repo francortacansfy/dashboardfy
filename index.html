@@ -3488,54 +3488,23 @@ async function renderDashboard() {
         (!mes    || d.fecha?.substring(5,7) === mes)
     );
 
-    // "Órdenes" (compra real, no linea de producto): un paquete ML cuenta 1
-    // vez via su fila padre — igual que ya cuenta Shopify (sus lineas
-    // comparten num_venta). Es el denominador del Ticket Promedio.
-    const ordenesSet = new Set();
-    subset.filter(d => d.completa && d.tipoFila !== 'hija').forEach(d => {
-        if (d.num_venta) ordenesSet.add(d.num_venta);
-    });
-    const ordenesTicket = ordenesSet.size;
-
-    // "Órdenes Únicas (por producto)": cada producto cuenta aparte. Para ML,
-    // cada hija de un paquete tiene su propio num_venta — asi lo cuenta ML
-    // mismo en su "Cantidad de ventas" nativa (por eso se excluye solo la
-    // cabecera/padre e incluye canceladas/devueltas, igual que ese tile).
-    // Para Shopify, aunque las lineas de un mismo pedido compartan
-    // num_venta, ahora se cuentan las filas directamente (sin deduplicar
-    // por num_venta) para que el desglose por producto tambien la incluya.
-    const ordenesPorProducto = subset.filter(d => d.tipoFila !== 'padre').length;
-
-    // Ticket Promedio: misma logica que el AOV de analyticsfyl (groupByOrder
-    // sobre hijas+sueltas completas) — se agrupa por num_venta (no se cuenta
-    // fila a fila) y se suma/promedia sobre ese agrupado, en vez de tomar el
-    // total del paquete via su fila padre. Con esto el numerador y el
-    // denominador del Ticket Promedio salen exactamente del mismo conjunto de
-    // filas, igual que hace analyticsfyl con ordersConteo/nOrdenes.
-    const ordenesTicketMap = {};
-    subset.filter(d => d.completa && d.tipoFila !== 'padre').forEach(d => {
-        if (!d.num_venta) return;
-        if (!ordenesTicketMap[d.num_venta]) ordenesTicketMap[d.num_venta] = 0;
-        ordenesTicketMap[d.num_venta] += d.total;
-    });
-    const ordenesTicketGrupos = Object.values(ordenesTicketMap).filter(t => t > 0);
-    const revenueTicket = ordenesTicketGrupos.reduce((s, t) => s + t, 0);
-    const ordenesTicketCount = ordenesTicketGrupos.length;
-
-    const revenue = subset.filter(d => d.completa && d.tipoFila !== 'hija').reduce((s, d) => s + d.total, 0);
-    const lines   = subset.length;
+    // Ingresos/Órdenes/Órdenes por producto/Ticket Promedio/Precio por
+    // unidad: ver calcularMetricasResumen, fuente única compartida con la
+    // pestaña KPIs.
+    const resumen = calcularMetricasResumen(subset);
+    const ordenesTicket = resumen.ordenes;
+    const orders = resumen.ordenesPorProducto;
+    const revenue = resumen.ingresos;
+    const avgTick = resumen.ticket;
+    const avgUnitPrice = resumen.avgUnitPrice;
 
     // DATA trae todas las filas (sin filtro de ingresos), así que el subset
     // ya refleja el total real de órdenes/clientes sin necesidad de fetches aparte.
     // Las filas con anulaciones_reembolsos_ars cargado (cancelada o devuelta) quedan
     // afuera de ingresos, unidades, órdenes y clientes.
-    const orders = ordenesPorProducto;
     // 'S/D' es el fallback cuando no hay DNI ni email valido (ver resolveClienteId):
     // no es un cliente real, asi que no debe contar como "1 cliente" en el Set.
     const uniqueClients = new Set(subset.filter(d => d.completa).map(d => d.dni).filter(dni => dni && dni !== 'S/D')).size;
-    const totalUnits = subset.filter(d => d.completa).reduce((s, d) => s + d.uds, 0);
-    const avgTick = ordenesTicketCount ? revenueTicket / ordenesTicketCount : 0;
-    const avgUnitPrice = totalUnits ? revenue / totalUnits : 0;
     // Cancelada vs devuelta: aproximacion por palabra clave sobre `estado` (no es
     // 1 a 1 exacto contra los tiles nativos de ML, pero se acerca bastante).
     // Cantidad: hijas+sueltas (mismo criterio que "cantidad de ventas" de
