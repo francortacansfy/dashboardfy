@@ -2807,14 +2807,17 @@ function aplicarPeriodoKpisPopover() {
 
 function calcularGrowthRangoKpis(base, desde, hasta, label) {
     const subset = base.filter(d => planFechaEnRango(d.fecha, desde, hasta));
-    const ordenes = new Set();
+    // Ingresos/Ordenes/Ordenes por producto/Ticket/Precio por unidad salen
+    // de la misma fuente que los tiles de la pestana Dashboard — ver
+    // calcularMetricasResumen. Lo que sigue abajo son desgloses propios de
+    // KPIs (por canal, combos, categorias) que ese resumen no cubre.
+    const resumen = calcularMetricasResumen(subset);
     const mlOrdenes = new Set();
     const shopifyOrdenes = new Set();
     const categorias = {};
-    let total = 0, ml = 0, shopify = 0, combo = 0, comboUds = 0, uds = 0;
+    let ml = 0, shopify = 0, combo = 0, comboUds = 0, uds = 0;
     subset.filter(d => d.completa).forEach(d => {
         if (d.tipoFila !== 'hija') {
-            total += d.total;
             if (d.tienda === 'Mercado Libre') ml += d.total;
             if (d.tienda === 'Shopify') shopify += d.total;
             if (COMBOS_REALES.has(d.sku)) combo += d.total;
@@ -2822,23 +2825,21 @@ function calcularGrowthRangoKpis(base, desde, hasta, label) {
             categorias[cat] = (categorias[cat] || 0) + d.total;
             uds += parseFloat(d.uds) || 0;
         }
-        // "Orden" para ticket promedio = una compra real, no una linea de
-        // producto: un paquete ML cuenta 1 vez (via su fila padre), igual
-        // que ya cuenta Shopify (sus lineas comparten num_venta). Por eso
-        // se excluye 'hija' aca, al reves que en el bloque de plata de arriba.
         if (d.tipoFila !== 'hija') {
-            if (d.num_venta) ordenes.add(d.num_venta);
             if (d.tienda === 'Mercado Libre' && d.num_venta) mlOrdenes.add(d.num_venta);
             if (d.tienda === 'Shopify' && d.num_venta) shopifyOrdenes.add(d.num_venta);
         }
         if (d.tipoFila !== 'padre' && COMBOS_REALES.has(d.sku)) comboUds += d.uds;
     });
+    const total = resumen.ingresos;
     return {
         mes: label,
         total,
         uds,
-        ordenes: ordenes.size,
-        ticket: ordenes.size ? total / ordenes.size : 0,
+        ordenes: resumen.ordenes,
+        ordenesPorProducto: resumen.ordenesPorProducto,
+        ticket: resumen.ticket,
+        avgUnitPrice: resumen.avgUnitPrice,
         ml,
         mlShare: total ? ml / total * 100 : 0,
         mlVentas: mlOrdenes.size,
