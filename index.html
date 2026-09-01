@@ -1354,7 +1354,8 @@ function calcularCoreMensual(base) {
             ticket: m.ticket,
             mlShare: m.ingresos ? ml / m.ingresos * 100 : 0,
             shopifyShare: m.ingresos ? shopify / m.ingresos * 100 : 0,
-    }));
+        };
+    });
 }
 
 function renderKpis() {
