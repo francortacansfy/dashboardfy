@@ -3503,6 +3503,7 @@ async function renderDashboard() {
     const revenue = resumen.ingresos;
     const avgTick = resumen.ticket;
     const avgUnitPrice = resumen.avgUnitPrice;
+    const totalUnits = resumen.totalUnits;
 
     // DATA trae todas las filas (sin filtro de ingresos), así que el subset
     // ya refleja el total real de órdenes/clientes sin necesidad de fetches aparte.
