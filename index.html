@@ -3510,7 +3510,7 @@ async function renderDashboard() {
     const revenue = resumen.ingresos;
     const avgTick = resumen.ticket;
     const avgUnitPrice = resumen.avgUnitPrice;
-    const totalUnits = resumen.totalUnits;
+    const totalUnitsVendidas = resumen.totalUnitsGross;
 
     // DATA trae todas las filas (sin filtro de ingresos), así que el subset
     // ya refleja el total real de órdenes/clientes sin necesidad de fetches aparte.
@@ -3556,7 +3556,7 @@ async function renderDashboard() {
         </div>
         <div class="kpi">
             <div class="kpi-header"><span class="kpi-label">Unidades Vendidas <i class="fas fa-circle-question" style="margin-left:4px;font-size:10px;color:var(--text-4);cursor:help;" title="Es la suma de todas las unidades vendidas en el período seleccionado."></i></span><div class="kpi-icon blue"><i class="fas fa-cubes"></i></div></div>
-            <div class="kpi-value">${totalUnits.toLocaleString('es-AR')}</div>
+            <div class="kpi-value">${totalUnitsVendidas.toLocaleString('es-AR')}</div>
         </div>
         <div class="kpi">
             <div class="kpi-header"><span class="kpi-label">Clientes Únicos</span><div class="kpi-icon red"><i class="fas fa-user"></i></div></div>
