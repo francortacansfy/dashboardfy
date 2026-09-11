@@ -1326,6 +1326,12 @@ function calcularMetricasResumen(subset) {
 
     const ingresos = subset.filter(d => d.completa && d.tipoFila !== 'hija').reduce((s, d) => s + d.total, 0);
     const totalUnits = subset.filter(d => d.completa).reduce((s, d) => s + d.uds, 0);
+    // "Unidades Vendidas" (tile propio, no el que usa Precio Prom. por
+    // Unidad): ML cuenta unidades de TODAS las ventas del periodo, incluidas
+    // canceladas/devueltas — bruto, igual que "Ventas brutas". Las filas
+    // padre de paquete siempre tienen uds=0 (el detalle esta en las hijas),
+    // asi que sumar todo el subset no duplica nada.
+    const totalUnitsGross = subset.reduce((s, d) => s + d.uds, 0);
 
     return {
         ingresos,
@@ -1334,6 +1340,7 @@ function calcularMetricasResumen(subset) {
         ticket: ticketOrdenes ? revenueTicket / ticketOrdenes : 0,
         avgUnitPrice: totalUnits ? ingresos / totalUnits : 0,
         totalUnits,
+        totalUnitsGross,
     };
 }
 
