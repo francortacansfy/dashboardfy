@@ -1040,15 +1040,19 @@ function fmt(n) {
 }
 
 function calcularPerdidasCancelacion(subset) {
-    const filas = subset.filter(d => d.tipoAnulacion);
+    // 'padre' = fila resumen de un paquete ML con multiples productos: no
+    // trae un SKU real (queda "S/D"), la plata del paquete ya esta repartida
+    // entre sus 'hija' (suma exacto al total del padre) - por eso se excluye
+    // 'padre' y se usan 'hija' + sueltas para poder atribuir todo a un SKU real.
+    const filas = subset.filter(d => d.tipoAnulacion && d.tipoFila !== 'padre');
     const map = {};
     function get(sku) {
         if (!map[sku]) map[sku] = { sku, plata: 0, unidades: 0, ordenesSet: new Set(), lineas: 0 };
         return map[sku];
     }
-    filas.filter(d => d.tipoFila !== 'hija').forEach(d => { get(d.sku).plata += d.total; });
-    filas.filter(d => d.tipoFila !== 'padre').forEach(d => {
+    filas.forEach(d => {
         const g = get(d.sku);
+        g.plata += d.total;
         g.unidades += d.uds;
         g.lineas += 1;
         if (d.num_venta) g.ordenesSet.add(d.num_venta);
@@ -1064,7 +1068,10 @@ function calcularPerdidasCancelacion(subset) {
 }
 
 function calcularPerdidasMargen(subset, costosBySku) {
-    const filas = subset.filter(d => d.completa && d.tipoFila !== 'hija');
+    // Mismo criterio que calcularPerdidasCancelacion: 'padre' nunca tiene un
+    // SKU real ni matchea costo, se excluye para poder atribuir el margen de
+    // paquetes ML a los SKUs reales de sus 'hija'.
+    const filas = subset.filter(d => d.completa && d.tipoFila !== 'padre');
     const map = {};
     function get(sku) {
         if (!map[sku]) map[sku] = { sku, plata: 0, unidades: 0, ordenesSet: new Set(), lineas: 0 };
@@ -1093,6 +1100,79 @@ function calcularPerdidasMargen(subset, costosBySku) {
         ordenes: g.lineas,
         ticket: g.ordenesSet.size ? g.plata / g.ordenesSet.size : 0,
     }));
+}
+
+function top10Por(rows, campo) {
+    return [...rows].filter(r => r[campo] > 0).sort((a, b) => b[campo] - a[campo]).slice(0, 10);
+}
+
+function nombreYMarcaSku(sku) {
+    const p = PRODUCTOS_BY_SKU.get(sku);
+    const c = COSTOS_BY_SKU.get(sku);
+    return {
+        nombre: p?.nombre || c?.nombre || sku,
+        marca: p?.marca || c?.marca || '',
+    };
+}
+
+function renderTop10Tabla(tbodyId, rows, campo, formatValor) {
+    const el = document.getElementById(tbodyId);
+    if (!el) return;
+    const top = top10Por(rows, campo);
+    if (!top.length) {
+        el.innerHTML = '<tr><td colspan="6" class="empty">Sin resultados</td></tr>';
+        return;
+    }
+    const max = top[0][campo] || 1;
+    el.innerHTML = top.map((r, i) => {
+        const { nombre, marca } = nombreYMarcaSku(r.sku);
+        const barW = max ? Math.round(r[campo] / max * 100) : 0;
+        return `
+        <tr>
+            <td class="mono">${i + 1}</td>
+            <td class="mono">${r.sku}</td>
+            <td>${nombre}</td>
+            <td>${marca}</td>
+            <td><strong>${formatValor(r[campo])}</strong></td>
+            <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <div style="flex:1;height:6px;background:var(--border);border-radius:3px;min-width:60px;">
+                        <div style="width:${barW}%;height:100%;background:var(--primary);border-radius:3px;"></div>
+                    </div>
+                </div>
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+const fmtEntero = v => Math.round(v).toLocaleString('es-AR');
+
+function renderPerdidas() {
+    const anio   = document.getElementById('filterAnioPerdidas')?.value   || '';
+    const mes    = document.getElementById('filterMesPerdidas')?.value    || '';
+    const marca  = document.getElementById('filterMarcaPerdidas')?.value  || '';
+    const tienda = document.getElementById('filterTiendaPerdidas')?.value || '';
+    const subset = DATA.filter(d =>
+        (!anio   || d.fecha?.substring(0, 4) === anio) &&
+        (!mes    || d.fecha?.substring(5, 7) === mes)  &&
+        (!marca  || d.marca  === marca) &&
+        (!tienda || d.tienda === tienda)
+    );
+
+    const cancelacion = calcularPerdidasCancelacion(subset);
+    const margen = calcularPerdidasMargen(subset, COSTOS_BY_SKU);
+
+    renderTop10Tabla('tablaPerdidasCancPlata',    cancelacion, 'plata',    fmt);
+    renderTop10Tabla('tablaPerdidasCancUnidades', cancelacion, 'unidades', fmtEntero);
+    renderTop10Tabla('tablaPerdidasCancCompras',  cancelacion, 'compras',  fmtEntero);
+    renderTop10Tabla('tablaPerdidasCancOrdenes',  cancelacion, 'ordenes',  fmtEntero);
+    renderTop10Tabla('tablaPerdidasCancTicket',   cancelacion, 'ticket',   fmt);
+
+    renderTop10Tabla('tablaPerdidasMargenPlata',    margen, 'plata',    fmt);
+    renderTop10Tabla('tablaPerdidasMargenUnidades', margen, 'unidades', fmtEntero);
+    renderTop10Tabla('tablaPerdidasMargenCompras',  margen, 'compras',  fmtEntero);
+    renderTop10Tabla('tablaPerdidasMargenOrdenes',  margen, 'ordenes',  fmtEntero);
+    renderTop10Tabla('tablaPerdidasMargenTicket',   margen, 'ticket',   fmt);
 }
 
 function fmtMoneyCompact(n) {
