@@ -1039,6 +1039,62 @@ function fmt(n) {
     return '$' + Math.round(n).toLocaleString('es-AR');
 }
 
+function calcularPerdidasCancelacion(subset) {
+    const filas = subset.filter(d => d.tipoAnulacion);
+    const map = {};
+    function get(sku) {
+        if (!map[sku]) map[sku] = { sku, plata: 0, unidades: 0, ordenesSet: new Set(), lineas: 0 };
+        return map[sku];
+    }
+    filas.filter(d => d.tipoFila !== 'hija').forEach(d => { get(d.sku).plata += d.total; });
+    filas.filter(d => d.tipoFila !== 'padre').forEach(d => {
+        const g = get(d.sku);
+        g.unidades += d.uds;
+        g.lineas += 1;
+        if (d.num_venta) g.ordenesSet.add(d.num_venta);
+    });
+    return Object.values(map).map(g => ({
+        sku: g.sku,
+        plata: g.plata,
+        unidades: g.unidades,
+        compras: g.ordenesSet.size,
+        ordenes: g.lineas,
+        ticket: g.ordenesSet.size ? g.plata / g.ordenesSet.size : 0,
+    }));
+}
+
+function calcularPerdidasMargen(subset, costosBySku) {
+    const filas = subset.filter(d => d.completa && d.tipoFila !== 'hija');
+    const map = {};
+    function get(sku) {
+        if (!map[sku]) map[sku] = { sku, plata: 0, unidades: 0, ordenesSet: new Set(), lineas: 0 };
+        return map[sku];
+    }
+    filas.forEach(d => {
+        const costos = costosBySku.get(d.sku);
+        if (!costos) return;
+        const costoUnit = d.tienda === 'Mercado Libre' ? costos.costo_ml
+                         : d.tienda === 'Shopify'       ? costos.costo_shopify
+                         : null;
+        if (costoUnit === null || costoUnit === undefined) return;
+        const margen = d.total - costoUnit * d.uds;
+        if (margen >= 0) return;
+        const g = get(d.sku);
+        g.plata += -margen;
+        g.unidades += d.uds;
+        g.lineas += 1;
+        if (d.num_venta) g.ordenesSet.add(d.num_venta);
+    });
+    return Object.values(map).map(g => ({
+        sku: g.sku,
+        plata: g.plata,
+        unidades: g.unidades,
+        compras: g.ordenesSet.size,
+        ordenes: g.lineas,
+        ticket: g.ordenesSet.size ? g.plata / g.ordenesSet.size : 0,
+    }));
+}
+
 function fmtMoneyCompact(n) {
     const value = Math.abs(n || 0);
     if (value >= 1000000000) return '$' + (n / 1000000000).toFixed(2).replace('.', ',') + 'MM';
@@ -1282,7 +1338,7 @@ function populateTiendaFilters() {
     const marcas  = [...new Set(DATA.map(d => d.marca).filter(x => x && x !== 'S/D'))].sort();
     const anios   = [...new Set(DATA.map(d => d.fecha?.substring(0,4)).filter(Boolean))].sort();
 
-    ['filterTiendaDash','filterTiendaKpis','filterTiendaProd','filterTiendaMarcas','filterTiendaNuevos','planTienda'].forEach(id => {
+    ['filterTiendaDash','filterTiendaKpis','filterTiendaProd','filterTiendaMarcas','filterTiendaNuevos','filterTiendaPerdidas','planTienda'].forEach(id => {
         const sel = document.getElementById(id);
         if (!sel) return;
         const val = sel.value;
@@ -1290,7 +1346,7 @@ function populateTiendaFilters() {
             tiendas.map(t => `<option value="${t}"${val===t?' selected':''}>${t}</option>`).join('');
     });
 
-    ['filterMarcaDash','filterMarcaKpis','filterMarcaProd','filterMarcaNuevos','planMarca'].forEach(id => {
+    ['filterMarcaDash','filterMarcaKpis','filterMarcaProd','filterMarcaNuevos','filterMarcaPerdidas','planMarca'].forEach(id => {
         const sel = document.getElementById(id);
         if (!sel) return;
         const val = sel.value;
@@ -1298,7 +1354,7 @@ function populateTiendaFilters() {
             marcas.map(m => `<option value="${m}"${val===m?' selected':''}>${m}</option>`).join('');
     });
 
-    ['filterAnioDash','filterAnioKpis','filterAnioProd','filterAnioMarcas','filterAnioStock','filterAnioNuevos'].forEach(id => {
+    ['filterAnioDash','filterAnioKpis','filterAnioProd','filterAnioMarcas','filterAnioStock','filterAnioNuevos','filterAnioPerdidas'].forEach(id => {
         const sel = document.getElementById(id);
         if (!sel) return;
         const val = sel.value;
