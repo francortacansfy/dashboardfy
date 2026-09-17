@@ -4292,7 +4292,7 @@ function renderAnalisis() {
     }).join('') || '<tr><td colspan="10" class="empty">Sin resultados</td></tr>';
 }
 
-const TITLES = { dashboard:'Dashboard', kpis:'KPIs', productos:'Productos', marcas:'Marcas', stock:'Stock', analisis:'Análisis SKUs', nuevos:'Nuevos', mayorista:'Mayorista' };
+const TITLES = { dashboard:'Dashboard', kpis:'KPIs', productos:'Productos', marcas:'Marcas', stock:'Stock', analisis:'Análisis SKUs', perdidas:'Pérdidas', nuevos:'Nuevos', mayorista:'Mayorista' };
 const LAST_TAB_KEY = 'fyl_dashboard_tab_activo';
 
 function tabInicialDashboard() {
@@ -4321,6 +4321,7 @@ function activarTab(tab, guardar = true) {
     if (tab === 'stock') { renderStock(); renderStockMl(); }
     if (tab === 'marcas') renderMarcas();
     if (tab === 'analisis') renderAnalisis();
+    if (tab === 'perdidas') renderPerdidas();
     if (tab === 'nuevos') renderNuevos();
     if (tab === 'mayorista') renderMayoristaActivo();
 }
