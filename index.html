@@ -1219,6 +1219,7 @@ async function loadData() {
         }).filter(d => d.total > 0); // mismo criterio que analyticsfyl: descarta filas sin ingreso real
 
         await loadProductos();
+        await loadCostos();
         await loadComboMultiplicadores();
 
         console.log('Filas cargadas:', DATA.length);
@@ -3942,6 +3943,8 @@ let PRODUCTOS = [];
 let PRODUCTOS_BY_SKU = new Map();
 let PRODUCTOS_SEARCH = [];
 let CATEGORIA_SKU_CACHE = new Map();
+let COSTOS = [];
+let COSTOS_BY_SKU = new Map();
 
 function indexarProductosKpis() {
     PRODUCTOS_BY_SKU = new Map();
@@ -3989,6 +3992,16 @@ async function loadProductos() {
     if (!res.ok) throw new Error(`Supabase productos error: ${res.status}`);
     PRODUCTOS = await res.json();
     indexarProductosKpis();
+}
+
+async function loadCostos() {
+    const res = await fetch(
+        `${SUPA_URL}/rest/v1/costos?select=sku,nombre,marca,costo_shopify,costo_ml&limit=1000`,
+        { headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` } }
+    );
+    if (!res.ok) throw new Error(`Supabase costos error: ${res.status}`);
+    COSTOS = await res.json();
+    COSTOS_BY_SKU = new Map(COSTOS.map(c => [c.sku, c]));
 }
 
 // Multiplicador de "cuantos meses/ciclos de compra dura un envase" para
