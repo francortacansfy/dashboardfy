@@ -349,6 +349,24 @@
         <select class="filter-select" id="filterTiendaMarcas" onchange="renderMarcas()"><option value="">Todas</option></select>
     </div>
 
+    <div class="filterbar" id="fb-categorias">
+        <span class="filterbar-label">Año</span>
+        <select class="filter-select" id="filterAnioCategorias" onchange="renderCategorias()"><option value="">Todos</option></select>
+        <select class="filter-select" id="filterMesCategorias" onchange="renderCategorias()">
+            <option value="">Todos los meses</option>
+            <option value="01">Enero</option><option value="02">Febrero</option><option value="03">Marzo</option>
+            <option value="04">Abril</option><option value="05">Mayo</option><option value="06">Junio</option>
+            <option value="07">Julio</option><option value="08">Agosto</option><option value="09">Septiembre</option>
+            <option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
+        </select>
+        <div class="filterbar-sep"></div>
+        <span class="filterbar-label">Marca</span>
+        <select class="filter-select" id="filterMarcaCategorias" onchange="renderCategorias()"><option value="">Todas</option></select>
+        <div class="filterbar-sep"></div>
+        <span class="filterbar-label">Tienda</span>
+        <select class="filter-select" id="filterTiendaCategorias" onchange="renderCategorias()"><option value="">Todas</option></select>
+    </div>
+
     <div class="filterbar" id="fb-analisis">
         <span class="filterbar-label">Semáforo</span>
         <select class="filter-select" id="analisisFilter" onchange="renderAnalisis()">
