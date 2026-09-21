@@ -1472,7 +1472,7 @@ function populateTiendaFilters() {
             tiendas.map(t => `<option value="${t}"${val===t?' selected':''}>${t}</option>`).join('');
     });
 
-    ['filterMarcaDash','filterMarcaKpis','filterMarcaProd','filterMarcaNuevos','filterMarcaPerdidas','planMarca'].forEach(id => {
+    ['filterMarcaDash','filterMarcaKpis','filterMarcaProd','filterMarcaCategorias','filterMarcaNuevos','filterMarcaPerdidas','planMarca'].forEach(id => {
         const sel = document.getElementById(id);
         if (!sel) return;
         const val = sel.value;
