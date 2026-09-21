@@ -1464,7 +1464,7 @@ function populateTiendaFilters() {
     const marcas  = [...new Set(DATA.map(d => d.marca).filter(x => x && x !== 'S/D'))].sort();
     const anios   = [...new Set(DATA.map(d => d.fecha?.substring(0,4)).filter(Boolean))].sort();
 
-    ['filterTiendaDash','filterTiendaKpis','filterTiendaProd','filterTiendaMarcas','filterTiendaNuevos','filterTiendaPerdidas','planTienda'].forEach(id => {
+    ['filterTiendaDash','filterTiendaKpis','filterTiendaProd','filterTiendaMarcas','filterTiendaCategorias','filterTiendaNuevos','filterTiendaPerdidas','planTienda'].forEach(id => {
         const sel = document.getElementById(id);
         if (!sel) return;
         const val = sel.value;
@@ -4515,6 +4515,7 @@ function activarTab(tab, guardar = true) {
     if (tab === 'productos') renderProductos();
     if (tab === 'stock') { renderStock(); renderStockMl(); }
     if (tab === 'marcas') renderMarcas();
+    if (tab === 'categorias') renderCategorias();
     if (tab === 'analisis') renderAnalisis();
     if (tab === 'perdidas') renderPerdidas();
     if (tab === 'nuevos') renderNuevos();
