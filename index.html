@@ -3912,7 +3912,17 @@ function renderCategorias() {
         }
     });
 
-    document.getElementById('tableCategoriasBody').innerHTML = rows.map(([cat, v], i) => {
+    document.getElementById('tableCategoriasBody').innerHTML = filasCategoriaHtml(rows, ordenPorCategoria, totalIngresos);
+
+    // Detalle por marca (FYnutrition/Hairfy por separado, 100% propio de
+    // cada una) — ver comentario en el HTML de por que hace falta ademas de
+    // la tabla combinada de arriba.
+    renderTablaCategoriaPorMarca('FYnutrition', tienda, anio, mes, 'tableCategoriasBodyFyn');
+    renderTablaCategoriaPorMarca('Hairfy', tienda, anio, mes, 'tableCategoriasBodyHf');
+}
+
+function filasCategoriaHtml(rows, ordenPorCategoria, totalIngresos) {
+    return rows.map(([cat, v], i) => {
         const ordenes = ordenPorCategoria[cat]?.size || 0;
         const ticket  = ordenes ? v.total / ordenes : 0;
         const pct     = totalIngresos ? (v.total / totalIngresos * 100).toFixed(1) : '0.0';
@@ -3935,6 +3945,32 @@ function renderCategorias() {
             </td>
         </tr>`;
     }).join('') || '<tr><td colspan="7" class="empty">Sin resultados</td></tr>';
+}
+
+// Igual logica que el bloque de arriba de renderCategorias, pero fijando la
+// marca (ignora el select de marca del filtro global de la pestana) y
+// calculando el 100% sobre el total de ESA marca sola — asi Hairfy no queda
+// tapado por el volumen de FYnutrition en el ranking combinado.
+function renderTablaCategoriaPorMarca(marcaFija, tienda, anio, mes, tbodyId) {
+    const subset = DATA.filter(d =>
+        d.marca === marcaFija &&
+        (!tienda || d.tienda === tienda) &&
+        (!anio   || d.fecha?.substring(0,4) === anio) &&
+        (!mes    || d.fecha?.substring(5,7) === mes)  &&
+        d.completa && d.tipoFila !== 'padre'
+    );
+    const map = {};
+    const ordenPorCategoria = {};
+    subset.forEach(d => {
+        const cat = categoriaKpi(d) || 'Sin categoría';
+        if (!map[cat]) { map[cat] = { uds:0, total:0 }; ordenPorCategoria[cat] = new Set(); }
+        map[cat].uds   += d.uds;
+        map[cat].total += d.total;
+        if (d.num_venta) ordenPorCategoria[cat].add(d.num_venta);
+    });
+    const totalIngresos = Object.values(map).reduce((s,v) => s + v.total, 0);
+    const rows = Object.entries(map).sort((a,b) => b[1].total - a[1].total);
+    document.getElementById(tbodyId).innerHTML = filasCategoriaHtml(rows, ordenPorCategoria, totalIngresos);
 }
 
 async function renderDashboard() {
