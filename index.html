@@ -4092,7 +4092,7 @@ function ajustarAlturaTablaCategorias() {
     const scroll = document.getElementById('categoriasScroll');
     if (!scroll || scroll.offsetParent === null) return;
     const top = scroll.getBoundingClientRect().top;
-    scroll.style.maxHeight = Math.max(220, window.innerHeight - top - 28) + 'px';
+    scroll.style.maxHeight = Math.max(180, window.innerHeight - top - 28) + 'px';
 }
 
 function renderProductos() {
