@@ -753,6 +753,33 @@
         </div>
     </div>
 
+    <!-- CATEGORÍAS -->
+    <div class="page" id="categorias">
+        <div class="kpi-grid" id="categoriasKpiGrid"></div>
+        <div class="chart-row">
+            <div class="chart-card">
+                <h3>Ingresos por Categoría</h3>
+                <div class="chart-wrap"><canvas id="chartCategoriasBar"></canvas></div>
+            </div>
+            <div class="chart-card">
+                <h3>Unidades por Categoría</h3>
+                <div class="chart-wrap"><canvas id="chartCategoriasUds"></canvas></div>
+            </div>
+        </div>
+        <div class="table-card">
+            <div class="table-head">
+                <h3>Detalle por Categoría</h3>
+                <span style="font-size:12px;color:var(--text-3)">Categoría = productos.categoria en Supabase (sincronizada desde Contexto empresa/productos.csv)</span>
+            </div>
+            <div class="table-scroll">
+                <table>
+                    <thead><tr><th>#</th><th>Categoría</th><th>Ingresos</th><th>Unidades</th><th>Órdenes</th><th>Ticket Prom.</th><th>% Ingresos</th></tr></thead>
+                    <tbody id="tableCategoriasBody"><tr><td colspan="7" class="empty">Sin datos</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
     <!-- STOCK -->
     <div class="page" id="stock">
         <div class="kpi-grid">
