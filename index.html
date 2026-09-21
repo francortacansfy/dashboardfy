@@ -3942,6 +3942,18 @@ function renderCategorias() {
     // la tabla combinada de arriba.
     renderTablaCategoriaPorMarca('FYnutrition', tienda, anio, mes, 'tableCategoriasBodyFyn');
     renderTablaCategoriaPorMarca('Hairfy', tienda, anio, mes, 'tableCategoriasBodyHf');
+
+    // Selector de categoria para el panel de evolucion: por defecto la
+    // categoria lider del recorte actual, pero sin pisar una eleccion manual
+    // del usuario mientras siga existiendo en la lista.
+    const selEvol = document.getElementById('categoriaEvolSelect');
+    if (selEvol) {
+        const valPrevio = selEvol.value;
+        const catsDisponibles = rows.map(([cat]) => cat);
+        selEvol.innerHTML = catsDisponibles.map(c => `<option value="${c}">${c}</option>`).join('');
+        selEvol.value = catsDisponibles.includes(valPrevio) ? valPrevio : (topCategoria !== '-' ? topCategoria : catsDisponibles[0] || '');
+    }
+    renderCategoriaEvolucion();
 }
 
 function filasCategoriaHtml(rows, ordenPorCategoria, totalIngresos) {
