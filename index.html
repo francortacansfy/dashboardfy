@@ -4008,6 +4008,90 @@ function renderTablaCategoriaPorMarca(marcaFija, tienda, anio, mes, tbodyId) {
     document.getElementById(tbodyId).innerHTML = filasCategoriaHtml(rows, ordenPorCategoria, totalIngresos);
 }
 
+// Panel de evolucion de UNA categoria elegida por el select. A proposito
+// respeta Año/Marca/Tienda pero NO el filtro de Mes (ver comentario en el
+// HTML) — el sentido de este panel es mirar varios meses a la vez.
+function renderCategoriaEvolucion() {
+    const sel = document.getElementById('categoriaEvolSelect');
+    const chartMensualEl = document.getElementById('chartCategoriaEvolMensual');
+    if (!sel || !chartMensualEl) return;
+    const categoria = sel.value;
+    if (!categoria) return;
+
+    const tienda = document.getElementById('filterTiendaCategorias')?.value || '';
+    const marca  = document.getElementById('filterMarcaCategorias')?.value  || '';
+    const anio   = document.getElementById('filterAnioCategorias')?.value   || '';
+    const subset = DATA.filter(d =>
+        (!tienda || d.tienda === tienda) &&
+        (!marca  || d.marca  === marca)  &&
+        (!anio   || d.fecha?.substring(0,4) === anio) &&
+        d.completa && d.tipoFila !== 'padre' &&
+        (categoriaKpi(d) || 'Sin categoría') === categoria
+    );
+
+    // Ingresos por mes (yearmonth), ordenado cronologicamente.
+    const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    const porMes = {};
+    subset.forEach(d => {
+        const ym = d.fecha?.substring(0,7);
+        if (!ym) return;
+        porMes[ym] = (porMes[ym] || 0) + d.total;
+    });
+    const mesesOrdenados = Object.keys(porMes).sort();
+    const labelsMes = mesesOrdenados.map(ym => `${MESES[parseInt(ym.substring(5,7),10)-1]} ${ym.substring(2,4)}`);
+
+    if (CHARTS.categoriaEvolMensual) CHARTS.categoriaEvolMensual.destroy();
+    CHARTS.categoriaEvolMensual = new Chart(chartMensualEl, {
+        type: 'line',
+        data: {
+            labels: labelsMes,
+            datasets: [{ data: mesesOrdenados.map(ym => porMes[ym]), borderColor:'#00478d', backgroundColor:'rgba(0,71,141,.12)', fill:true, tension:.3, pointRadius:3, pointBackgroundColor:'#00478d', borderWidth:2 }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display:false }, tooltip: { callbacks: { label: ctx => ` ${fmt(ctx.raw)}` } } },
+            scales: { x: { ticks: { font:{family:'DM Sans',size:10} }, grid:{display:false} }, y: { ticks: { callback: v=>fmt(v), font:{family:'DM Sans',size:10} }, grid:{display:false} } }
+        }
+    });
+
+    // Promedio por semana del mes: semana 1 = dias 1-7, 2 = 8-14, 3 = 15-21,
+    // 4 = 22-28, 5 = 29-31. Primero se suma por (mes, semana), y recien
+    // despues se promedia entre los meses que tuvieron esa semana — asi la
+    // semana 5 (no todos los meses la tienen) no queda subestimada por
+    // dividir sobre meses que nunca la tuvieron.
+    const porMesSemana = {};
+    subset.forEach(d => {
+        const dia = parseInt(d.fecha?.substring(8,10), 10);
+        const ym  = d.fecha?.substring(0,7);
+        if (!dia || !ym) return;
+        const semana = Math.min(5, Math.ceil(dia/7));
+        const key = ym + '|' + semana;
+        porMesSemana[key] = (porMesSemana[key] || 0) + d.total;
+    });
+    const acumSemana = {1:{sum:0,meses:0},2:{sum:0,meses:0},3:{sum:0,meses:0},4:{sum:0,meses:0},5:{sum:0,meses:0}};
+    Object.entries(porMesSemana).forEach(([key, total]) => {
+        const semana = parseInt(key.split('|')[1], 10);
+        acumSemana[semana].sum   += total;
+        acumSemana[semana].meses += 1;
+    });
+    const semanasConDatos = [1,2,3,4,5].filter(s => acumSemana[s].meses > 0);
+    const promedios = semanasConDatos.map(s => acumSemana[s].sum / acumSemana[s].meses);
+
+    if (CHARTS.categoriaEvolSemana) CHARTS.categoriaEvolSemana.destroy();
+    CHARTS.categoriaEvolSemana = new Chart(document.getElementById('chartCategoriaEvolSemana'), {
+        type: 'bar',
+        data: {
+            labels: semanasConDatos.map(s => 'Semana ' + s),
+            datasets: [{ data: promedios, backgroundColor:'#2563eb', borderRadius:6, borderWidth:0 }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display:false }, tooltip: { callbacks: { label: ctx => ` ${fmt(ctx.raw)} promedio` } } },
+            scales: { x: { ticks: { font:{family:'DM Sans',size:11} }, grid:{display:false} }, y: { ticks: { callback: v=>fmt(v), font:{family:'DM Sans',size:10} }, grid:{display:false} } }
+        }
+    });
+}
+
 async function renderDashboard() {
     const tienda = document.getElementById('filterTiendaDash')?.value || '';
     const marca  = document.getElementById('filterMarcaDash')?.value  || '';
