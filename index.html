@@ -4062,6 +4062,25 @@ function renderCategoriaEvolucion() {
         }
     });
 
+    if (CHARTS.categoriaEvolDescuento) CHARTS.categoriaEvolDescuento.destroy();
+    CHARTS.categoriaEvolDescuento = new Chart(document.getElementById('chartCategoriaEvolDescuento'), {
+        type: 'bar',
+        data: {
+            labels: labelsMes,
+            datasets: [{ data: mesesOrdenados.map(ym => porMesDescuento[ym] || 0), backgroundColor:'#f59e0b', borderRadius:6, borderWidth:0 }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display:false }, tooltip: { callbacks: { label: ctx => {
+                const ym = mesesOrdenados[ctx.dataIndex];
+                const ingresosMes = porMes[ym] || 0;
+                const pct = ingresosMes ? (ctx.raw / ingresosMes * 100).toFixed(1) : '0.0';
+                return ` ${fmt(ctx.raw)} (${pct}% de los ingresos del mes)`;
+            } } } },
+            scales: { x: { ticks: { font:{family:'DM Sans',size:10} }, grid:{display:false} }, y: { ticks: { callback: v=>fmt(v), font:{family:'DM Sans',size:10} }, grid:{display:false} } }
+        }
+    });
+
     // Promedio por semana del mes: semana 1 = dias 1-7, 2 = 8-14, 3 = 15-21,
     // 4 = 22-28, 5 = 29-31. Primero se suma por (mes, semana), y recien
     // despues se promedia entre los meses que tuvieron esa semana — asi la
