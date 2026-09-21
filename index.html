@@ -810,6 +810,29 @@
                 </table>
             </div>
         </div>
+
+        <!-- Evolucion de una categoria elegida: mes a mes (usa Año/Marca/Tienda
+        de arriba, IGNORA el filtro de Mes a proposito, no tendria sentido ver
+        "evolucion" de un solo mes) y promedio por semana del mes (semana 1 a
+        5, segun el dia: 1-7, 8-14, 15-21, 22-28, 29-31), para ver si hay un
+        patron dentro del mes (ej. cobro de sueldo). -->
+        <div class="table-card">
+            <div class="table-head">
+                <h3>Evolución de una categoría</h3>
+                <select class="filter-select" id="categoriaEvolSelect" onchange="renderCategoriaEvolucion()" style="min-width:200px"></select>
+            </div>
+            <div style="padding:0 22px 18px;font-size:12px;color:var(--text-3)">Usa los filtros de Año/Marca/Tienda de arriba (el de Mes no aplica acá, tapa la evolución)</div>
+            <div class="chart-row" style="padding:0 22px 22px">
+                <div>
+                    <h3 style="font-size:13px;margin-bottom:8px;color:var(--text-2)">Ingresos por mes</h3>
+                    <div class="chart-wrap"><canvas id="chartCategoriaEvolMensual"></canvas></div>
+                </div>
+                <div>
+                    <h3 style="font-size:13px;margin-bottom:8px;color:var(--text-2)">Promedio por semana del mes</h3>
+                    <div class="chart-wrap"><canvas id="chartCategoriaEvolSemana"></canvas></div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- STOCK -->
