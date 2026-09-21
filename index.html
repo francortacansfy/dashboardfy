@@ -1419,7 +1419,7 @@ async function loadData() {
 
     try {
         const all = await fetchAllParalelo(
-            `${SUPA_URL}/rest/v1/ventas?select=num_venta,fecha,unidades,ingresos_productos_ars,anulaciones_reembolsos_ars,sku,tienda,tienda_oficial,dni,email,estado,tipo_fila&order=row_id.asc`,
+            `${SUPA_URL}/rest/v1/ventas?select=num_venta,fecha,unidades,ingresos_productos_ars,anulaciones_reembolsos_ars,descuentos_bonificaciones,sku,tienda,tienda_oficial,dni,email,estado,tipo_fila&order=row_id.asc`,
             { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` }
         );
 
