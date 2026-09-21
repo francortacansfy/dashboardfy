@@ -4081,19 +4081,7 @@ function ajustarAlturaTablaProductos() {
 }
 window.addEventListener('resize', () => {
     if (document.getElementById('productos')?.classList.contains('active')) ajustarAlturaTablaProductos();
-    if (document.getElementById('categorias')?.classList.contains('active')) ajustarAlturaTablaCategorias();
 });
-
-// Mismo criterio que ajustarAlturaTablaProductos: la tabla ocupa todo el alto
-// visible restante hasta el fondo de la ventana, para que "Detalle por
-// Categoría" se vea completo sin tener que bajar la página (los graficos de
-// arriba ya se achicaron a 130px para dejarle lugar).
-function ajustarAlturaTablaCategorias() {
-    const scroll = document.getElementById('categoriasScroll');
-    if (!scroll || scroll.offsetParent === null) return;
-    const top = scroll.getBoundingClientRect().top;
-    scroll.style.maxHeight = Math.max(180, window.innerHeight - top - 28) + 'px';
-}
 
 function renderProductos() {
     renderProductosPorSku();
