@@ -1433,6 +1433,7 @@ async function loadData() {
                 fecha:       r.fecha    || '',
                 uds:         r.unidades || 0,
                 total,
+                descuento:   parseFloat(r.descuentos_bonificaciones) || 0,
                 anulacion,
                 completa:    anulacion === 0,
                 // "Paquete de N productos": estado de ML para ordenes agrupadas en un
