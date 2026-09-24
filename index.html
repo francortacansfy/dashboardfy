@@ -4033,23 +4033,67 @@ function renderCategoriaEvolucion() {
     const tienda = document.getElementById('filterTiendaCategorias')?.value || '';
     const marca  = document.getElementById('filterMarcaCategorias')?.value  || '';
     const anio   = document.getElementById('filterAnioCategorias')?.value   || '';
-    const subset = DATA.filter(d =>
+    const enUnidades = (document.getElementById('categoriaEvolModo')?.value || 'pesos') === 'unidades';
+    const base = DATA.filter(d =>
         (!tienda || d.tienda === tienda) &&
-        (!marca  || d.marca  === marca)  &&
         (!anio   || d.fecha?.substring(0,4) === anio) &&
-        d.completa && d.tipoFila !== 'padre' &&
-        (categoriaKpi(d) || 'Sin categoría') === categoria
+        d.completa && d.tipoFila !== 'padre'
     );
 
-    // Ingresos y descuentos por mes (yearmonth), ordenado cronologicamente.
+    // `filas` normaliza los dos modos a { fecha, valor, pesos, descuento }:
+    // - Pesos: la venta tal cual, en la categoria del SKU vendido (un combo
+    //   cae en "Combos").
+    // - Unidades: la venta se abre en sus productos reales segun
+    //   combo_componentes (igual que la vista "Por Producto"): un pack -P3
+    //   suma 3 unidades del producto base, un combo de productos distintos
+    //   suma 1 de cada uno. La categoria y la marca son las del producto
+    //   componente, asi que en este modo "Combos" no existe como categoria.
+    const filas = [];
+    if (!enUnidades) {
+        base.forEach(d => {
+            if (marca && d.marca !== marca) return;
+            if ((categoriaKpi(d) || 'Sin categoría') !== categoria) return;
+            filas.push({ fecha: d.fecha, valor: d.total, pesos: d.total, descuento: Math.abs(d.descuento || 0) });
+        });
+    } else {
+        base.forEach(d => {
+            const skuVendido = String(d.sku || '').trim().toUpperCase();
+            const componentes = COMBO_COMPONENTES.get(skuVendido) || [{ sku: skuVendido, cantidad: 1 }];
+            const totalCantidad = componentes.reduce((s, c) => s + c.cantidad, 0) || 1;
+            componentes.forEach(c => {
+                const marcaComp = productoPorSkuKpis(c.sku)?.marca || d.marca;
+                if (marca && String(marcaComp || '').toLowerCase() !== marca.toLowerCase()) return;
+                if ((categoriaKpi({ sku: c.sku, marca: marcaComp }) || 'Sin categoría') !== categoria) return;
+                const parte = c.cantidad / totalCantidad;
+                filas.push({ fecha: d.fecha, valor: (d.uds || 0) * c.cantidad, pesos: d.total * parte, descuento: Math.abs(d.descuento || 0) * parte });
+            });
+        });
+    }
+
+    const fmtValor = enUnidades ? (v => Math.round(v).toLocaleString('es-AR') + ' u') : fmt;
+    const fmtEje   = enUnidades ? (v => Math.round(v).toLocaleString('es-AR')) : fmt;
+    const notaEl = document.getElementById('categoriaEvolNota');
+    if (notaEl) {
+        notaEl.textContent = !enUnidades ? '' : (categoria === 'Combos'
+            ? ' · En unidades los combos no tienen categoría propia: sus productos se cuentan en la categoría de cada uno'
+            : ' · Unidades de producto: combos y packs abiertos en sus productos (combo_componentes)');
+    }
+    const tituloMensual = document.getElementById('categoriaEvolTituloMensual');
+    if (tituloMensual) tituloMensual.textContent = enUnidades ? 'Unidades de producto por mes' : 'Ingresos por mes';
+    const tituloSemana = document.getElementById('categoriaEvolTituloSemana');
+    if (tituloSemana) tituloSemana.textContent = enUnidades ? 'Promedio de unidades por semana del mes' : 'Promedio por semana del mes';
+
+    // Valor, ingresos y descuentos por mes (yearmonth), ordenado cronologicamente.
     const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
     const porMes = {};
+    const porMesPesos = {};
     const porMesDescuento = {};
-    subset.forEach(d => {
-        const ym = d.fecha?.substring(0,7);
+    filas.forEach(f => {
+        const ym = f.fecha?.substring(0,7);
         if (!ym) return;
-        porMes[ym] = (porMes[ym] || 0) + d.total;
-        porMesDescuento[ym] = (porMesDescuento[ym] || 0) + Math.abs(d.descuento || 0);
+        porMes[ym] = (porMes[ym] || 0) + f.valor;
+        porMesPesos[ym] = (porMesPesos[ym] || 0) + f.pesos;
+        porMesDescuento[ym] = (porMesDescuento[ym] || 0) + f.descuento;
     });
     const mesesOrdenados = Object.keys(porMes).sort();
     const labelsMes = mesesOrdenados.map(ym => `${MESES[parseInt(ym.substring(5,7),10)-1]} ${ym.substring(2,4)}`);
@@ -4063,8 +4107,8 @@ function renderCategoriaEvolucion() {
         },
         options: {
             responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { display:false }, tooltip: { callbacks: { label: ctx => ` ${fmt(ctx.raw)}` } } },
-            scales: { x: { ticks: { font:{family:'DM Sans',size:10} }, grid:{display:false} }, y: { ticks: { callback: v=>fmt(v), font:{family:'DM Sans',size:10} }, grid:{display:false} } }
+            plugins: { legend: { display:false }, tooltip: { callbacks: { label: ctx => ` ${fmtValor(ctx.raw)}` } } },
+            scales: { x: { ticks: { font:{family:'DM Sans',size:10} }, grid:{display:false} }, y: { ticks: { callback: v=>fmtEje(v), font:{family:'DM Sans',size:10} }, grid:{display:false} } }
         }
     });
 
