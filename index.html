@@ -4163,8 +4163,8 @@ function renderCategoriaEvolucion() {
         },
         options: {
             responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { display:false }, tooltip: { callbacks: { label: ctx => ` ${fmt(ctx.raw)} promedio` } } },
-            scales: { x: { ticks: { font:{family:'DM Sans',size:11} }, grid:{display:false} }, y: { ticks: { callback: v=>fmt(v), font:{family:'DM Sans',size:10} }, grid:{display:false} } }
+            plugins: { legend: { display:false }, tooltip: { callbacks: { label: ctx => ` ${fmtValor(ctx.raw)} promedio` } } },
+            scales: { x: { ticks: { font:{family:'DM Sans',size:11} }, grid:{display:false} }, y: { ticks: { callback: v=>fmtEje(v), font:{family:'DM Sans',size:10} }, grid:{display:false} } }
         }
     });
 }
