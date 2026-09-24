@@ -819,16 +819,22 @@
         <div class="table-card">
             <div class="table-head">
                 <h3>Evolución de una categoría</h3>
-                <select class="filter-select" id="categoriaEvolSelect" onchange="renderCategoriaEvolucion()" style="min-width:200px"></select>
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                    <select class="filter-select" id="categoriaEvolModo" onchange="renderCategoriaEvolucion()" title="Medir la evolución en pesos o en unidades de producto">
+                        <option value="pesos">Medir en: Pesos</option>
+                        <option value="unidades">Medir en: Unidades</option>
+                    </select>
+                    <select class="filter-select" id="categoriaEvolSelect" onchange="renderCategoriaEvolucion()" style="min-width:200px"></select>
+                </div>
             </div>
-            <div style="padding:0 22px 18px;font-size:12px;color:var(--text-3)">Usa los filtros de Año/Marca/Tienda de arriba (el de Mes no aplica acá, tapa la evolución)</div>
+            <div style="padding:0 22px 18px;font-size:12px;color:var(--text-3)">Usa los filtros de Año/Marca/Tienda de arriba (el de Mes no aplica acá, tapa la evolución)<span id="categoriaEvolNota"></span></div>
             <div class="chart-row" style="padding:0 22px 22px">
                 <div>
-                    <h3 style="font-size:13px;margin-bottom:8px;color:var(--text-2)">Ingresos por mes</h3>
+                    <h3 id="categoriaEvolTituloMensual" style="font-size:13px;margin-bottom:8px;color:var(--text-2)">Ingresos por mes</h3>
                     <div class="chart-wrap"><canvas id="chartCategoriaEvolMensual"></canvas></div>
                 </div>
                 <div>
-                    <h3 style="font-size:13px;margin-bottom:8px;color:var(--text-2)">Promedio por semana del mes</h3>
+                    <h3 id="categoriaEvolTituloSemana" style="font-size:13px;margin-bottom:8px;color:var(--text-2)">Promedio por semana del mes</h3>
                     <div class="chart-wrap"><canvas id="chartCategoriaEvolSemana"></canvas></div>
                 </div>
             </div>
